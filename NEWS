@@ -18,6 +18,10 @@ change "<p>__description__</p>" to "__description__".
 HTML metacharacters in links are now encoded correctly in generated
 HTML ("foo?a=b&c=d" as "foo?a=b&amp;c=d").
 
+Content type selection is now performed for all elements returned from
+the feed, since some Blogger v5 feeds cause feedparser to return
+multiple versions of the title and link (reported by Eric Cronin).
+
 - rawdog 1.10
 
 Add "ignoretimeouts" option to silently ignore timeout errors.

@@ -40,21 +40,21 @@ def format_time(secs, config):
 	return time.strftime(format, t)
 
 def select_content(contents):
-	"""Select the best content element from an Echo feed."""
-	if type(contents) == str:
-		return contents
-	preferred = ["text/html", "application/xhtml+xml"]
+	"""Given a list of contents with alternative content types, select a
+	preferred version."""
+	types = {"text/html": 30,
+	         "application/xhtml+xml": 20,
+	         "text/plain": 10}
 	cs = []
 	for c in contents:
-		ctype = c["type"]
-		if ctype in preferred:
-			score = preferred.index(ctype)
-			cs.append((score, c["value"]))
+		ctype = c.get("type")
+		if types.has_key(ctype):
+			score = types[ctype]
+		else:
+			score = 0
+		cs.append((score, c["value"]))
 	cs.sort()
-	if len(cs) == 0:
-		return None
-	else:
-		return cs[0][1]
+	return cs[-1][1]
 
 def encode_references(s):
 	"""Encode characters in a Unicode string using HTML references."""
@@ -270,7 +270,7 @@ class Feed:
 
 			description = None
 			if description is None and item.has_key("content"):
-				description = self.decode(select_content(item["content"]))
+				description = self.decode(item["content"])
 			if description is None:
 				description = self.decode(item.get("description"))
 
@@ -287,10 +287,13 @@ class Feed:
 		return seen_items
 
 	def decode(self, s):
-		"""Convert a string retrieved from the feed from its original
-		encoding to our target encoding for HTML output."""
+		"""Convert a string or alternatives list retrieved from the
+		feed from its original encoding to our target encoding for HTML
+		output."""
 		if s is None:
 			return None
+		if type(s) != str:
+			s = select_content(s)
 		try:
 			us = s.decode(self.encoding)
 		except ValueError:

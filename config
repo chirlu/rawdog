@@ -25,6 +25,11 @@ userefresh 1
 # Whether to show the list of active feeds in the generated HTML.
 showfeeds 1
 
+# The time in seconds that rawdog will wait before considering a feed
+# unreachable when trying to connect. If you're getting lots of timeout
+# errors and are on a slow connection, increase this.
+timeout 30
+
 # The feeds you want to watch, in the format "feed period url".
 # The period is the minimum time in minutes between updates; if less
 # than period minutes have passed, "rawdog update" will skip that feed.

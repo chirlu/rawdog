@@ -13,6 +13,9 @@ write").  The old syntax will be supported until 2.0.
 
 Warning output from --update now goes to stderr instead of stdout.
 
+Made the socket timeout configurable (which also means the included copy
+of feedparser isn't modified any more).
+
 - rawdog 1.2
 
 Updated feedparser to 2.5.2, which fixes a bug that was making rawdog

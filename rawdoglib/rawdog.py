@@ -23,9 +23,6 @@ import os, time, sha, getopt, sys
 from StringIO import StringIO
 import timeoutsocket
 
-# Override the timeout set by feedparser.
-timeoutsocket.setDefaultSocketTimeout(30)
-
 def format_time(secs, config):
 	"""Format a time and date nicely."""
 	t = time.localtime(secs)
@@ -254,6 +251,7 @@ class Config:
 			"timeformat" : "%I:%M %p",
 			"userefresh" : 0,
 			"showfeeds" : 1,
+			"timeout" : 30,
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -297,6 +295,8 @@ class Config:
 			self["userefresh"] = int(l[1])
 		elif l[0] == "showfeeds":
 			self["showfeeds"] = int(l[1])
+		elif l[0] == "timeout":
+			self["timeout"] = int(l[1])
 		else:
 			raise ConfigError("Unknown config command: " + l[0])
 
@@ -316,6 +316,8 @@ class Rawdog(Persistable):
 
 	def update(self, config, feedurl = None):
 		now = time.time()
+
+		timeoutsocket.setDefaultSocketTimeout(config["timeout"])
 
 		seenfeeds = {}
 		for (url, period) in config["feedslist"]:

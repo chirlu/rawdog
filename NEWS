@@ -11,6 +11,8 @@ Rein).
 If you return false from an output_items_heading function, then disable
 DayWriter (suggested by Ian Glover).
 
+Fix description of article_seen in PLUGINS (reported by Steve Atwell).
+
 - rawdog 2.3
 
 Make the id= parameter work correctly (patch from Jon Nelson).

@@ -159,7 +159,7 @@ actions before fetching a feed.
 
 Called after a feed is updated.
 
-### input_filter(rawdog, config, article, ignore)
+### article_seen(rawdog, config, article, ignore)
 
 * article: the Article that has been received
 * ignore: a Boxed boolean indicating whether to ignore the article

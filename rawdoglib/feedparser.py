@@ -11,9 +11,10 @@ Recommended: CJKCodecs and iconv_codec <http://cjkpython.i18n.org/>
 
 Changes made by Adam Sampson <azz@us-lot.org> for rawdog:
 - provide _raw versions of text content
+- handle file: URLs
 """
 
-#__version__ = "pre-3.3-" + "$Revision: 1.21 $"[11:15] + "-cvs"
+#__version__ = "pre-3.3-" + "$Revision: 1.22 $"[11:15] + "-cvs"
 __version__ = "3.3"
 __license__ = "Python"
 __copyright__ = "Copyright 2002-4, Mark Pilgrim"
@@ -1562,6 +1563,9 @@ def _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, h
 
     if url_file_stream_or_string == "-":
         return sys.stdin
+
+    if url_file_stream_or_string.startswith("file:"):
+        url_file_stream_or_string = url_file_stream_or_string[5:]
 
     if urlparse.urlparse(url_file_stream_or_string)[0] in ('http', 'https', 'ftp'):
         if not agent:

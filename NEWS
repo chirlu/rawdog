@@ -43,7 +43,8 @@ Provide human-readable __feed_id__ in items (patch from David
 Durschlag), and add feed-whatevername class to the default item
 template; this should make it somewhat easier to add per-feed styles.
 
-Handle feeds that are local files correctly (reported by Chris Niekel).
+Handle feeds that are local files correctly, and handle file: URLs in
+feedparser (reported by Chris Niekel).
 
 Allow feed arguments to be given on indented lines after the "feed" or
 "feeddefaults" lines; this makes it possible to have spaces in feed

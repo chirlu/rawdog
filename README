@@ -1,0 +1,62 @@
+rawdog: RSS Aggregator Without Delusions Of Grandeur
+Adam Sampson <azz@us-lot.org>
+
+rawdog is an RSS aggregator, based on Mark Pilgrim's flexible RSS parser. It's
+just an RSS aggregator; it's not a weblog authoring tool, nor is it an NNTP
+gateway, outliner, mailserver or anything else. rawdog probably only runs on
+Unix-like systems.
+
+rawdog reads articles from a number of RSS feeds and writes out a single HTML
+file containing the latest articles it's seen. It uses the ETags and
+Last-Modified headers to avoid fetching a file that hasn't changed, and
+supports gzip compression to reduce bandwidth when it has. It is configured
+from a simple text file; the only state kept between invocations that can't be
+reconstructed from the RSS feeds is the ordering of articles.
+
+To install rawdog on your system, use distutils -- "python setup.py install".
+This will install the library modules that rawdog needs, and will install the
+"rawdog" binary that you can use to run it. (If you want to install to a
+non-standard prefix, read the help provided by "python setup.py install
+--help".)
+
+rawdog needs a config file to function. Make the directory ".rawdog" in your
+$HOME directory, copy the provided file "config" into that directory, and edit
+it to suit your preferences. (Comments in that file describe what each of the
+options does.) You should copy the provided file "style.css" into the same
+directory that you've told rawdog to write its HTML output to. (rawdog should
+be usable from a browser that doesn't support CSS, but it won't be very
+pretty.)
+
+When you invoke rawdog from the command line, you give it a series of actions
+to perform -- for instance, "rawdog update write" tells it to do the "update"
+action, then the "write" action. The actions supported are as follows:
+
+"update": Fetch data from the RSS feeds and store it. This could take some time
+if you've got lots of feeds.
+
+"write": Write out the HTML output file.
+
+"list": List brief information about each of the RSS feeds that was known about
+when "update" was last done.
+
+You will want to run "rawdog update write" periodically to fetch data and write
+the output file. The easiest way to do this is to add a crontab entry that
+looks something like this:
+
+0,10,20,30,40,50 * * * *        /path/to/rawdog update write
+
+(If you don't know how to use cron, then "man crontab" is probably a good
+start.) This will run rawdog every ten minutes.
+
+In the event that rawdog gets horribly confused (for instance, if your system
+clock has a huge jump and it thinks it won't need to fetch anything for the
+next thirty years), you can forcibly clear its state by removing the
+~/.rawdog/state file.
+
+If you don't like the appearance of rawdog, then customise the style.css file.
+If you come up with one that looks much better than the existing one, please
+send it to me!
+
+This should, hopefully, be all you need to know. If rawdog breaks in
+interesting ways, please tell me at the email address at the top of this file.
+

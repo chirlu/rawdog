@@ -1,0 +1,34 @@
+# Sample rawdog config file. Copy this into your ~/.rawdog/ directory, and edit
+# it to suit your preferences.
+
+# The maximum number of articles to show on the generated page.
+maxarticles 200
+
+# The format to write day headings in. (See "man strftime" if you want to
+# change this.)
+dayformat %A, %d %B
+
+# The format to write time headings in. Use "%I:%M %p" if you prefer
+# a 12-hour clock.
+timeformat %H:%M
+
+# Where to write the output HTML to. You should place style.css in the same
+# directory.
+outputfile /home/azz/public_html/rawdog.html
+
+# Whether to use (1) or not use (0) a <meta http-equiv="Refresh" ...> tag
+# in the generated HTML to indicate that the page should be refreshed
+# automatically. If this is turned on, then the page will refresh every N
+# minutes, where N is the shortest feed period value specified below.
+userefresh 1
+
+# The feeds you want to watch, in the format "feed period url".
+# The period is the minimum time in minutes between updates; if less
+# than period minutes have passed, "rawdog update" will skip that feed.
+# Specifying a period less than 30 minutes is considered to be bad manners; it
+# is suggested that you make the period as long as possible.
+# You can specify as many feeds as you like.
+feed 60 http://www.advogato.org/rss/articles.xml
+feed 30 http://news.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss091.xml
+feed 180 http://diveintomark.org/xml/rss.xml
+

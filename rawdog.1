@@ -37,10 +37,12 @@ Read
 .I FILE
 as an additional config file; any options provided in
 .I FILE
-will override those set in the default config (with the exception of
+will override those set in the main config file (with the exception of
 "feed", which is cumulative).
 .I FILE
 may be an absolute path or a path relative to your .rawdog directory.
+Note that $HOME/.rawdog/config will still be read first even if you
+specify this option.
 .TP
 .B \-t, \ \-\-show\-template
 Print the template currently in use to stdout.

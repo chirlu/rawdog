@@ -2,9 +2,9 @@ FIXME: redo sorting hack in feedparser.
 
 - Length limiting in template
 - feed_name for use in classes
-- Parseable stats output mode
 - Include author info (and update template)
 - plugin system
+- add new feeds at end of file (checking newline)
 
 - Article numbering (probably not)
 

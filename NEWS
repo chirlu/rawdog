@@ -3,25 +3,28 @@
 Update to feedparser 3.3. This meant reworking some of rawdog's
 internals; state files from old versions will no longer work with rawdog
 2.0 (and external programs that manipulate rawdog state files will also
-be broken).
+be broken). The new feedparser provides a much nicer API, and is
+significantly more robust; several feeds that previously caused
+feedparser internal errors or Python segfaults now work fine.
 
-rawdog now has a --upgrade option to allow it to import state from
-rawdog 1.x state files into rawdog 2.x; to upgrade from 1.x to 2.x,
-you'll need to perform the following steps:
+Add an --upgrade option to import state from rawdog 1.x state files into
+rawdog 2.x. To upgrade from 1.x to 2.x, you'll need to perform the
+following steps after installing the new rawdog:
 - cp -R ~/.rawdog ~/.rawdog-old
 - rm ~/.rawdog/state
-- rawdog -u (with the new rawdog, to add and fetch all the feeds)
+- rawdog -u
 - rawdog --upgrade ~/.rawdog-old ~/.rawdog (to copy the state)
 - rawdog -w
 - rm -r ~/.rawdog-old (once you're happy with the new version)
 
-rawdog now keeps track of a version number in the state file, and will
-complain if you use a state file from an incompatible version.
+Keep track of a version number in the state file, and complain if you
+use a state file from an incompatible version.
 
-The old option syntax ("rawdog update write") is no longer supported.
+Remove support for the old option syntax ("rawdog update write").
+Remove workarounds for early 1.x state file versions.
 
-The state file is now saved in the binary pickle format, and cPickle is
-used instead of pickle so it can be read and written more rapidly.
+Save the state file in the binary pickle format, and use cPickle instead
+of pickle so it can be read and written more rapidly.
 
 - rawdog 1.13
 

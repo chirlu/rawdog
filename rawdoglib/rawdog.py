@@ -145,15 +145,15 @@ def url_to_html(url):
 template_re = re.compile(r'__(.*?)__')
 def fill_template(template, bits):
 	"""Expand a template, replacing __x__ with bits["x"], and only
-	including sections bracketed by __if_x__ .. __endif__ if bits["x"]
-	is not "" (these cannot be nested). If not bits.has_key("x"),
+	including sections bracketed by __if_x__ .. [__else__ ..]
+	__endif__ if bits["x"] is not "". If not bits.has_key("x"),
 	__x__ expands to ""."""
 	f = StringIO()
 	l = template_re.split(template)
 	i = 0
-	writing = 1
+	if_stack = []
 	while 1:
-		if writing:
+		if not False in if_stack:
 			f.write(l[i])
 		i += 1
 		if i == len(l):
@@ -161,12 +161,13 @@ def fill_template(template, bits):
 		key = l[i]
 		if key.startswith("if_"):
 			k = key[3:]
-			if bits.has_key(k) and bits[k] != "":
-				writing = 1
-			else:
-				writing = 0
+			if_stack.append(bits.has_key(k) and bits[k] != "")
 		elif key == "endif":
-			writing = 1
+			if if_stack != []:
+				if_stack.pop()
+		elif key == "else":
+			if if_stack != []:
+				if_stack.append(not if_stack.pop())
 		elif bits.has_key(key):
 			f.write(bits[key])
 		i += 1

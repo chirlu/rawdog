@@ -85,8 +85,9 @@ template default
 # Simple conditional expansion is possible by saying something like
 # "__if_items__ hello __endif__"; the text between the if and endif will
 # only be included if __items__ would expand to something other than
-# the empty string. Ifs cannot be nested. (This also works for the
-# "template" option, but it's only really useful for item templates.)
+# the empty string. Ifs can be nested, and __else__ is supported. (This also
+# works for the "template" option, but it's only really useful for item
+# templates.)
 itemtemplate default
 
 # Where to write the output HTML to. You should place style.css in the same

@@ -69,6 +69,8 @@ def encode_references(s):
 	r.close()
 	return v
 
+# This list of block-level elements came from the HTML 4.01 specification.
+block_level_re = re.compile(r'^\s*<(p|h1|h2|h3|h4|h5|h6|ul|ol|pre|dl|div|noscript|blockquote|form|hr|table|fieldset|address)[^a-z]', re.I)
 def sanitise_html(html, baseurl, inline, config):
 	"""Attempt to turn arbitrary feed-provided HTML into something
 	suitable for safe inclusion into the rawdog output. The inline
@@ -85,6 +87,15 @@ def sanitise_html(html, baseurl, inline, config):
 	p.feed(html)
 	html = p.output()
 
+	if not inline:
+		# If we're after some block-level HTML and the HTML doesn't
+		# start with a block-level element, then insert a <p> tag
+		# before it. This still fails when the HTML contains text, then
+		# a block-level element, then more text, but it's better than
+		# nothing.
+		if block_level_re.match(html) is None:
+			html = "<p>" + html
+
 	if config["tidyhtml"]:
 		import mx.Tidy
 		# mx.Tidy won't accept Unicode strings, so we have to
@@ -94,15 +105,6 @@ def sanitise_html(html, baseurl, inline, config):
 		output = output.decode("UTF-8")
 		html = output[output.find("<body>") + 6
 		              : output.rfind("</body>")].strip()
-
-	if not inline:
-		# Wrap block-level text that don't start with an element in a
-		# paragraph. This isn't perfect (it gets it wrong when a bit of
-		# text starts with a link, for instance), but it's better than
-		# nothing.
-		s = html.strip()
-		if s != "" and s[0] != "<":
-			html = "<p>" + s + "</p>"
 
 	return encode_references(html)
 

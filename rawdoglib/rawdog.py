@@ -1,5 +1,8 @@
+# FIXME update content selection stuff
+# FIXME redo sorting hack in feedparser
+# FIXME maybe redo numeric entities patch?
 # rawdog: RSS aggregator without delusions of grandeur.
-# Copyright 2003 Adam Sampson <azz@us-lot.org>
+# Copyright 2003, 2004 Adam Sampson <azz@us-lot.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software
@@ -82,8 +85,8 @@ def sanitise_html(html, baseurl, inline, config):
 	# sgmllib handles "<br/>/" as a SHORTTAG; this workaround from
 	# feedparser.
 	html = re.sub(r'(\S)/>', r'\1 />', html)
-	html = feedparser.resolveRelativeURIs(html, baseurl)
-	p = feedparser.HTMLSanitizer()
+	html = feedparser._resolveRelativeURIs(html, baseurl, None)
+	p = feedparser._HTMLSanitizer(None)
 	p.feed(html)
 	html = p.output()
 
@@ -178,23 +181,34 @@ class Feed:
 		"""Fetch articles from a feed and add them to the collection.
 		Returns 1 if any articles were read, 0 otherwise."""
 
+		handlers = []
+
 		if self.args.has_key("user") and self.args.has_key("password"):
-			authinfo = (self.args["user"], self.args["password"])
-		else:
-			authinfo = None
+			class DummyPasswordMgr:
+				def __init__(self, creds):
+					self.creds = creds
+				def add_password(self, realm, uri, user, passwd):
+					pass
+				def find_user_password(self, realm, authuri):
+					return self.creds
+			mgr = DummyPasswordMgr((self.args["user"], self.args["password"]))
+			handlers.append(urllib2.HTTPBasicAuthHandler(mgr))
+
 		proxies = {}
 		for key in self.args.keys():
 			if key.endswith("_proxy"):
 				proxies[key[:-6]] = self.args[key]
-		if len(proxies.keys()) == 0:
-			proxies = None
+		if len(proxies.keys()) != 0:
+			handlers.append(urllib2.ProxyHandler(proxies))
 
-		feedparser.FeedParser.can_contain_relative_uris = []
-		feedparser.FeedParser.can_contain_dangerous_markup = []
+		feedparser._FeedParserMixin.can_contain_relative_uris = []
+		feedparser._FeedParserMixin.can_contain_dangerous_markup = []
 		try:
-			p = feedparser.parse(self.url, self.etag,
-				self.modified,	"rawdog/" + VERSION,
-				None, authinfo, proxies)
+			p = feedparser.parse(self.url,
+				etag = self.etag,
+				modified = self.modified,
+				agent = "rawdog/" + VERSION,
+				handlers = handlers)
 			status = p.get("status")
 		except:
 			p = None

@@ -438,8 +438,8 @@ class FeedParser(sgmllib.SGMLParser):
         # override internal declaration handler to handle CDATA blocks
         if _debug: sys.stderr.write("entering parse_declaration\n")
         if self.rawdata[i:i+9] == '<![CDATA[':
-            # Since CDATA blocks can nest, we need to find the corresponding
-            # end marker.
+            # Since some people assume CDATA blocks can nest, we need to find
+            # the corresponding end marker.
             n = 1
             loc = i + 9
             while 1:
@@ -889,8 +889,8 @@ class BaseHTMLProcessor(sgmllib.SGMLParser):
         # override internal declaration handler to handle CDATA blocks
         if _debug: sys.stderr.write("entering parse_declaration\n")
         if self.rawdata[i:i+9] == '<![CDATA[':
-            # Since CDATA blocks can nest, we need to find the corresponding
-            # end marker.
+            # Since some people assume CDATA blocks can nest, we need to find
+            # the corresponding end marker.
             n = 1
             loc = i + 9
             while 1:

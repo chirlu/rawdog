@@ -22,6 +22,9 @@ outputfile /home/azz/public_html/rawdog.html
 # minutes, where N is the shortest feed period value specified below.
 userefresh 1
 
+# Whether to show the list of active feeds in the generated HTML.
+showfeeds 1
+
 # The feeds you want to watch, in the format "feed period url".
 # The period is the minimum time in minutes between updates; if less
 # than period minutes have passed, "rawdog update" will skip that feed.

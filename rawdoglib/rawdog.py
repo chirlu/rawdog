@@ -986,6 +986,7 @@ __description__
 			else:
 				itembits["date"] = ""
 
+			plugins.call_hook("output_item_bits", self, config, feed, article, itembits)
 			f.write(fill_template(itemtemplate, itembits))
 
 		dw.close()
@@ -1013,6 +1014,7 @@ __description__
 		bits["feeds"] = f.getvalue()
 		bits["num_feeds"] = str(len(feeds))
 
+		plugins.call_hook("output_bits", self, config, bits)
 		s = fill_template(self.get_template(config), bits)
 		if outputfile == "-":
 			print s

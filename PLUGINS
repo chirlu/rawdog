@@ -116,6 +116,22 @@ Called before each item is written.
 
 Called after all items are written.
 
+### output_bits(rawdog, config, bits)
+
+* bits: a dictionary of template parameters
+
+Called before expanding the main template. This hook can be used to add
+extra template parameters.
+
+### output_item_bits(rawdog, config, feed, article, bits)
+
+* feed: the Feed containing this article
+* article: the Article being templated
+* bits: a dictionary of template parameters
+
+Called before expanding the item template for an article. This hook can
+be used to add extra template parameters.
+
 ### input_filter(rawdog, config, article, ignore)
 
 * article: the Article that has been received

@@ -144,7 +144,8 @@ class FeedParser(sgmllib.SGMLParser):
                 self.items[-1][element] = []
             self.items[-1][element].append({"language":self.contentlang, "type":self.contenttype, "value":output})
         elif self.initem:
-            self.items[-1][element] = output
+            if not (self.items[-1].has_key(element) and output.strip() == ""):
+                self.items[-1][element] = output
         elif self.inchannel:
             self.channel[element] = output
 

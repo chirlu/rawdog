@@ -355,6 +355,7 @@ class Config:
 			"timeout" : 30,
 			"template" : "default",
 			"itemtemplate" : "default",
+			"verbose" : 0,
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -412,6 +413,8 @@ class Config:
 			self["template"] = l[1]
 		elif l[0] == "itemtemplate":
 			self["itemtemplate"] = l[1]
+		elif l[0] == "verbose":
+			self["verbose"] = int(l[1])
 		else:
 			raise ConfigError("Unknown config command: " + l[0])
 
@@ -652,6 +655,7 @@ Usage: rawdog [OPTION]...
 
 General options (use only once):
 -d|--dir DIR                 Use DIR instead of ~/.rawdog
+-v, --verbose                Print more detailed status information
 --help                       Display this help and exit
 
 Actions (performed in order given):
@@ -669,7 +673,7 @@ def main(argv):
 	"""The command-line interface to the aggregator."""
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate"])
+		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:v", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose"])
 	except getopt.GetoptError, s:
 		print s
 		usage()
@@ -732,6 +736,8 @@ def main(argv):
 			rawdog.show_template(config)
 		elif o in ("-T", "--show-itemtemplate"):
 			rawdog.show_itemtemplate(config)
+		elif o in ("-v", "--verbose"):
+			config["verbose"] = 1
 
 	persister.save()
 

@@ -137,6 +137,11 @@ ignoretimeouts false
 # equivalent to saying "verbose true" here.
 verbose false
 
+# Whether to attempt to fix bits of HTML that should start with a
+# block-level element (such as article descriptions) by prepending "<p>"
+# if they don't already start with a block-level element.
+blocklevelhtml true
+
 # Whether to attempt to turn feed-provided HTML into valid HTML.
 # The most common problem that this solves is a non-closed element in an
 # article causing formatting problems for the rest of the page.

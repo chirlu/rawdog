@@ -32,6 +32,11 @@ from Decklin Foster).
 
 Fix conditional template expansion (patch from Decklin Foster).
 
+Add "blocklevelhtml" statement to disable the "<p>" workaround for
+non-block-level HTML; this may be useful if you have a plugin that is
+doing different HTML sanitisation, or if your template already forces a
+block-level element around article descriptions.
+
 - rawdog 2.1
 
 Fix a character encoding problem with format=text feeds.

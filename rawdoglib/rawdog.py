@@ -73,7 +73,7 @@ def sanitise_html(html, baseurl, inline, config):
 	p.feed(html)
 	html = p.output()
 
-	if not inline:
+	if not inline and config["blocklevelhtml"]:
 		# If we're after some block-level HTML and the HTML doesn't
 		# start with a block-level element, then insert a <p> tag
 		# before it. This still fails when the HTML contains text, then
@@ -192,6 +192,7 @@ def short_hash(s):
 	"""Return a human-manipulatable 'short hash' of a string."""
 	return sha.new(s).hexdigest()[-8:]
 
+nonalphanumeric_re = re.compile(r'[^a-z0-9]', re.I)
 class Feed:
 	"""An RSS feed."""
 
@@ -508,6 +509,7 @@ class Config:
 			"ignoretimeouts" : 0,
 			"daysections" : 1,
 			"timesections" : 1,
+			"blocklevelhtml" : 1,
 			"tidyhtml" : 0,
 			"sortbyfeeddate" : 0,
 			"currentonly" : 0,
@@ -599,6 +601,8 @@ class Config:
 			self["daysections"] = parse_bool(l[1])
 		elif l[0] == "timesections":
 			self["timesections"] = parse_bool(l[1])
+		elif l[0] == "blocklevelhtml":
+			self["blocklevelhtml"] = parse_bool(l[1])
 		elif l[0] == "tidyhtml":
 			self["tidyhtml"] = parse_bool(l[1])
 		elif l[0] == "sortbyfeeddate":

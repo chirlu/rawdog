@@ -297,8 +297,8 @@ class Article:
 			# This Article came from an old state file.
 			return None
 
-	def can_expire(self, now):
-		return ((now - self.last_seen) > (24 * 60 * 60))
+	def can_expire(self, now, config):
+		return ((now - self.last_seen) > (config["expireage"] * 60))
 
 class DayWriter:
 	"""Utility class for writing day sections into a series of articles."""
@@ -347,6 +347,7 @@ class Config:
 			"outputfile" : "output.html",
 			"maxarticles" : 200,
 			"maxage" : 0,
+			"expireage" : 1440,
 			"dayformat" : "%A, %d %B %Y",
 			"timeformat" : "%I:%M %p",
 			"userefresh" : 0,
@@ -398,6 +399,8 @@ class Config:
 			self["maxarticles"] = int(l[1])
 		elif l[0] == "maxage":
 			self["maxage"] = int(l[1])
+		elif l[0] == "expireage":
+			self["expireage"] = int(l[1])
 		elif l[0] == "dayformat":
 			self["dayformat"] = l[1]
 		elif l[0] == "timeformat":
@@ -483,7 +486,7 @@ class Rawdog(Persistable):
 			article = self.articles[key]
 			if ((not self.feeds.has_key(article.feed))
 			    or (seen_some_items.has_key(article.feed)
-			        and article.can_expire(now))):
+			        and article.can_expire(now, config))):
 				count += 1
 				del self.articles[key]
 		config.log("Expired ", count, " articles, leaving ", len(self.articles.keys()))

@@ -21,6 +21,10 @@ Treat empty titles, links or descriptions as if they weren't supplied at
 all, to cope with broken feeds that specify "<title></title>" (patch
 from Michael Leuchtenburg).
 
+Make the expiry age configurable; previously it was hard-wired to 24
+hours. Setting this to a larger value is useful if you want to have a
+page covering more than a day's feeds.
+
 - rawdog 1.8
 
 Add format=text feed option to handle broken feeds that make their

@@ -12,6 +12,11 @@ maxarticles 200
 # Set this to 0 for no limit.
 maxage 0
 
+# The age in minutes after which articles will be discarded if they do not
+# appear in a feed. Set this to a larger value if you want your rawdog
+# output to cover more than a day's worth of articles.
+expireage 1440
+
 # The format to write day headings in. (See "man strftime" if you want to
 # change this.)
 dayformat %A, %d %B

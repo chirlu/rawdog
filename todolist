@@ -1,11 +1,5 @@
 Look at Expires header to automatically select "periods"
 
-New Python-ish syntax for multiline feed entries in config file:
-
-feed 3h http://foo.bar.com/:
-  id fish
-  proxyuser foo
-
 FIXME: redo sorting hack in feedparser.
 
 - add new feeds at end of file (checking newline)
@@ -20,6 +14,7 @@ FIXME: redo sorting hack in feedparser.
   - per-feed proxies
   - length limiting in templates
   - mx.Tidy flag to output xhtml
+  - nuke future pubDates (Rick van Rein)
 - And new features to write as plugins
   - sort by feeds first (should work since sort is stable)
 
@@ -52,10 +47,6 @@ Feed schedule spreading.
 
 Timeouts should be ignored unless it's been getting timeouts for more than a
 configurable amount of time.
-
-Replace feed_hash with feed_id; let the user specify the ID in the config file
-(defaulting to the hash); let the user use the ID instead of the URL when
-specifying a feed.
 
 Add a needs_update() method to Feed; make Rawdog call that on all the feeds
 (when not being forced) and then call update() on each of them that needs it.

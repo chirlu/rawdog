@@ -1,3 +1,7 @@
+- rawdog 1.13
+
+Handle OverflowError with parsed dates (patch from Matthew Scott).
+
 - rawdog 1.12
 
 Add "sortbyfeeddate" option for planet pages (requested by David

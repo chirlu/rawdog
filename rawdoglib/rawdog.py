@@ -274,7 +274,10 @@ class Feed:
 
 			date = item.get("date_parsed")
 			if date is not None:
-				date = time.mktime(date)
+				try:
+					date = time.mktime(date)
+				except OverflowError:
+					date = None
 
 			description = None
 			if description is None and item.has_key("content"):

@@ -636,7 +636,7 @@ by <a href="mailto:azz@us-lot.org">Adam Sampson</a>.</p>
 <span class="itemfrom">[__feed_title__]</span>
 </p>
 __if_description__<div class="itemdescription">
-<p>__description__</p>
+__description__
 </div>__endif__
 </div>
 
@@ -708,7 +708,12 @@ __if_description__<div class="itemdescription">
 			if feed.args.has_key("format") and feed.args["format"] == "text":
 				description = "<pre>" + cgi.escape(article.description) + "</pre>"
 			else:
-				description = sanitise_html(article.description, baseurl, 0, config)
+				description = article.description
+				if description is not None:
+					s = description.strip()
+					if s != "" and s[0] != "<":
+						description = "<p>" + description + "</p>"
+				description = sanitise_html(description, baseurl, 0, config)
 			if description == "":
 				description = None
 

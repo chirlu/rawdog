@@ -8,6 +8,12 @@ items up by day and time (based on patch from Chris Cutler).
 
 Add "tidyhtml" option to use mx.Tidy to clean feed-provided HTML.
 
+Remove the <p> wrapping __description__ from the default item template,
+and make rawdog add <p>...</p> around the description only if it doesn't
+start with a tag. If you have a custom item template and want rawdog to
+generate valid HTML, you should change "<p>__description__</p>" to
+"__description__".
+
 - rawdog 1.10
 
 Add "ignoretimeouts" option to silently ignore timeout errors.

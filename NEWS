@@ -29,6 +29,8 @@ of pickle so it can be read and written more rapidly.
 Add hideduplicates and allowduplicates options to attempt to hide
 duplicate articles (based on patch from Grant Edwards).
 
+Fix a bug when sorting feeds with no titles (found by Joseph Reagle).
+
 - rawdog 1.13
 
 Handle OverflowError with parsed dates (patch from Matthew Scott).

@@ -118,7 +118,7 @@ class Feed:
 
 	def __init__(self, url):
 		self.url = url
-		self.period = 30
+		self.period = 30 * 60
 		self.args = {}
 		self.etag = None
 		self.modified = None
@@ -129,7 +129,7 @@ class Feed:
 	def needs_update(self, now):
 		"""Return 1 if it's time to update this feed, or 0 if its
 		update period has not yet elapsed."""
-		if (now - self.last_update) < (self.period * 60):
+		if (now - self.last_update) < self.period:
 			return 0
 		else:
 			return 1
@@ -298,7 +298,7 @@ class Article:
 			return None
 
 	def can_expire(self, now, config):
-		return ((now - self.last_seen) > (config["expireage"] * 60))
+		return ((now - self.last_seen) > config["expireage"])
 
 class DayWriter:
 	"""Utility class for writing day sections into a series of articles."""
@@ -336,6 +336,17 @@ class DayWriter:
 			print >>self.file, "</div>"
 			self.counter -= 1
 
+def parse_time(value, default = "m"):
+	"""Parse a time period with optional units (s, m, h, d, w) into a time
+	in seconds. If no unit is specified, use minutes by default; specify
+	the default argument to change this. Raises ValueError if the format
+	isn't recognised."""
+	units = { "s" : 1, "m" : 60, "h" : 3600, "d" : 86400, "w" : 604800 }
+	for unit in units.keys():
+		if value.endswith(unit):
+			return int(value[:-len(unit)]) * units[unit]
+	return int(value) * units[default]
+
 class ConfigError(Exception): pass
 
 class Config:
@@ -347,7 +358,7 @@ class Config:
 			"outputfile" : "output.html",
 			"maxarticles" : 200,
 			"maxage" : 0,
-			"expireage" : 1440,
+			"expireage" : 24 * 60 * 60,
 			"dayformat" : "%A, %d %B %Y",
 			"timeformat" : "%I:%M %p",
 			"userefresh" : 0,
@@ -392,15 +403,15 @@ class Config:
 				if len(as) != 2:
 					raise ConfigError("Bad feed argument in config: " + a)
 				args[as[0]] = as[1]
-			self["feedslist"].append((l[1], int(l[0]), args))
+			self["feedslist"].append((l[1], parse_time(l[0]), args))
 		elif l[0] == "outputfile":
 			self["outputfile"] = l[1]
 		elif l[0] == "maxarticles":
 			self["maxarticles"] = int(l[1])
 		elif l[0] == "maxage":
-			self["maxage"] = int(l[1])
+			self["maxage"] = parse_time(l[1])
 		elif l[0] == "expireage":
-			self["expireage"] = int(l[1])
+			self["expireage"] = parse_time(l[1])
 		elif l[0] == "dayformat":
 			self["dayformat"] = l[1]
 		elif l[0] == "timeformat":
@@ -410,7 +421,7 @@ class Config:
 		elif l[0] == "showfeeds":
 			self["showfeeds"] = int(l[1])
 		elif l[0] == "timeout":
-			self["timeout"] = int(l[1])
+			self["timeout"] = parse_time(l[1], "s")
 		elif l[0] == "template":
 			self["template"] = l[1]
 		elif l[0] == "itemtemplate":
@@ -564,11 +575,11 @@ __if_description__<div class="itemdescription">
 
 		bits = { "version" : VERSION }
 
-		refresh = 24 * 60
+		refresh = config["expireage"]
 		for feed in self.feeds.values():
 			if feed.period < refresh: refresh = feed.period
 
-		bits["refresh"] = """<meta http-equiv="Refresh" """ + 'content="' + str(refresh * 60) + '"' + """>"""
+		bits["refresh"] = """<meta http-equiv="Refresh" """ + 'content="' + str(refresh) + '"' + """>"""
 
 		articles = self.articles.values()
 		numarticles = len(articles)
@@ -596,7 +607,7 @@ __if_description__<div class="itemdescription">
 
 		count = 0
 		for article in articles:
-			age = (now - article.added) / 60
+			age = now - article.added
 			if config["maxage"] != 0 and age > config["maxage"]:
 				break
 
@@ -667,7 +678,7 @@ __if_description__<div class="itemdescription">
 			print >>f, '<td>' + feed.get_html_link() + '</td>'
 			print >>f, '<td><a class="xmlbutton" href="' + feed.url + '">XML</a></td>'
 			print >>f, '<td>' + format_time(feed.last_update, config) + '</td>'
-			print >>f, '<td>' + format_time(feed.last_update + 60 * feed.period, config) + '</td>'
+			print >>f, '<td>' + format_time(feed.last_update + feed.period, config) + '</td>'
 			print >>f, '</tr>'
 		print >>f, """</table>"""
 		bits["feeds"] = f.getvalue()

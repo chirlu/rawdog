@@ -4,18 +4,23 @@
 # directory.
 # If you want to include another config file, then use "include FILENAME".
 
+# Times in this file are specified as a value and a unit (for instance,
+# "4h").  Units available are "s" (seconds), "m" (minutes), "h" (hours),
+# "d" (days) and "w" (weeks). If no unit is specified, rawdog will
+# assume minutes.
+
 # The maximum number of articles to show on the generated page.
 # Set this to 0 for no limit.
 maxarticles 200
 
-# The maximum age in minutes of articles to show on the generated page.
+# The maximum age of articles to show on the generated page.
 # Set this to 0 for no limit.
 maxage 0
 
-# The age in minutes after which articles will be discarded if they do not
+# The age after which articles will be discarded if they do not
 # appear in a feed. Set this to a larger value if you want your rawdog
 # output to cover more than a day's worth of articles.
-expireage 1440
+expireage 1d
 
 # The format to write day headings in. (See "man strftime" if you want to
 # change this.)
@@ -76,10 +81,12 @@ userefresh 1
 # available.)
 showfeeds 1
 
-# The time in seconds that rawdog will wait before considering a feed
+# The time that rawdog will wait before considering a feed
 # unreachable when trying to connect. If you're getting lots of timeout
 # errors and are on a slow connection, increase this.
-timeout 30
+# (Unlike other times in this file, this will be assumed to be in seconds if no
+# unit is specified.)
+timeout 30s
 
 # Whether to display (1) or not display (0) verbose status messages
 # saying what rawdog's doing while it runs. Specifying -v or --verbose
@@ -87,7 +94,7 @@ timeout 30
 verbose 0
 
 # The feeds you want to watch, in the format "feed period url [args]".
-# The period is the minimum time in minutes between updates; if less
+# The period is the minimum time between updates; if less
 # than period minutes have passed, "rawdog update" will skip that feed.
 # Specifying a period less than 30 minutes is considered to be bad manners; it
 # is suggested that you make the period as long as possible.
@@ -100,10 +107,10 @@ verbose 0
 #                     and should be escaped and wrapped in a <pre> element
 # X_proxy             Proxy URL for protocol X (for instance, "http_proxy")
 # You can specify as many feeds as you like.
-feed 60 http://www.advogato.org/rss/articles.xml
-feed 30 http://news.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss091.xml
-feed 180 http://diveintomark.org/xml/rss.xml
-feed 180 http://secretfeed.example.com/secret.rss user=bob password=secret
-feed 180 http://brokenfeeds.com/my.rss format=text
-feed 180 http://proxyfeed.example.com/proxied.rss http_proxy=http://localhost:1234/
+feed 1h http://www.advogato.org/rss/articles.xml
+feed 30m http://news.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss091.xml
+feed 3h http://diveintomark.org/xml/rss.xml
+feed 3h http://secretfeed.example.com/secret.rss user=bob password=secret
+feed 3h http://brokenfeeds.com/my.rss format=text
+feed 3h http://proxyfeed.example.com/proxied.rss http_proxy=http://localhost:1234/
 

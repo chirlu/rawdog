@@ -25,6 +25,11 @@ Make the expiry age configurable; previously it was hard-wired to 24
 hours. Setting this to a larger value is useful if you want to have a
 page covering more than a day's feeds.
 
+Time specifications in the config file can now include a unit; if no
+unit is specified it'll default to minutes or seconds as appropriate to
+maintain compatibility with old config files (based on a suggestion by
+Tero Karvinen).
+
 - rawdog 1.8
 
 Add format=text feed option to handle broken feeds that make their

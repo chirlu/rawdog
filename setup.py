@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name = "rawdog",
-	version = "2.4rc1",
+	version = "2.4",
 	description = "RSS Aggregator Without Delusions Of Grandeur",
 	author = "Adam Sampson",
 	author_email = "azz@us-lot.org",

@@ -153,6 +153,12 @@ hideduplicates id
 # option.
 newfeedperiod 3h
 
+# Whether rawdog should automatically update this config file (and its
+# internal state) if feed URLs change (for instance, if a feed URL
+# results in a permanent HTTP redirect). If this is false, then rawdog
+# will ask you to make the necessary change by hand.
+changeconfig true
+
 # The feeds you want to watch, in the format "feed period url [args]".
 # The period is the minimum time between updates; if less than period
 # minutes have passed, "rawdog update" will skip that feed. Specifying

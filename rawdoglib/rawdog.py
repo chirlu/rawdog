@@ -204,10 +204,11 @@ class Feed:
 		else:
 			return 1
 	
-	def update(self, articles, now, config):
+	def update(self, rawdog, now, config):
 		"""Fetch articles from a feed and add them to the collection.
 		Returns 1 if any articles were read, 0 otherwise."""
 
+		articles = rawdog.articles
 		handlers = []
 
 		if self.args.has_key("user") and self.args.has_key("password"):
@@ -254,9 +255,14 @@ class Feed:
 				error = "Timeout while reading feed."
 		elif status == 301:
 			# Permanent redirect. The feed URL needs changing.
+
 			error = "New URL:     " + p["url"] + "\n"
 			error += "The feed has moved permanently to a new URL.\n"
-			error += "You should update its entry in your config file."
+			if config["changeconfig"]:
+				rawdog.change_feed_url(self.url, p["url"])
+				error += "The config file has been updated automatically."
+			else:
+				error += "You should update its entry in your config file."
 			non_fatal = 1
 		elif status in [403, 410]:
 			# The feed is disallowed or gone. The feed should be unsubscribed.
@@ -460,6 +466,7 @@ class Config:
 			"currentonly" : 0,
 			"hideduplicates" : "",
 			"newfeedperiod" : "3h",
+			"changeconfig": 0,
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -541,6 +548,10 @@ class Config:
 			self["currentonly"] = parse_bool(l[1])
 		elif l[0] == "hideduplicates":
 			self["hideduplicates"] = parse_list(l[1])
+		elif l[0] == "newfeedperiod":
+			self["newfeedperiod"] = l[1]
+		elif l[0] == "changeconfig":
+			self["changeconfig"] = parse_bool(l[1])
 		elif l[0] == "include":
 			self.load(l[1])
 		else:
@@ -587,6 +598,16 @@ def add_feed(filename, url, config):
 		feedline = "feed %s %s\n" % (config["newfeedperiod"], feed)
 		edit_file(filename, AddFeedEditor(feedline).edit)
 
+class ChangeFeedEditor:
+	def __init__(self, oldurl, newurl):
+		self.oldurl = oldurl
+		self.newurl = newurl
+	def edit(self, line, outputfile):
+		ls = line.strip().split(None)
+		if len(ls) > 2 and ls[0] == "feed" and ls[2] == self.oldurl:
+			line = line.replace(self.oldurl, self.newurl, 1)
+		outputfile.write(line)
+
 class Rawdog(Persistable):
 	"""The aggregator itself."""
 
@@ -603,6 +624,28 @@ class Rawdog(Persistable):
 			# rawdog 1.x didn't keep track of this.
 			version = 1
 		return version == STATE_VERSION
+
+	def change_feed_url(self, oldurl, newurl):
+		"""Change the URL of a feed."""
+
+		assert self.feeds.has_key(oldurl)
+		if self.feeds.has_key(newurl):
+			print >>sys.stderr, "Error: New feed URL is already subscribed; please remove the old one"
+			print >>sys.stderr, "from the config file by hand."
+			return
+
+		edit_file("config", ChangeFeedEditor(oldurl, newurl).edit)
+
+		feed = self.feeds[oldurl]
+		feed.url = newurl
+		del self.feeds[oldurl]
+		self.feeds[newurl] = feed
+
+		for article in self.articles.values():
+			if article.feed == oldurl:
+				article.feed = newurl
+
+		print >>sys.stderr, "Feed URL automatically changed."
 
 	def list(self):
 		for url in self.feeds.keys():
@@ -651,7 +694,7 @@ class Rawdog(Persistable):
 		for url in update_feeds:
 			count += 1
 			config.log("Updating feed ", count, " of " , numfeeds, ": ", url)
-			if self.feeds[url].update(self.articles, now, config):
+			if self.feeds[url].update(self, now, config):
 				seen_some_items[url] = 1
 
 		count = 0

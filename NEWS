@@ -41,6 +41,9 @@ config file.
 Correctly handle dates with timezones specified in non-UTC locales
 (reported by Paul Tomblin and Jon Lasser).
 
+When a feed's URL changes, as indicated by a permanent HTTP redirect,
+automatically update the config file and state.
+
 - rawdog 1.13
 
 Handle OverflowError with parsed dates (patch from Matthew Scott).

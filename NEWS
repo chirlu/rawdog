@@ -1,5 +1,7 @@
 - rawdog 1.7
 
+Fix code in iso8601.py that caused a warning with Python 2.3.
+
 - rawdog 1.6
 
 Config file lines are now split on arbitary strings of whitespace, not

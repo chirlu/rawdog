@@ -11,6 +11,7 @@ This module was written by Fred L. Drake, Jr. <fdrake@acm.org>.
 (Included in rawdog from the PyXML 0.8.2 distribution; the licensing terms
 appear to be the "BEOPEN PYTHON OPEN SOURCE LICENSE AGREEMENT VERSION 1",
 available at <http://www.python.org/2.0.1/license.html>.)
+(Modified for Python 2.3 compatibility.)
 """
 
 __version__ = '1.0'
@@ -25,7 +26,7 @@ def parse(s):
     if m is None or m.group() != s:
         raise ValueError, "unknown or illegal ISO-8601 date format: " + `s`
     gmt = __extract_date(m) + __extract_time(m) + (0, 0, 0)
-    return time.mktime(gmt) + __extract_tzd(m) - time.timezone
+    return time.mktime(map(int, gmt)) + __extract_tzd(m) - time.timezone
 
 
 def parse_timezone(timezone):

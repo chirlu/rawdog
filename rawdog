@@ -17,7 +17,7 @@
 # Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 # MA 02111-1307 USA, or see http://www.gnu.org/.
 
-VERSION = "0.3"
+VERSION = "0.4"
 import rawdoglib.rssparser as rssparser
 import sys, pickle, os, fcntl, time, sha
 

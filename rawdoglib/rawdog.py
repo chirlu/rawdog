@@ -384,7 +384,7 @@ class Feed:
 
 	def get_id(self, config):
 		if self.args.has_key("id"):
-			return self.args[id]
+			return self.args["id"]
 		else:
 			r = self.get_html_name(config).lower()
 			return non_alphanumeric_re.sub('', r)

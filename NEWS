@@ -14,10 +14,6 @@ select classes for groups of feeds, generate different HTML for
 different sorts of feeds, or set the title in different pages generated
 from the same template (suggested by Decklin Foster).
 
-Add -S|--stats option to print a machine-readable count of articles
-added/updated/expired/stored for use by scripts (requested by Jon
-Lasser).
-
 Fix a logic error in the _raw changes to feedparser: if a feed didn't
 specify its encoding but contained non-ASCII characters, rawdog will
 now try to parse it as UTF-8 (which it should be) and, failing that,

@@ -91,6 +91,8 @@ class Feed:
 			error = "The feed returned an error.\n"
 			error += "If this condition persists, you should remove it from your config file."
 
+		self.last_update = now
+
 		if error is not None:
 			print "Feed:        " + self.url
 			if status is not None:
@@ -99,8 +101,6 @@ class Feed:
 			print
 			if not non_fatal:
 				return 0
-
-		self.last_update = now
 
 		self.etag = p.get("etag")
 		self.modified = p.get("modified")

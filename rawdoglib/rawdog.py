@@ -144,7 +144,7 @@ def url_to_html(url):
 	"""Convert a URL string to HTML."""
 	return cgi.escape(url)
 
-template_re = re.compile(r'__(.*?)__')
+template_re = re.compile(r'(__.*?__)')
 def fill_template(template, bits):
 	"""Expand a template, replacing __x__ with bits["x"], and only
 	including sections bracketed by __if_x__ .. [__else__ ..]
@@ -156,28 +156,26 @@ def fill_template(template, bits):
 		return result.value
 
 	f = StringIO()
-	l = template_re.split(template)
-	i = 0
 	if_stack = []
-	while 1:
+	def write(s):
 		if not False in if_stack:
-			f.write(l[i])
-		i += 1
-		if i == len(l):
-			break
-		key = l[i]
-		if key.startswith("if_"):
-			k = key[3:]
-			if_stack.append(bits.has_key(k) and bits[k] != "")
-		elif key == "endif":
-			if if_stack != []:
-				if_stack.pop()
-		elif key == "else":
-			if if_stack != []:
-				if_stack.append(not if_stack.pop())
-		elif bits.has_key(key) and not False in if_stack:
-			f.write(bits[key])
-		i += 1
+			f.write(s)
+	for part in template_re.split(template):
+		if part.startswith("__") and part.endswith("__"):
+			key = part[2:-2]
+			if key.startswith("if_"):
+				k = key[3:]
+				if_stack.append(bits.has_key(k) and bits[k] != "")
+			elif key == "endif":
+				if if_stack != []:
+					if_stack.pop()
+			elif key == "else":
+				if if_stack != []:
+					if_stack.append(not if_stack.pop())
+			elif bits.has_key(key):
+				write(bits[key])
+		else:
+			write(part)
 	return f.getvalue()
 
 file_cache = {}

@@ -192,7 +192,7 @@ def short_hash(s):
 	"""Return a human-manipulatable 'short hash' of a string."""
 	return sha.new(s).hexdigest()[-8:]
 
-nonalphanumeric_re = re.compile(r'[^a-z0-9]', re.I)
+non_alphanumeric_re = re.compile(r'<[^>]*>|\&[^\;]*\;|[^a-z0-9]')
 class Feed:
 	"""An RSS feed."""
 
@@ -351,6 +351,13 @@ class Feed:
 			return '<a href="' + url_to_html(self.feed_info["link"]) + '">' + s + '</a>'
 		else:
 			return s
+
+	def get_id(self, config):
+		if self.args.has_key("id"):
+			return self.args[id]
+		else:
+			r = self.get_html_name(config).lower()
+			return non_alphanumeric_re.sub('', r)
 
 class Article:
 	"""An article retrieved from an RSS feed."""
@@ -710,13 +717,14 @@ class Rawdog(Persistable):
 
 		print >>sys.stderr, "Feed URL automatically changed."
 
-	def list(self):
+	def list(self, config):
 		for url in self.feeds.keys():
 			feed = self.feeds[url]
 			feed_info = feed.feed_info
 			print url
+			print "  ID:", feed.get_id(config)
 			print "  Hash:", short_hash(url)
-			print "  Title:", feed_info.get("title")
+			print "  Title:", feed.get_html_name(config)
 			print "  Link:", feed_info.get("link")
 
 	def sync_from_config(self, config):
@@ -832,7 +840,7 @@ by <a href="mailto:azz@us-lot.org">Adam Sampson</a>.</p>
 		if config["itemtemplate"] != "default":
 			return load_file(config["itemtemplate"])
 
-		template = """<div class="item feed-__feed_hash__" id="item-__hash__">
+		template = """<div class="item feed-__feed_hash__ feed-__feed_id__" id="item-__hash__">
 <p class="itemheader">
 <span class="itemtitle">__title__</span>
 <span class="itemfrom">[__feed_title__]</span>
@@ -984,6 +992,7 @@ __description__
 			itembits["feed_title"] = feed.get_html_link(config)
 			itembits["feed_url"] = feed.url
 			itembits["feed_hash"] = short_hash(feed.url)
+			itembits["feed_id"] = feed.get_id(config)
 			itembits["hash"] = short_hash(article.hash)
 
 			if description is not None:
@@ -1143,7 +1152,7 @@ def main(argv):
 		elif o in ("-f", "--update-feed"):
 			rawdog.update(config, a)
 		elif o in ("-l", "--list"):
-			rawdog.list()
+			rawdog.list(config)
 		elif o in ("-w", "--write"):
 			rawdog.write(config)
 		elif o in ("-c", "--config"):

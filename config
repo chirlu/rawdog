@@ -91,6 +91,10 @@ template default
 #                     The feed title (as text)
 # __feed_url__        The feed URL
 # __feed_hash__       A hash of the feed URL (useful for per-feed styles)
+# __feed_id__         The feed's title with non-alphanumeric characters
+#                     (and HTML markup) removed (useful for per-feed
+#                     styles); you can use the "id" feed option below to
+#                     set a custom ID if you prefer
 # You can define additional strings on a per-feed basis by using the
 # "define_X" feed option; see the description of "feed" below for more
 # details.
@@ -184,6 +188,10 @@ changeconfig true
 # suggested that you make the period as long as possible.
 # Arguments are optional, and are of the form "key=value", seperated by spaces;
 # possible arguments are:
+# id                  Value for the __feed_id__ value in the item
+#                     template for items in this feed (defaults to the
+#                     feed title with non-alphanumeric characters and
+#                     HTML markup removed)
 # user                User for HTTP basic authentication
 # password            Password for HTTP basic authentication
 # format              "text" to indicate that the descriptions in this feed
@@ -199,7 +207,7 @@ changeconfig true
 # "feeddefaults [args]". You can specify as many feeds as you like.
 feeddefaults http_proxy=http://proxy.example.com:3128/
 feed 1h http://www.advogato.org/rss/articles.xml
-feed 30m http://news.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss091.xml
+feed 30m http://news.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss091.xml id=bbcfront
 feed 3h http://diveintomark.org/xml/rss.xml
 feed 3h http://secretfeed.example.com/secret.rss user=bob password=secret
 feed 3h http://brokenfeeds.com/my.rss format=text define_myclass=broken

@@ -11,10 +11,14 @@ now encoded in UTF-8 rather than ISO-8859-1 as before).
 Use standard option syntax (i.e. "--update --write" instead of "update
 write").  The old syntax will be supported until 2.0.
 
-Warning output from --update now goes to stderr instead of stdout.
+Error output from reading the config file and from --update now goes to
+stderr instead of stdout.
 
 Made the socket timeout configurable (which also means the included copy
 of feedparser isn't modified any more).
+
+Added --config option to read an additional config file; this lets you
+have multiple output files with different options.
 
 - rawdog 1.2
 

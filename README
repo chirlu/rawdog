@@ -45,6 +45,15 @@ known feed: Update that feed immediately, even if its period hasn't
 elapsed since it was last updated. This is useful if you're trying to
 debug your own feed.
 
+"--config FILE" (or "-c FILE"), where FILE is an absolute path or a path
+relative to your .rawdog directory: Read FILE as an additional config
+file; any options provided in FILE will override those set in the
+default config (with the exception of "feed", which is cumulative).
+This is useful if you want rawdog to write two different output files
+with different sets of options ("rawdog -u -w -c config2 -w" will first
+update and write with the default config, then read config2, then write
+again).
+
 You will want to run "rawdog -uw" periodically to fetch data and write
 the output file. The easiest way to do this is to add a crontab entry
 that looks something like this:

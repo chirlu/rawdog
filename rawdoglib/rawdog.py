@@ -488,7 +488,10 @@ Usage: rawdog [OPTION]...
 -l, --list                   List feeds known at time of last update
 -w, --write                  Write out HTML output
 -f|--update-feed URL         Force an update on the single feed URL
+-c|--config FILE             Read additional config file FILE
 --help                       Display this help and exit
+
+Actions are taken in the order they are given on the command line.
 
 Report bugs to <azz@us-lot.org>."""
 
@@ -496,7 +499,7 @@ def main(argv):
 	"""The command-line interface to the aggregator."""
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:", ["update", "list", "write", "update-feed=", "help"])
+		(optlist, args) = getopt.getopt(argv, "ulwf:c:", ["update", "list", "write", "update-feed=", "help", "config="])
 	except getopt.GetoptError, s:
 		print s
 		usage()
@@ -525,7 +528,8 @@ def main(argv):
 	try:
 		config.load("config")
 	except ConfigError, err:
-		print err
+		print >>sys.stderr, "In config:"
+		print >>sys.stderr, err
 		return 1
 
 	persister = Persister("state", Rawdog)	
@@ -540,6 +544,13 @@ def main(argv):
 			rawdog.write(config)
 		elif o in ("-f", "--update-feed"):
 			rawdog.update(config, a)
+		elif o in ("-c", "--config"):
+			try:
+				config.load(a)
+			except ConfigError, err:
+				print >>sys.stderr, "In " + a + ":"
+				print >>sys.stderr, err
+				return 1
 
 	persister.save()
 

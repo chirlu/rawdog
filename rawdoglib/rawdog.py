@@ -554,8 +554,22 @@ def main(argv):
 		print >>sys.stderr, err
 		return 1
 
-	persister = Persister(config["statefile"], Rawdog)	
-	rawdog = persister.load()
+	persister = None
+	rawdog = None
+
+	prev_statefile = None
+	def change_statefile(name):
+		if prev_statefile == name:
+			return
+		if persister is not None:
+			persister.save()
+		persister = None
+		if name is not None:
+			persister = Persister(name, Rawdog)
+			rawdog = persister.load()
+		prev_statefile = name
+
+	change_statefile(config["statefile"])
 
 	for o, a in optlist:
 		if o in ("-u", "--update"):
@@ -573,10 +587,11 @@ def main(argv):
 				print >>sys.stderr, "In " + a + ":"
 				print >>sys.stderr, err
 				return 1
+			change_statefile(config["statefile"])
 		elif o in ("-t", "--show-template"):
 			rawdog.show_template(config)
 
-	persister.save()
+	change_statefile(None)
 
 	return 0
 

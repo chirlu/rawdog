@@ -47,6 +47,8 @@ For rawdog 3:
 - generalise templating (so the show template option takes a name, etc.)
 - require Python 2.3
   - use unicode.encode('ascii','xmlcharrefreplace') if possible?
+  - "for line in file"
+  - "item in dict"
 - include author in article hash
 
 Abandoned:

@@ -19,7 +19,7 @@
 VERSION = "1.3"
 import feedparser
 from persister import Persistable, Persister
-import os, time, sha, getopt
+import os, time, sha, getopt, sys
 from StringIO import StringIO
 import timeoutsocket
 
@@ -99,11 +99,11 @@ class Feed:
 		self.last_update = now
 
 		if error is not None:
-			print "Feed:        " + self.url
+			print >>sys.stderr, "Feed:        " + self.url
 			if status is not None:
-				print "HTTP Status: " + str(status)
-			print error
-			print
+				print >>sys.stderr, "HTTP Status: " + str(status)
+			print >>sys.stderr, error
+			print >>sys.stderr
 			if not non_fatal:
 				return 0
 

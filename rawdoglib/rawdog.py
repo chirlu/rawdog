@@ -211,7 +211,6 @@ class Rawdog(Persistable):
 	def __init__(self):
 		self.feeds = {}
 		self.articles = {}
-		self.last_update = 0
 
 	def list(self):
 		for url in self.feeds.keys():
@@ -240,7 +239,6 @@ class Rawdog(Persistable):
 			if self.articles[key].can_expire(now) or not self.feeds.has_key(self.articles[key].feed):
 				del self.articles[key]
 
-		self.last_update = now
 		self.modified()
 
 	def write(self, config):

@@ -1,3 +1,8 @@
+- rawdog 1.12
+
+Add "sortbyfeeddate" option for planet pages (requested by David
+Dorward).
+
 - rawdog 1.11
 
 Add __num_items__ and __num_feeds__ to the page template, and __url__ to

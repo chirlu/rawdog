@@ -446,6 +446,7 @@ class Config:
 			"daysections" : 1,
 			"timesections" : 1,
 			"tidyhtml" : 0,
+			"sortbyfeeddate" : 0,
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -521,6 +522,8 @@ class Config:
 			self["timesections"] = parse_bool(l[1])
 		elif l[0] == "tidyhtml":
 			self["tidyhtml"] = parse_bool(l[1])
+		elif l[0] == "sortbyfeeddate":
+			self["sortbyfeeddate"] = parse_bool(l[1])
 		elif l[0] == "include":
 			self.load(l[1])
 		else:
@@ -682,6 +685,10 @@ __description__
 			"""Compare two articles to decide how they
 			   should be sorted. Sort by added date, then
 			   by feed, then by sequence, then by hash."""
+			if config["sortbyfeeddate"]:
+				i = cmp(b.date or b.added, a.date or a.added)
+				if i != 0:
+					return i
 			i = cmp(b.added, a.added)
 			if i != 0:
 				return i

@@ -125,6 +125,13 @@ verbose false
 # installed.
 tidyhtml false
 
+# Whether the articles displayed should be sorted first by the date provided in
+# the feed (useful for "planet" pages, where you're displayed several feeds and
+# want new articles to appear in the right chronological place). If this is
+# false, then articles will first be sorted by the time that rawdog first saw
+# them.
+sortbyfeeddate false
+
 # The feeds you want to watch, in the format "feed period url [args]".
 # The period is the minimum time between updates; if less than period
 # minutes have passed, "rawdog update" will skip that feed. Specifying

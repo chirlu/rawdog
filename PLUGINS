@@ -212,3 +212,17 @@ sort order of the output.
 	
 	rawdoglib.plugins.attach_hook("output_sort", backwards)
 
+### option.py
+
+This plugin shows how to handle a config file option.
+
+	import rawdoglib.plugins
+	
+	def option(config, name, value):
+		if name == "myoption":
+			print "Test plugin option:", value
+			return False
+		else:
+			return True
+	rawdoglib.plugins.attach_hook("config_option", option)
+

@@ -17,7 +17,7 @@
 # MA 02111-1307 USA, or see http://www.gnu.org/.
 
 VERSION = "1.9rc1"
-import feedparser, iso8601
+import feedparser
 from persister import Persistable, Persister
 import os, time, sha, getopt, sys, re, urlparse, cgi
 from StringIO import StringIO
@@ -27,14 +27,6 @@ def format_time(secs, config):
 	"""Format a time and date nicely."""
 	t = time.localtime(secs)
 	return time.strftime(config["timeformat"], t) + ", " + time.strftime(config["dayformat"], t)
-
-def parse_date(s):
-	"""Convert a date and time from a formatted representation to seconds
-	since the epoch."""
-	try:
-		return iso8601.parse(s)
-	except ValueError:
-		return None
 
 def select_content(contents):
 	"""Select the best content element from an Echo feed."""
@@ -65,20 +57,6 @@ def encode_references(s):
 	v = r.getvalue()
 	r.close()
 	return v
-
-link_dq_re = re.compile(r'(<[^>]*(?:href|src)=)"([^"]*)"', re.I)
-link_sq_re = re.compile(r'(<[^>]*(?:href|src)=)\'([^\']*)\'', re.I)
-link_nq_re = re.compile(r'(<[^>]*(?:href|src)=)([^"\'][^\s>]*)', re.I)
-def make_links_absolute(base, html):
-	"""Convert relative URIs in HTML href and src attributes to absolute
-	form from the given base URI."""
-	def fix(match):
-		(whole, a, url) = match.group(0, 1, 2)
-		return a + '"' + urlparse.urljoin(base, url) + '"'
-	html = link_dq_re.sub(fix, html)
-	html = link_sq_re.sub(fix, html)
-	html = link_nq_re.sub(fix, html)
-	return html
 
 template_re = re.compile(r'__(.*?)__')
 def fill_template(template, bits):
@@ -160,6 +138,8 @@ class Feed:
 		if len(proxies.keys()) == 0:
 			proxies = None
 
+		feedparser.FeedParser.can_contain_dangerous_markup = []
+		feedparser.mxtidy = None
 		try:
 			p = feedparser.parse(self.url, self.etag,
 				self.modified,	"rawdog/" + VERSION,
@@ -224,15 +204,13 @@ class Feed:
 			title = self.decode(item.get("title"))
 			link = self.decode(item.get("link"))
 
-			date = self.decode(item.get("date"))
+			date = item.get("date_parsed")
 			if date is not None:
-				date = parse_date(date)
+				date = time.mktime(date)
 
 			description = None
 			if description is None and item.has_key("content"):
 				description = self.decode(select_content(item["content"]))
-			if description is None and item.has_key("content_encoded"):
-				description = self.decode(item["content_encoded"])
 			if description is None:
 				description = self.decode(item.get("description"))
 
@@ -638,7 +616,7 @@ __if_description__<div class="itemdescription">
 			itembits["hash"] = short_hash(article.hash)
 
 			if description is not None:
-				itembits["description"] = make_links_absolute(feed.url, description)
+				itembits["description"] = description
 			else:
 				itembits["description"] = ""
 

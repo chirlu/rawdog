@@ -307,11 +307,14 @@ class Feed:
 
 	def get_html_name(self, config):
 		if self.feed_info.has_key("title_detail"):
-			return detail_to_html(self.feed_info["title_detail"], True, config)
+			r = detail_to_html(self.feed_info["title_detail"], True, config)
 		elif self.feed_info.has_key("link"):
-			return url_to_html(self.feed_info["link"])
+			r = url_to_html(self.feed_info["link"])
 		else:
-			return url_to_html(self.url)
+			r = url_to_html(self.url)
+		if r is None:
+			r = ""
+		return r
 
 	def get_html_link(self, config):
 		s = self.get_html_name(config)

@@ -120,6 +120,10 @@ def load_file(name):
 		f.close()
 	return file_cache[name]
 
+def short_hash(s):
+	"""Return a human-manipulatable 'short hash' of a string."""
+	return sha.new(s).hexdigest()[-8:]
+
 class Feed:
 	"""An RSS feed."""
 
@@ -422,6 +426,7 @@ class Rawdog(Persistable):
 		for url in self.feeds.keys():
 			feed = self.feeds[url]
 			print url
+			print "  Hash:", short_hash(url)
 			print "  Title:", feed.title
 			print "  Link:", feed.link
 
@@ -509,7 +514,7 @@ by <a href="mailto:azz@us-lot.org">Adam Sampson</a>.</p>
 		if config["itemtemplate"] != "default":
 			return load_file(config["itemtemplate"])
 
-		template = """<div class="item">
+		template = """<div class="item feed-__feed_hash__">
 <p class="itemheader">
 <span class="itemtitle">__title__</span>
 <span class="itemfrom">[__feed_title__]</span>
@@ -589,6 +594,8 @@ __if_description__<div class="itemdescription">
 				itembits["title"] = '<a href="' + link + '">' + title + '</a>'
 
 			itembits["feed_title"] = feed.get_html_link()
+			itembits["feed_url"] = feed.url
+			itembits["feed_hash"] = short_hash(feed.url)
 
 			if description is not None:
 				itembits["description"] = make_links_absolute(feed.url, description)

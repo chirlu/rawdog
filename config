@@ -38,6 +38,8 @@ template default
 # __date__            The item's date as provided by the feed
 # __added__           The date the article was received by rawdog
 # __feed_title__      The feed title (as an HTML link, if possible)
+# __feed_url__        The feed URL
+# __feed_hash__       A hash of the feed URL (useful for per-feed styles)
 # Simple conditional expansion is possible by saying something like
 # "__if_items__ hello __endif__"; the text between the if and endif will
 # only be included if __items__ would expand to something other than

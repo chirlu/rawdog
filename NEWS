@@ -14,7 +14,8 @@ feeds with relative links in, but there are quite a few out there.)
 
 Item templates are now supported, making it easier to customise item
 appearance (requested by a number of users, including Giles Radford and
-David Dorward).
+David Dorward). In particular, note that __feed_hash__ can be used
+to apply a CSS style to a particular feed.
 
 Simple conditions are supported in templates: __if_x__ .. __endif__ only
 expands to its contents if x is not empty. These conditions cannot be

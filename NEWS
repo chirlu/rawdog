@@ -1,3 +1,7 @@
+- rawdog 2.3
+
+Make the id= parameter work correctly (patch from Jon Nelson).
+
 - rawdog 2.2
 
 Add "feeddefaults" statement to specify default feed options.

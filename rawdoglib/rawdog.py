@@ -17,7 +17,7 @@
 # MA 02111-1307 USA, or see http://www.gnu.org/.
 
 VERSION = "1.6"
-import feedparser
+import feedparser, iso8601
 from persister import Persistable, Persister
 import os, time, sha, getopt, sys, re, urlparse
 from StringIO import StringIO
@@ -27,6 +27,14 @@ def format_time(secs, config):
 	"""Format a time and date nicely."""
 	t = time.localtime(secs)
 	return time.strftime(config["timeformat"], t) + ", " + time.strftime(config["dayformat"], t)
+
+def parse_date(s):
+	"""Convert a date and time from a formatted representation to seconds
+	since the epoch."""
+	try:
+		return iso8601.parse(s)
+	except ValueError:
+		return None
 
 def select_content(contents):
 	"""Select the best content element from an Echo feed."""
@@ -200,6 +208,11 @@ class Feed:
 		for item in p["items"]:
 			title = self.decode(item.get("title"))
 			link = self.decode(item.get("link"))
+
+			date = self.decode(item.get("date"))
+			if date is not None:
+				date = parse_date(date)
+
 			description = None
 			if description is None and item.has_key("content"):
 				description = self.decode(select_content(item["content"]))
@@ -209,7 +222,7 @@ class Feed:
 				description = self.decode(item.get("description"))
 
 			article = Article(feed, title, link, description,
-				now, sequence)
+				now, sequence, date)
 			sequence += 1
 
 			if articles.has_key(article.hash):
@@ -253,12 +266,13 @@ class Feed:
 class Article:
 	"""An article retrieved from an RSS feed."""
 
-	def __init__(self, feed, title, link, description, now, sequence):
+	def __init__(self, feed, title, link, description, now, sequence, date):
 		self.feed = feed
 		self.title = title
 		self.link = link
 		self.description = description
 		self.sequence = sequence
+		self.date = date
 
 		s = str(feed) + str(title) + str(link) + str(description)
 		self.hash = sha.new(s).hexdigest()
@@ -272,6 +286,13 @@ class Article:
 		except AttributeError:
 			# This Article came from an old state file.
 			return 0
+
+	def get_date(self):
+		try:
+			return self.date
+		except AttributeError:
+			# This Article came from an old state file.
+			return None
 
 	def can_expire(self, now):
 		return ((now - self.last_seen) > (24 * 60 * 60))
@@ -555,6 +576,7 @@ __if_description__<div class="itemdescription">
 			title = article.title
 			link = article.link
 			description = article.description
+			date = article.get_date()
 			if title is None:
 				if link is None:
 					title = "Article"
@@ -572,6 +594,12 @@ __if_description__<div class="itemdescription">
 				itembits["description"] = make_links_absolute(feed.url, description)
 			else:
 				itembits["description"] = ""
+
+			itembits["added"] = format_time(article.added, config)
+			if date is not None:
+				itembits["date"] = format_time(date, config)
+			else:
+				itembits["date"] = ""
 
 			f.write(fill_template(itemtemplate, itembits))
 

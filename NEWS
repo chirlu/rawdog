@@ -31,6 +31,10 @@ the user to specify their own template.
 Added --dir option for people who want two lots of rawdog state (for two
 sets of feeds, for instance).
 
+Added "maxage" config option for people who want "only items added in
+the last hour", and made it possible to disable maxarticles by setting
+it to 0.
+
 - rawdog 1.2
 
 Updated feedparser to 2.5.2, which fixes a bug that was making rawdog

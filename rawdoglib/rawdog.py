@@ -247,6 +247,7 @@ class Config:
 			"feedslist" : [],
 			"outputfile" : "output.html",
 			"maxarticles" : 200,
+			"maxage" : 0,
 			"dayformat" : "%A, %d %B %Y",
 			"timeformat" : "%I:%M %p",
 			"userefresh" : 0,
@@ -288,6 +289,8 @@ class Config:
 			self["outputfile"] = l[1]
 		elif l[0] == "maxarticles":
 			self["maxarticles"] = int(l[1])
+		elif l[0] == "maxage":
+			self["maxage"] = int(l[1])
 		elif l[0] == "dayformat":
 			self["dayformat"] = l[1]
 		elif l[0] == "timeformat":
@@ -429,12 +432,17 @@ by <a href="mailto:azz@us-lot.org">Adam Sampson</a>.</p>
 				return i
 			return cmp(a.hash, b.hash)
 		articles.sort(compare)
-		articles = articles[:config["maxarticles"]]
+		if config["maxarticles"] != 0:
+			articles = articles[:config["maxarticles"]]
 
 		f = StringIO()
 		dw = DayWriter(f, config)
 
 		for article in articles:
+			age = (now - article.added) / 60
+			if config["maxage"] != 0 and age > config["maxage"]:
+				break
+
 			dw.time(article.added)
 
 			feed = self.feeds[article.feed]

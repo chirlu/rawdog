@@ -4,7 +4,12 @@
 # directory.
 
 # The maximum number of articles to show on the generated page.
+# Set this to 0 for no limit.
 maxarticles 200
+
+# The maximum age in minutes of articles to show on the generated page.
+# Set this to 0 for no limit.
+maxage 0
 
 # The format to write day headings in. (See "man strftime" if you want to
 # change this.)

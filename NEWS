@@ -38,6 +38,9 @@ written (requested by Tim Bishop).
 Include feedfinder, and add a -a|--add option to add a feed to the
 config file.
 
+Correctly handle dates with timezones specified in non-UTC locales
+(reported by Paul Tomblin and Jon Lasser).
+
 - rawdog 1.13
 
 Handle OverflowError with parsed dates (patch from Matthew Scott).

@@ -20,7 +20,7 @@ VERSION = "2.0pre1"
 STATE_VERSION = 2
 import feedparser, feedfinder
 from persister import Persistable, Persister
-import os, time, sha, getopt, sys, re, urlparse, cgi, socket, urllib2
+import os, time, sha, getopt, sys, re, urlparse, cgi, socket, urllib2, calendar
 from StringIO import StringIO
 
 def set_socket_timeout(n):
@@ -335,7 +335,7 @@ class Article:
 		self.date = None
 		if modified is not None:
 			try:
-				self.date = time.mktime(modified)
+				self.date = calendar.timegm(modified)
 			except OverflowError:
 				pass
 

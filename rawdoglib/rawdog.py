@@ -175,7 +175,7 @@ def fill_template(template, bits):
 		elif key == "else":
 			if if_stack != []:
 				if_stack.append(not if_stack.pop())
-		elif bits.has_key(key):
+		elif bits.has_key(key) and not False in if_stack:
 			f.write(bits[key])
 		i += 1
 	return f.getvalue()

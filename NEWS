@@ -30,6 +30,8 @@ Make "verbose true" work in the config file.
 Provide __author__ in items, for use in feeds that support that (patch
 from Decklin Foster).
 
+Fix conditional template expansion (patch from Decklin Foster).
+
 - rawdog 2.1
 
 Fix a character encoding problem with format=text feeds.

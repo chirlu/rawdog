@@ -1297,7 +1297,7 @@ def parse(uri, etag=None, modified=None, agent=None, referrer=None, authinfo=Non
         result['bozo'] = not isWellFormed(data)
     baseuri = result.get('headers', {}).get('content-location', result.get('url'))
     r = FeedParser(baseuri)
-    r.feed(data)
+    r.feed(re.sub(r'(\S)/>', r'\1 >/', data))
     result['channel'] = r.channel
     result['items'] = r.items
     return result

@@ -40,6 +40,8 @@ Karvinen).
 Forcing a feed to be updated with -f now clears its ETag and
 Last-Modified, so it should always be refetched from the server.
 
+Short-form XML tags in RSS (<description/>) are now handled correctly.
+
 - rawdog 1.8
 
 Add format=text feed option to handle broken feeds that make their

@@ -989,6 +989,12 @@ __description__
 			else:
 				itembits["description"] = ""
 
+			author = entry_info.get("author")
+			if author is not None:
+				itembits["author"] = author
+			else:
+				itembits["author"] = ""
+
 			itembits["added"] = format_time(article.added, config)
 			if date is not None:
 				itembits["date"] = format_time(date, config)

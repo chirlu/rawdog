@@ -241,6 +241,8 @@ class Feed:
 		"""Fetch articles from a feed and add them to the collection.
 		Returns 1 if any articles were read, 0 otherwise."""
 
+		plugins.call_hook("pre_update_feed", rawdog, config, self)
+
 		articles = rawdog.articles
 		handlers = []
 

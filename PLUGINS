@@ -132,6 +132,13 @@ extra template parameters.
 Called before expanding the item template for an article. This hook can
 be used to add extra template parameters.
 
+### pre_update_feed(rawdog, config, feed)
+
+* feed: the Feed about to be updated
+
+Called before a feed is updated. This hook can be used to perform extra
+actions before fetching a feed.
+
 ### input_filter(rawdog, config, article, ignore)
 
 * article: the Article that has been received

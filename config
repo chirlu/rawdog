@@ -46,7 +46,9 @@ datetimeformat %H:%M, %A, %d %B
 # __version__         The rawdog version in use
 # __refresh__         The HTML 4 <meta http-equiv="refresh" ...> header
 # __items__           The aggregated items
+# __num_items__       The number of items on the page
 # __feeds__           The listing of feeds
+# __num_feeds__       The number of feeds listed
 template default
 
 # Similarly, the template used for each item shown. Use "rawdog -T" to
@@ -54,6 +56,8 @@ template default
 # customisation. The following strings will be replaced in the output:
 # __title__           The item title (as an HTML link, if possible)
 # __title_no_link__   The item title (as text)
+# __url__             The item's URL, or the empty string if it doesn't
+#                     have one
 # __description__     The item's descriptive text, or the empty string
 #                     if it doesn't have a description
 # __date__            The item's date as provided by the feed

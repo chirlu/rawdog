@@ -695,6 +695,10 @@ __if_description__<div class="itemdescription">
 					title = "Link"
 
 			itembits["title_no_link"] = title
+			if link is not None:
+				itembits["url"] = link
+			else:
+				itembits["url"] = ""
 			if link is None:
 				itembits["title"] = title
 			else:
@@ -721,6 +725,7 @@ __if_description__<div class="itemdescription">
 
 		dw.close()
 		bits["items"] = f.getvalue()
+		bits["num_items"] = str(numarticles)
 		config.log("Selected ", count, " of ", numarticles, " articles to write")
 
 		f = StringIO()
@@ -739,6 +744,7 @@ __if_description__<div class="itemdescription">
 			print >>f, '</tr>'
 		print >>f, """</table>"""
 		bits["feeds"] = f.getvalue()
+		bits["num_feeds"] = str(len(feeds))
 
 		s = fill_template(self.get_template(config), bits)
 		if outputfile == "-":

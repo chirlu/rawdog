@@ -1,6 +1,10 @@
 #!/usr/bin/python
 """Ultra-liberal feed parser
 
+Modifications for rawdog by Adam Sampson <azz@us-lot.org>
+  Added HTTP basic auth support.
+  Added proxy support.
+
 Visit http://diveintomark.org/projects/feed_parser/ for the latest version
 
 Handles RSS 0.9x, RSS 1.0, RSS 2.0, Atom feeds
@@ -36,7 +40,7 @@ Other features:
 Requires Python 2.1; 2.3 or later recommended
 """
 
-__version__ = "2.7"
+__version__ = "2.7.6"
 __author__ = "Mark Pilgrim <http://diveintomark.org/>"
 __copyright__ = "Copyright 2002-4, Mark Pilgrim"
 __contributors__ = ["Jason Diamond <http://injektilo.org/>",
@@ -114,20 +118,37 @@ __history__ = """
 2.7.1 - 1/9/2004 - MAP - fixed bug handling &quot; and &apos;.  fixed memory
   leak not closing url opener (JohnD); added dc:publisher support (MarekK);
   added admin:errorReportsTo support (MarekK); Python 2.1 dict support (MarekK)
-
-Modifications for rawdog by Adam Sampson <azz@us-lot.org>
-  Added HTTP basic auth support.
-  Added proxy support.
+2.7.2 - 1/13/2004 - MAP - feeds that are not well-formed XML are not parsed, and
+  the 'bozo' bit is set to 1 in the result.  See
+  http://tbray.org/ongoing/When/200x/2004/01/11/PostelPilgrim
+  for an explanation of why anyone who can't create well-formed XML is a bozo
+  and an incompetent fool.  You can disable this check by passing
+  disableWellFormedCheck=1, but it will write arrogant messages to stderr.
+2.7.3 - 1/14/2004 - MAP - just kidding
+2.7.4 - 1/14/2004 - MAP - added workaround for improperly formed <br/> tags in
+  encoded HTML (skadz); fixed unicode handling in normalize_attrs (ChrisL);
+  fixed relative URI processing for guid (skadz); added ICBM support; added
+  base64 support
+2.7.5 - 1/15/2004 - MAP - added workaround for malformed DOCTYPE (seen on many
+  blogspot.com sites); added _debug variable
+2.7.6 - 1/16/2004 - MAP - fixed bug with StringIO importing
 """
 
+_debug = 0
+
 # if you are embedding feedparser in a larger application, you should change this to your application name and URL
-USER_AGENT = "UltraLiberalFeedParser/%s +http://diveintomark.org/projects/feed_parser/" % __version__
+USER_AGENT = "UltraLiberalFeedParser/%s%s +http://diveintomark.org/projects/feed_parser/" % (__version__, _debug and "-debug" or "")
 
 # ---------- required modules (should come with any Python distribution) ----------
-import cgi, re, sgmllib, string, StringIO, urllib2, sys, copy, urlparse, htmlentitydefs, time, rfc822
+import cgi, re, sgmllib, string, urllib2, sys, copy, urlparse, htmlentitydefs, time, rfc822
 
 # ---------- optional modules (feedparser will work without these, but with reduced functionality) ----------
 
+try:
+    from cStringIO import StringIO
+except:
+    from StringIO import StringIO
+    
 # gzip is included with most Python distributions, but may not be available if you compiled your own
 try:
     import gzip
@@ -154,6 +175,57 @@ try:
 except:
     mxtidy = None
 
+try:
+    from xml.sax import make_parser, handler, SAXParseException
+    from xml.sax.handler import ContentHandler
+    from xml.sax.xmlreader import InputSource
+    
+    class WellFormedChecker(ContentHandler):
+        def __init__(self):
+            ContentHandler.__init__(self)
+            self.bozo = 0
+            
+        def startElementNS(self, name, qname, attrs):
+            if _debug: sys.stderr.write("start %s %s\n" % (name, attrs))
+            pass
+
+        def resolveEntity(self, publicId, systemId):
+            return StringIO()
+
+        def characters(self, text):
+            if _debug: sys.stderr.write(text)
+            pass
+
+        def endElementNS(self, name, qname):
+            if _debug: sys.stderr.write("end %s\n" % (name,))
+            pass
+
+        def fatalError(self, exc):
+            if _debug: sys.stderr.write("%s\n" % exc)
+            self.bozo = 1
+
+    def isWellFormed(data):
+        if _debug: sys.stderr.write('entering isWellFormed\n')
+        source = InputSource()
+        source.setByteStream(StringIO(data))
+        validator = WellFormedChecker()
+        parser = make_parser()
+        parser.setFeature(handler.feature_namespaces, 1)
+        parser.setContentHandler(validator)
+        parser.setErrorHandler(validator)
+        parser.setEntityResolver(validator)
+        if hasattr(parser, '_ns_stack'):
+            # work around bug in built-in SAX parser (doesn't recognize xml: namespace)
+            # PyXML doesn't have this problem, and it doesn't have _ns_stack either
+            parser._ns_stack.append({'http://www.w3.org/XML/1998/namespace':'xml'})
+        parser.parse(source)
+        if _debug: sys.stderr.write('leaving isWellFormed\n')
+        return not validator.bozo
+
+    _XML_AVAILABLE = 1
+except:
+    _XML_AVAILABLE = 0
+    
 # ---------- don't touch this ----------
 sgmllib.tagfind = re.compile('[a-zA-Z][-_.:a-zA-Z0-9]*')
 
@@ -183,15 +255,17 @@ class FeedParser(sgmllib.SGMLParser):
                   "http://wellformedweb.org/CommentAPI/": "wfw",
                   "http://madskills.com/public/xml/rss/module/trackback/": "trackback",
                   "http://madskills.com/public/xml/rss/module/pingback/": "pingback",
+                  "http://postneo.com/icbm/": "icbm",
                   "http://www.w3.org/1999/xhtml": "xhtml"}
 
-    can_be_relative_uri = ['link', 'id', 'guid', 'wfw_comment', 'wfw_commentRSS', 'docs', 'url', 'comments']
+    can_be_relative_uri = ['link', 'id', 'wfw_comment', 'wfw_commentRSS', 'docs', 'url', 'comments']
     can_contain_relative_uris = ['content', 'body', 'xhtml_body', 'content_encoded', 'fullitem', 'description', 'title', 'summary', 'subtitle', 'info', 'tagline', 'copyright']
     can_contain_dangerous_markup = ['content', 'body', 'xhtml_body', 'content_encoded', 'fullitem', 'description', 'title', 'summary', 'subtitle', 'info', 'tagline', 'copyright']
     explicitly_set_type = ['title', 'tagline', 'summary', 'info', 'copyright', 'content']
     html_types = ['text/html', 'application/xhtml+xml']
     
     def __init__(self, baseuri=None):
+        if _debug: sys.stderr.write("initializing FeedParser\n")
         sgmllib.SGMLParser.__init__(self)
         self.baseuri = baseuri or ''
         
@@ -213,6 +287,8 @@ class FeedParser(sgmllib.SGMLParser):
         sgmllib.SGMLParser.reset(self)
 
     def unknown_starttag(self, tag, attrs):
+        if _debug: sys.stderr.write("start %s with %s\n" % (tag, attrs))
+        
         # normalize attrs
         attrs = [(k.lower(), sgmllib.charref.sub(lambda m: chr(int(m.groups()[0])), v).strip()) for k, v in attrs]
         attrs = [(k, k in ('rel', 'type') and v.lower() or v) for k, v in attrs]
@@ -356,13 +432,22 @@ class FeedParser(sgmllib.SGMLParser):
 
     def parse_declaration(self, i):
         # override internal declaration handler to handle CDATA blocks
+        if _debug: sys.stderr.write("entering parse_declaration\n")
         if self.rawdata[i:i+9] == '<![CDATA[':
             k = self.rawdata.find(']]>', i)
             if k == -1: k = len(self.rawdata)
             self.handle_data(cgi.escape(self.rawdata[i+9:k]))
             return k+3
-        return sgmllib.SGMLParser.parse_declaration(self, i)
+        else:
+            k = self.rawdata.find('>', i)
+            return k+1
+#        if _debug: sys.stderr.write("entering super::parse_declaration\n")
+#        return sgmllib.SGMLParser.parse_declaration(self, i)
 
+    def error(self, message):
+        if _debug: sys.stderr.write(message)
+        pass
+    
     def resolveURI(self, uri):
         return urlparse.urljoin(self.baseuri or '', uri)
     
@@ -392,7 +477,8 @@ class FeedParser(sgmllib.SGMLParser):
             output = output.replace('&amp;', '&')
         output = output.replace('&quot;', '"')
         output = output.replace('&apos;', "'")
-        
+        output = re.sub(r'(\S)/>', r'\1 />', output)
+
         # resolve relative URIs within embedded markup
         if element in self.can_contain_relative_uris:
             output = resolveRelativeURIs(output, self.baseuri)
@@ -401,6 +487,11 @@ class FeedParser(sgmllib.SGMLParser):
         if element in self.can_contain_dangerous_markup:
             output = sanitizeHTML(output)
             
+        # decode base64 content
+        if self.contentparams.get('mode') == 'base64':
+            import base64
+            output = base64.decodestring(output)
+                
         # store output in appropriate place(s)
         if self.incontent and self.initem:
             if not self.items[-1].has_key(element):
@@ -709,7 +800,7 @@ class BaseHTMLProcessor(sgmllib.SGMLParser):
 
     def normalize_attrs(self, attrs):
         # utility method to be called by descendants
-        attrs = [(k.lower(), sgmllib.charref.sub(lambda m: chr(int(m.groups()[0])), v).strip()) for k, v in attrs]
+        attrs = [(k.lower(), sgmllib.charref.sub(lambda m: unichr(int(m.groups()[0])), v).strip()) for k, v in attrs]
         attrs = [(k, k in ('rel', 'type') and v.lower() or v) for k, v in attrs]
         return attrs
 
@@ -973,7 +1064,7 @@ def open_resource(source, etag=None, modified=None, agent=None, referrer=None, a
         pass
 
     # treat source as string
-    return StringIO.StringIO(str(source))
+    return StringIO(str(source))
 
 def get_etag(resource):
     """
@@ -1173,7 +1264,7 @@ def parse(uri, etag=None, modified=None, agent=None, referrer=None, authinfo=Non
     if hasattr(f, "headers"):
         if gzip and f.headers.get('content-encoding', '') == 'gzip':
             try:
-                data = gzip.GzipFile(fileobj=StringIO.StringIO(data)).read()
+                data = gzip.GzipFile(fileobj=StringIO(data)).read()
             except:
                 # some feeds claim to be gzipped but they're not, so we get garbage
                 data = ''
@@ -1199,6 +1290,10 @@ def parse(uri, etag=None, modified=None, agent=None, referrer=None, authinfo=Non
     if match:
         result['encoding'] = match.groups()[0].lower()
     f.close()
+    result['channel'] = {}
+    result['items'] = {}
+    if _XML_AVAILABLE:
+        result['bozo'] = not isWellFormed(data)
     baseuri = result.get('headers', {}).get('content-location', result.get('url'))
     r = FeedParser(baseuri)
     r.feed(data)

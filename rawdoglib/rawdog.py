@@ -418,6 +418,11 @@ class Config:
 		else:
 			raise ConfigError("Unknown config command: " + l[0])
 
+	def log(self, *args):
+		"""If running in verbose mode, print a status message."""
+		if self["verbose"]:
+			print >>sys.stderr, "".join(map(str, args))
+
 class Rawdog(Persistable):
 	"""The aggregator itself."""
 
@@ -434,6 +439,7 @@ class Rawdog(Persistable):
 			print "  Link:", feed.link
 
 	def update(self, config, feedurl = None):
+		config.log("Starting update")
 		now = time.time()
 
 		timeoutsocket.setDefaultSocketTimeout(config["timeout"])
@@ -442,11 +448,13 @@ class Rawdog(Persistable):
 		for (url, period, args) in config["feedslist"]:
 			seenfeeds[url] = 1
 			if not self.feeds.has_key(url):
+				config.log("Adding new feed: ", url)
 				self.feeds[url] = Feed(url)
 			self.feeds[url].period = period
 			self.feeds[url].args = args
 		for url in self.feeds.keys():
 			if not seenfeeds.has_key(url):
+				config.log("Removing feed: ", url)
 				del self.feeds[url]
 
 		if feedurl is None:
@@ -458,20 +466,30 @@ class Rawdog(Persistable):
 		else:
 			print "No such feed: " + feedurl
 			update_feeds = []
-	
+
+		numfeeds = len(update_feeds)
+		config.log("Will update ", numfeeds, " feeds")
+
+		count = 0
 		seen_some_items = {}
 		for url in update_feeds:
+			count += 1
+			config.log("Updating feed ", count, " of " , numfeeds, ": ", url)
 			if self.feeds[url].update(self.articles, now, force):
 				seen_some_items[url] = 1
 
+		count = 0
 		for key in self.articles.keys():
 			article = self.articles[key]
 			if ((not self.feeds.has_key(article.feed))
 			    or (seen_some_items.has_key(article.feed)
 			        and article.can_expire(now))):
+				count += 1
 				del self.articles[key]
+		config.log("Expired ", count, " articles, leaving ", len(self.articles.keys()))
 
 		self.modified()
+		config.log("Finished update")
 
 	def get_template(self, config):
 		if config["template"] != "default":
@@ -538,6 +556,7 @@ __if_description__<div class="itemdescription">
 
 	def write(self, config):
 		outputfile = config["outputfile"]
+		config.log("Starting write")
 		now = time.time()
 
 		bits = { "version" : VERSION }
@@ -549,6 +568,7 @@ __if_description__<div class="itemdescription">
 		bits["refresh"] = """<meta http-equiv="Refresh" """ + 'content="' + str(refresh * 60) + '"' + """>"""
 
 		articles = self.articles.values()
+		numarticles = len(articles)
 		def compare(a, b):
 			"""Compare two articles to decide how they
 			   should be sorted. Sort by added date, then
@@ -571,11 +591,13 @@ __if_description__<div class="itemdescription">
 		itemtemplate = self.get_itemtemplate(config)
 		dw = DayWriter(f, config)
 
+		count = 0
 		for article in articles:
 			age = (now - article.added) / 60
 			if config["maxage"] != 0 and age > config["maxage"]:
 				break
 
+			count += 1
 			dw.time(article.added)
 
 			itembits = {}
@@ -621,6 +643,7 @@ __if_description__<div class="itemdescription">
 
 		dw.close()
 		bits["items"] = f.getvalue()
+		config.log("Selected ", count, " of ", numarticles, " articles to write")
 
 		f = StringIO()
 		print >>f, """<table id="feeds">
@@ -643,10 +666,13 @@ __if_description__<div class="itemdescription">
 		if outputfile == "-":
 			print s
 		else:
+			config.log("Writing output file: ", outputfile)
 			f = open(outputfile + ".new", "w")
 			print >>f, s
 			f.close()
 			os.rename(outputfile + ".new", outputfile)
+
+		config.log("Finished write")
 
 def usage():
 	"""Display usage information."""

@@ -70,7 +70,10 @@ class Feed:
 		for item in p["items"]:
 			title = maybe_get(item, "title")
 			link = maybe_get(item, "link")
-			description = maybe_get(item, "description")
+			if item.has_key("content_encoded"):
+				description = item["content_encoded"]
+			else:
+				description = maybe_get(item, "description")
 			hash = hash_item(feed, title, link, description)
 
 			if articles.has_key(hash):

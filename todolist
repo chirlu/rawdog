@@ -3,7 +3,6 @@ FIXME: redo sorting hack in feedparser.
 - Length limiting in template
 - feed_name for use in classes
 - Include author info (and update template)
-- plugin system
 - add new feeds at end of file (checking newline)
 - mx.Tidy flag to output xhtml
 

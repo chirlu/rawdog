@@ -186,7 +186,9 @@ changeconfig true
 # minutes have passed, "rawdog update" will skip that feed. Specifying
 # a period less than 30 minutes is considered to be bad manners; it is
 # suggested that you make the period as long as possible.
-# Arguments are optional, and are of the form "key=value", seperated by spaces;
+# Arguments are optional, and can be given in two ways: either on the end of
+# the "feed" line in the form "key=value", separated by spaces, or as extra
+# indented lines after the feed line.
 # possible arguments are:
 # id                  Value for the __feed_id__ value in the item
 #                     template for items in this feed (defaults to the
@@ -203,14 +205,17 @@ changeconfig true
 # allowduplicates     "true" to disable duplicate detection for this feed
 # define_X            Equivalent to "define X ..." for item templates
 #                     when displaying items from this feed
-# You can provide a default set of arguments for all feeds with
-# "feeddefaults [args]". You can specify as many feeds as you like.
-feeddefaults http_proxy=http://proxy.example.com:3128/
+# You can provide a default set of arguments for all feeds using
+# "feeddefaults". You can specify as many feeds as you like.
+feeddefaults
+	http_proxy http://proxy.example.com:3128/
 feed 1h http://www.advogato.org/rss/articles.xml
 feed 30m http://news.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss091.xml id=bbcfront
 feed 3h http://diveintomark.org/xml/rss.xml
 feed 3h http://secretfeed.example.com/secret.rss user=bob password=secret
-feed 3h http://brokenfeeds.com/my.rss format=text define_myclass=broken
+feed 3h http://brokenfeeds.com/my.rss
+	format text
+	define_myclass broken
 feed 3h http://proxyfeed.example.com/proxied.rss http_proxy=http://localhost:1234/
 feed 3h http://dupsfeed.example.com/duplicated.rss allowduplicates=true
 

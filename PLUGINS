@@ -72,6 +72,17 @@ from this hook if name is an option you recognise.
 Note that using config.log in this hook will probably not do what you
 want, because the verbose flag may not yet have been turned on.
 
+### config_option_arglines(config, name, value, arglines)
+
+* name: the option name
+* value: the option value
+* arglines: a list of extra indented lines given after the option (which
+  can be used to supply extra arguments for the option)
+
+As config_option for options that can handle extra argument lines.
+If the options you are implementing should not have extra arguments,
+then use the config_option hook instead.
+
 ### output_filter(rawdog, config, articles)
 
 * articles: the mutable list of Article objects

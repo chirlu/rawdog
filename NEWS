@@ -45,6 +45,10 @@ template; this should make it somewhat easier to add per-feed styles.
 
 Handle feeds that are local files correctly (reported by Chris Niekel).
 
+Allow feed arguments to be given on indented lines after the "feed" or
+"feeddefaults" lines; this makes it possible to have spaces in feed
+arguments.
+
 - rawdog 2.1
 
 Fix a character encoding problem with format=text feeds.

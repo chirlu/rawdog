@@ -21,6 +21,7 @@ STATE_VERSION = 2
 import feedparser, feedfinder, plugins
 from persister import Persistable, Persister
 import os, time, sha, getopt, sys, re, urlparse, cgi, socket, urllib2, calendar
+import string
 from StringIO import StringIO
 
 def set_socket_timeout(n):
@@ -502,13 +503,18 @@ def parse_list(value):
 	"""Parse a list of keywords separated by whitespace."""
 	return value.strip().split(None)
 
-def parse_feed_args(l):
+def parse_feed_args(argparams, arglines):
 	"""Parse a list of feed arguments. Raise ConfigError if the syntax is invalid."""
 	args = {}
-	for a in l:
+	for a in argparams:
 		as = a.split("=", 1)
 		if len(as) != 2:
 			raise ConfigError("Bad feed argument in config: " + a)
+		args[as[0]] = as[1]
+	for a in arglines:
+		as = a.split(None, 1)
+		if len(as) != 2:
+			raise ConfigError("Bad argument line in config: " + a)
 		args[as[0]] = as[1]
 	return args
 
@@ -564,36 +570,47 @@ class Config:
 		"""Load configuration from a config file."""
 		if explicitly_loaded:
 			self.files_loaded.append(filename)
+
+		lines = []
 		try:
 			f = open(filename, "r")
-			lines = f.readlines()
+			for line in f.xreadlines():
+				stripped = line.strip()
+				if stripped == "" or stripped[0] == "#":
+					continue
+				if line[0] in string.whitespace:
+					if lines == []:
+						raise ConfigError("First line in config cannot be an argument")
+					lines[-1][1].append(stripped)
+				else:
+					lines.append((stripped, []))
 			f.close()
 		except IOError:
 			raise ConfigError("Can't read config file: " + filename)
-		for line in lines:
-			line = line.strip()
+
+		for line, arglines in lines:
 			try:
-				self.load_line(line)
+				self.load_line(line, arglines)
 			except ValueError:
 				raise ConfigError("Bad value in config: " + line)
 
-	def load_line(self, line):
-		"""Process a configuration line."""
-
-		if line == "" or line[0] == "#":
-			return
+	def load_line(self, line, arglines):
+		"""Process a configuration directive."""
 
 		l = line.split(None, 1)
 		if len(l) != 2:
 			raise ConfigError("Bad line in config: " + line)
 
+		handled_arglines = False
 		if l[0] == "feed":
 			l = l[1].split(None)
 			if len(l) < 2:
 				raise ConfigError("Bad line in config: " + line)
-			self["feedslist"].append((l[1], parse_time(l[0]), parse_feed_args(l[2:])))
+			self["feedslist"].append((l[1], parse_time(l[0]), parse_feed_args(l[2:], arglines)))
+			handled_arglines = True
 		elif l[0] == "feeddefaults":
-			self["feeddefaults"] = parse_feed_args(l[1].split(None))
+			self["feeddefaults"] = parse_feed_args(l[1].split(None), arglines)
+			handled_arglines = True
 		elif l[0] == "define":
 			l = l[1].split(None, 1)
 			if len(l) != 2:
@@ -650,8 +667,15 @@ class Config:
 			self["changeconfig"] = parse_bool(l[1])
 		elif l[0] == "include":
 			self.load(l[1], False)
-		elif not plugins.call_hook("config_option", self, l[0], l[1]):
+		elif plugins.call_hook("config_option_arglines", self, l[0], l[1], arglines):
+			handled_arglines = True
+		elif plugins.call_hook("config_option", self, l[0], l[1]):
+			pass
+		else:
 			raise ConfigError("Unknown config command: " + l[0])
+
+		if arglines != [] and not handled_arglines:
+			raise ConfigError("Bad argument lines in config after: " + line)
 
 	def log(self, *args):
 		"""If running in verbose mode, print a status message."""

@@ -28,6 +28,8 @@ def format_time(secs, config):
 
 def select_content(contents):
 	"""Select the best content element from an Echo feed."""
+	if type(contents) == str:
+		return contents
 	preferred = ["text/html", "application/xhtml+xml"]
 	cs = []
 	for c in contents:

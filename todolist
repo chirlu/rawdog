@@ -1,3 +1,5 @@
+--change-feed-url option to change feed URL without losing articles
+
 Look at Expires header to automatically select "periods"
 
 FIXME: redo sorting hack in feedparser.

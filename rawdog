@@ -21,13 +21,6 @@ VERSION = "0.3"
 import rawdoglib.rssparser as rssparser
 import sys, pickle, os, fcntl, time, sha
 
-def decode(s):
-	"""Behave like decodeEntities, but handle None correctly."""
-	if s is None:
-		return None
-	else:
-		return rssparser.decodeEntities(s)
-
 def hash_item(feed, title, link, description):
 	"""Return the hash value for an article."""
 	s = str(feed) + str(title) + str(link) + str(description)
@@ -69,15 +62,15 @@ class Feed:
 
 		channel = p["channel"]
 		if channel.has_key("title"):
-			self.title = decode(channel["title"])
+			self.title = channel["title"]
 		if channel.has_key("link"):
 			self.link = channel["link"]
 
 		feed = self.url
 		for item in p["items"]:
-			title = decode(maybe_get(item, "title"))
+			title = maybe_get(item, "title")
 			link = maybe_get(item, "link")
-			description = decode(maybe_get(item, "description"))
+			description = maybe_get(item, "description")
 			hash = hash_item(feed, title, link, description)
 
 			if articles.has_key(hash):

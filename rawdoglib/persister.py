@@ -16,7 +16,8 @@
 # write to the Free Software Foundation, Inc., 59 Temple Place, Suite
 # 330, Boston, MA 02111-1307 USA, or see http://www.gnu.org/.
 
-import pickle, fcntl
+import fcntl
+import cPickle as pickle
 
 class Persistable:
 	"""Something which can be persisted. When a subclass of this wants to
@@ -56,6 +57,11 @@ class Persister:
 		if self.object.is_modified():
 			self.file.seek(0)
 			self.file.truncate(0)
-			pickle.dump(self.object, self.file)
+			try:
+				pickle.dump(self.object, self.file, pickle.HIGHEST_PROTOCOL)
+			except AttributeError:
+				# Python 2.2 doesn't have the protocol
+				# argument.
+				pickle.dump(self.object, self.file, True)
 		self.file.close()
 

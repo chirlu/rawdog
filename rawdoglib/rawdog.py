@@ -355,7 +355,7 @@ class Article:
 		if entry_info.has_key("content"):
 			for content in entry_info["content"]:
 				add_hash(content["value_raw"])
-		if entry_info.has_key("summary"):
+		if entry_info.has_key("summary_detail"):
 			add_hash(entry_info["summary_detail"]["value_raw"])
 
 		return h.hexdigest()

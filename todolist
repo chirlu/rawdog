@@ -5,6 +5,7 @@ FIXME: redo sorting hack in feedparser.
 - Include author info (and update template)
 - plugin system
 - add new feeds at end of file (checking newline)
+- mx.Tidy flag to output xhtml
 
 - Article numbering (probably not)
 

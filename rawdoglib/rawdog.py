@@ -18,7 +18,8 @@
 
 VERSION = "0.4"
 import rssparser
-import pickle, os, fcntl, time, sha
+from persister import Persistable, Persister
+import os, time, sha
 
 def format_time(secs, config):
 	"""Format a time and date nicely."""
@@ -204,7 +205,7 @@ class Config:
 		else:
 			raise ConfigError("Unknown config command: " + l[0])
 
-class Rawdog:
+class Rawdog(Persistable):
 	"""The aggregator itself."""
 
 	def __init__(self):
@@ -240,7 +241,7 @@ class Rawdog:
 				del self.articles[key]
 
 		self.last_update = now
-		self.changed = 1
+		self.modified()
 
 	def write(self, config):
 		outputfile = config["outputfile"]
@@ -370,17 +371,9 @@ def main(argv):
 	except ConfigError, err:
 		print err
 		return 1
-	
-	try:
-		f = open("state", "r+")
-		fcntl.lockf(f.fileno(), fcntl.LOCK_EX)
-		rawdog = pickle.load(f)
-		rawdog.changed = 0
-	except IOError:
-		f = open("state", "w+")
-		fcntl.lockf(f.fileno(), fcntl.LOCK_EX)
-		rawdog = Rawdog()
-		rawdog.changed = 1
+
+	persister = Persister("state", Rawdog)	
+	rawdog = persister.load()
 
 	for action in argv:
 		if action == "list":
@@ -393,11 +386,7 @@ def main(argv):
 			print "Unknown action: " + action
 			return 1
 
-	if rawdog.changed:
-		f.seek(0)
-		f.truncate(0)
-		pickle.dump(rawdog, f)
-	f.close()
+	persister.save()
 
 	return 0
 

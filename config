@@ -32,7 +32,18 @@ timeformat %H:%M
 # template when building your own.
 template default
 
-# Similarly, the template used for each item shown.
+# Similarly, the template used for each item shown. Use "rawdog -T" to show the
+# template currently in use as a starting-point for customisation. The
+# following strings will be replaced in the output:
+# __title__           The item title (as an HTML link, if possible)
+# __description__     The item's descriptive text, or the empty string
+#                     if it doesn't have a description
+# __feed_title__      The feed title (as an HTML link, if possible)
+# Simple conditional expansion is possible by saying something like
+# "__if_items__ hello __endif__"; the text between the if and endif will
+# only be included if __items__ would expand to something other than
+# the empty string. Ifs cannot be nested. (This also works for the
+# "template" option, but it's only really useful for item templates.)
 itemtemplate default
 
 # Where to write the output HTML to. You should place style.css in the same

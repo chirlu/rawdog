@@ -28,26 +28,28 @@ be usable from a browser that doesn't support CSS, but it won't be very
 pretty.)
 
 When you invoke rawdog from the command line, you give it a series of actions
-to perform -- for instance, "rawdog update write" tells it to do the "update"
-action, then the "write" action. The actions supported are as follows:
+to perform -- for instance, "rawdog --update --write" tells it to do the
+"--update" action, then the "--write" action. The actions supported are
+as follows:
 
-"update": Fetch data from the feeds and store it. This could take some time
-if you've got lots of feeds.
+"--update" (or "-u"): Fetch data from the feeds and store it. This could
+take some time if you've got lots of feeds.
 
-"write": Write out the HTML output file.
+"--write" (or "-w"): Write out the HTML output file.
 
-"list": List brief information about each of the feeds that was known about
-when "update" was last done.
+"--list" (or "-l"): List brief information about each of the feeds that
+was known about when "--update" was last done.
 
-Any other action will be assumed to be the URL of a known feed; that feed will
-be updated immediately (even if its period hasn't elapsed since it was last
-updated). This is useful if you're trying to debug your own feed.
+"--update-feed SOMEURL" (or "-f SOMEURL"), where SOMEURL is the URL of a
+known feed: Update that feed immediately, even if its period hasn't
+elapsed since it was last updated. This is useful if you're trying to
+debug your own feed.
 
-You will want to run "rawdog update write" periodically to fetch data and write
-the output file. The easiest way to do this is to add a crontab entry that
-looks something like this:
+You will want to run "rawdog -uw" periodically to fetch data and write
+the output file. The easiest way to do this is to add a crontab entry
+that looks something like this:
 
-0,10,20,30,40,50 * * * *        /path/to/rawdog update write
+0,10,20,30,40,50 * * * *        /path/to/rawdog -uw
 
 (If you don't know how to use cron, then "man crontab" is probably a good
 start.) This will run rawdog every ten minutes.

@@ -1,5 +1,7 @@
 - rawdog 1.5
 
+Remove some debugging code that broke timeouts.
+
 - rawdog 1.4
 
 Fix option-compatibility code (reported by BAM).

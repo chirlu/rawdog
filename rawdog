@@ -21,11 +21,6 @@ VERSION = "0.4"
 import rawdoglib.rssparser as rssparser
 import sys, pickle, os, fcntl, time, sha
 
-def hash_item(feed, title, link, description):
-	"""Return the hash value for an article."""
-	s = str(feed) + str(title) + str(link) + str(description)
-	return sha.new(s).hexdigest()
-
 def format_time(secs, config):
 	"""Format a time and date nicely."""
 	t = time.localtime(secs)
@@ -73,13 +68,13 @@ class Feed:
 				description = item["content_encoded"]
 			else:
 				description = item.get("description")
-			hash = hash_item(feed, title, link, description)
 
-			if articles.has_key(hash):
-				articles[hash].last_seen = now
+			article = Article(feed, title, link, description, now)
+
+			if articles.has_key(article.hash):
+				articles[article.hash].last_seen = now
 			else:
-				articles[hash] = Article(feed, title,
-					link, description, hash, now)
+				articles[article.hash] = article
 
 	def get_html_name(self):
 		if self.title is not None:
@@ -99,12 +94,14 @@ class Feed:
 class Article:
 	"""An article retrieved from an RSS feed."""
 
-	def __init__(self, feed, title, link, description, hash, now):
+	def __init__(self, feed, title, link, description, now):
 		self.feed = feed
 		self.title = title
 		self.link = link
 		self.description = description
-		self.hash = hash
+
+		s = str(feed) + str(title) + str(link) + str(description)
+		self.hash = sha.new(s).hexdigest()
 
 		self.last_seen = now
 		self.added = now

@@ -7,6 +7,13 @@ FIXME: redo sorting hack in feedparser.
 - add new feeds at end of file (checking newline)
 - mx.Tidy flag to output xhtml
 
+- Longer-term future: split features out to plugins
+  - refresh header
+  - HTML4 output
+  - removing duplicate articles
+  - DayWriter
+  - mx.Tidy
+
 - Article numbering (probably not)
 
 - Ctrl-C shouldn't print the "error loading" warning.

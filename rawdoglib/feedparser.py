@@ -5,6 +5,7 @@ Modifications for rawdog by Adam Sampson <azz@us-lot.org>
   Added HTTP basic auth support.
   Added proxy support.
   Disabled <br/> workaround.
+  Added <description/> workaround.
 
 Visit http://diveintomark.org/projects/feed_parser/ for the latest version
 

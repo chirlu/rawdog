@@ -130,7 +130,7 @@ class Feed:
 			link = self.decode(item.get("link"))
 			description = None
 			if description is None and item.has_key("content"):
-				description = select_content(self.decode(item["content"]))
+				description = self.decode(select_content(item["content"]))
 			if description is None and item.has_key("content_encoded"):
 				description = self.decode(item["content_encoded"])
 			if description is None:

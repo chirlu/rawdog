@@ -1099,7 +1099,8 @@ def main(argv):
 		print >>sys.stderr, "In config:"
 		print >>sys.stderr, err
 		return 1
-	config["verbose"] = verbose
+	if verbose:
+		config["verbose"] = True
 
 	persister = Persister("state", Rawdog)
 	try:

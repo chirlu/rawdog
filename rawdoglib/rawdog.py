@@ -26,6 +26,21 @@ def format_time(secs, config):
 	t = time.localtime(secs)
 	return time.strftime(config["timeformat"], t) + ", " + time.strftime(config["dayformat"], t)
 
+def select_content(contents):
+	"""Select the best content element from an Echo feed."""
+	preferred = ["text/html", "application/xhtml+xml"]
+	cs = []
+	for c in contents:
+		type = c["type"]
+		if type in preferred:
+			score = preferred.index(type)
+			cs.append((score, c["value"]))
+	cs.sort()
+	if len(cs) == 0:
+		return None
+	else:
+		return cs[0][1]
+
 class Feed:
 	"""An RSS feed."""
 
@@ -73,6 +88,8 @@ class Feed:
 			link = item.get("link")
 			if item.has_key("content_encoded"):
 				description = item["content_encoded"]
+			elif item.has_key("content"):
+				description = select_content(item["content"])
 			else:
 				description = item.get("description")
 

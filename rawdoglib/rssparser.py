@@ -23,6 +23,12 @@ Things it handles that choke other RSS parsers:
 - non-standard namespaces (BitWorking)
 
 Requires Python 2.2 or later
+
+Modifications made by Adam Sampson for use in rawdog:
+- timeout increased to 30 seconds from 10 (since pulling Advogato's recentlog
+  takes about 20s, even on my ADSL!)
+- when invoked as a script, print the full parser output; this is useful for
+  debugging
 """
 
 __author__ = "Mark Pilgrim (f8dy@diveintomark.org)"
@@ -56,7 +62,7 @@ __history__ = """
 
 try:
     import timeoutsocket # http://www.timo-tasi.org/python/timeoutsocket.py
-    timeoutsocket.setDefaultSocketTimeout(10)
+    timeoutsocket.setDefaultSocketTimeout(30)
 except ImportError:
     pass
 import cgi, re, sgmllib, string, StringIO, urllib, gzip

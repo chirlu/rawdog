@@ -59,6 +59,7 @@ h3 {
 .item {
 	margin: 20px 30px;
 	border: 1px solid gray;
+	clear: both;
 }
 .itemheader {
 	padding: 6px;

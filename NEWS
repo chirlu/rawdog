@@ -1,3 +1,8 @@
+- rawdog 1.9
+
+Add "clear: both;" to item style, so that items with floated images in
+don't extend into the items below them.
+
 - rawdog 1.8
 
 Add format=text feed option to handle broken feeds that make their

@@ -16,7 +16,7 @@
 # Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 # MA 02111-1307 USA, or see http://www.gnu.org/.
 
-VERSION = "1.9"
+VERSION = "1.10rc1"
 import feedparser
 from persister import Persistable, Persister
 import os, time, sha, getopt, sys, re, urlparse, cgi
@@ -142,7 +142,7 @@ class Feed:
 		else:
 			return 1
 	
-	def update(self, articles, now):
+	def update(self, articles, now, config):
 		"""Fetch articles from a feed and add them to the collection.
 		Returns 1 if any articles were read, 0 otherwise."""
 
@@ -168,12 +168,17 @@ class Feed:
 			p = None
 			status = None
 
+		self.last_update = now
+
 		error = None
 		non_fatal = 0
 		if p is None:
 			error = "Error parsing feed."
 		elif status is None:
-			error = "Timeout while reading feed."
+			if config["ignoretimeouts"]:
+				return 0
+			else:
+				error = "Timeout while reading feed."
 		elif status == 301:
 			# Permanent redirect. The feed URL needs changing.
 			error = "New URL:     " + p["url"] + "\n"
@@ -188,8 +193,6 @@ class Feed:
 			# Some sort of client or server error. The feed may need unsubscribing.
 			error = "The feed returned an error.\n"
 			error += "If this condition persists, you should remove it from your config file."
-
-		self.last_update = now
 
 		if error is not None:
 			print >>sys.stderr, "Feed:        " + self.url
@@ -401,6 +404,7 @@ class Config:
 			"template" : "default",
 			"itemtemplate" : "default",
 			"verbose" : 0,
+			"ignoretimeouts" : 0,
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -468,6 +472,8 @@ class Config:
 			self["itemtemplate"] = l[1]
 		elif l[0] == "verbose":
 			self["verbose"] = parse_bool(l[1])
+		elif l[0] == "ignoretimeouts":
+			self["ignoretimeouts"] = parse_bool(l[1])
 		elif l[0] == "include":
 			self.load(l[1])
 		else:
@@ -531,7 +537,7 @@ class Rawdog(Persistable):
 		for url in update_feeds:
 			count += 1
 			config.log("Updating feed ", count, " of " , numfeeds, ": ", url)
-			if self.feeds[url].update(self.articles, now):
+			if self.feeds[url].update(self.articles, now, config):
 				seen_some_items[url] = 1
 
 		count = 0

@@ -97,6 +97,10 @@ showfeeds true
 # seconds if no unit is specified.)
 timeout 30s
 
+# Whether to ignore timeouts. If this is false, timeouts will be reported as
+# errors; if this is true, rawdog will silently ignore them.
+ignoretimeouts false
+
 # Whether to display verbose status messages saying what rawdog's doing
 # while it runs. Specifying -v or --verbose on the command line is
 # equivalent to saying "verbose true" here.

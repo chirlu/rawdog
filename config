@@ -172,6 +172,8 @@ changeconfig true
 #                     are unescaped plain text (rather than the usual HTML),
 #                     and should be escaped and wrapped in a <pre> element
 # X_proxy             Proxy URL for protocol X (for instance, "http_proxy")
+# proxyuser           User for proxy basic authentication
+# proxypassword       Password for proxy basic authentication
 # allowduplicates     "true" to disable duplicate detection for this feed
 # You can specify as many feeds as you like.
 feed 1h http://www.advogato.org/rss/articles.xml

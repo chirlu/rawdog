@@ -213,14 +213,15 @@ class Feed:
 		articles = rawdog.articles
 		handlers = []
 
+		class DummyPasswordMgr:
+			def __init__(self, creds):
+				self.creds = creds
+			def add_password(self, realm, uri, user, passwd):
+				pass
+			def find_user_password(self, realm, authuri):
+				return self.creds
+
 		if self.args.has_key("user") and self.args.has_key("password"):
-			class DummyPasswordMgr:
-				def __init__(self, creds):
-					self.creds = creds
-				def add_password(self, realm, uri, user, passwd):
-					pass
-				def find_user_password(self, realm, authuri):
-					return self.creds
 			mgr = DummyPasswordMgr((self.args["user"], self.args["password"]))
 			handlers.append(urllib2.HTTPBasicAuthHandler(mgr))
 
@@ -230,6 +231,10 @@ class Feed:
 				proxies[key[:-6]] = self.args[key]
 		if len(proxies.keys()) != 0:
 			handlers.append(urllib2.ProxyHandler(proxies))
+
+		if self.args.has_key("proxyuser") and self.args.has_key("proxypassword"):
+			mgr = DummyPasswordMgr((self.args["proxyuser"], self.args["proxypassword"]))
+			handlers.append(urllib2.ProxyBasicAuthHandler(mgr))
 
 		feedparser._FeedParserMixin.can_contain_relative_uris = []
 		feedparser._FeedParserMixin.can_contain_dangerous_markup = []

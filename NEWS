@@ -2,6 +2,10 @@
 
 Fix a character encoding problem with format=text feeds.
 
+Add proxyuser and proxypassword options for feeds, so that you can use
+per-feed proxies requiring HTTP Basic authentication (patch from Jon
+Nelson).
+
 - rawdog 2.0
 
 Update to feedparser 3.3. This meant reworking some of rawdog's

@@ -1,7 +1,7 @@
 - rawdog 1.9
 
-Add "clear: both;" to item style, so that items with floated images in
-don't extend into the items below them.
+Add "clear: both;" to item, time and date styles, so that items with
+floated images in don't extend into the items below them.
 
 Changed how rawdog selects the feeds to update; --verbose now shows
 only the feeds being updated.

@@ -12,6 +12,8 @@ FIXME: redo sorting hack in feedparser.
   - removing duplicate articles
   - DayWriter
   - mx.Tidy
+  - proxy auth
+  - per-feed proxies
 - And new features to write as plugins
   - sort by feeds first (should work since sort is stable)
 

@@ -11,6 +11,9 @@ sanitisation of feed-provided HTML; I've removed rawdog's own
 date-parsing (including iso8601.py) and relative-link-fixing code in
 favour of the more-capable feedparser equivalents.
 
+The persister module in rawdoglib is now licensed under the LGPL
+(requested by Giles Radford).
+
 - rawdog 1.8
 
 Add format=text feed option to handle broken feeds that make their

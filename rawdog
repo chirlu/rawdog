@@ -26,12 +26,6 @@ def hash_item(feed, title, link, description):
 	s = str(feed) + str(title) + str(link) + str(description)
 	return sha.new(s).hexdigest()
 
-def maybe_get(hash, key):
-	"""If hash has a key called key, return its value, else return
-	   None."""
-	if hash.has_key(key): return hash[key]
-	return None
-
 def format_time(secs, config):
 	"""Format a time and date nicely."""
 	t = time.localtime(secs)
@@ -60,8 +54,8 @@ class Feed:
 			print "Error fetching " + self.url
 			return
 
-		self.etag = maybe_get(p, "etag")
-		self.modified = maybe_get(p, "modified")
+		self.etag = p.get("etag")
+		self.modified = p.get("modified")
 		# In the event that the feed hasn't changed, then both channel
 		# and feed will be empty.
 
@@ -73,12 +67,12 @@ class Feed:
 
 		feed = self.url
 		for item in p["items"]:
-			title = maybe_get(item, "title")
-			link = maybe_get(item, "link")
+			title = item.get("title")
+			link = item.get("link")
 			if item.has_key("content_encoded"):
 				description = item["content_encoded"]
 			else:
-				description = maybe_get(item, "description")
+				description = item.get("description")
 			hash = hash_item(feed, title, link, description)
 
 			if articles.has_key(hash):

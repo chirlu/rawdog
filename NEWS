@@ -1,3 +1,5 @@
+- rawdog 1.8
+
 - rawdog 1.7
 
 Fix code in iso8601.py that caused a warning with Python 2.3.

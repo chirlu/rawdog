@@ -16,7 +16,7 @@
 # Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 # MA 02111-1307 USA, or see http://www.gnu.org/.
 
-VERSION = "1.7"
+VERSION = "1.8"
 import feedparser, iso8601
 from persister import Persistable, Persister
 import os, time, sha, getopt, sys, re, urlparse

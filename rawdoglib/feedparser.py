@@ -28,6 +28,9 @@ Things it handles that choke other parsers:
 - multiple content items per entry (Pie)
 
 Requires Python 2.2 or later
+
+Modified for rawdog usage by Adam Sampson <azz@us-lot.org>:
+- increased socket timeout to 30s
 """
 
 __version__ = "2.4"
@@ -85,7 +88,7 @@ __history__ = """
 
 try:
     import timeoutsocket # http://www.timo-tasi.org/python/timeoutsocket.py
-    timeoutsocket.setDefaultSocketTimeout(10)
+    timeoutsocket.setDefaultSocketTimeout(30)
 except ImportError:
     pass
 import cgi, re, sgmllib, string, StringIO, urllib, gzip

@@ -2,8 +2,6 @@ Look at Expires header to automatically select "periods"
 
 FIXME: redo sorting hack in feedparser.
 
-- add new feeds at end of file (checking newline)
-
 - Longer-term future: split features out to plugins
   - refresh header
   - HTML4 output

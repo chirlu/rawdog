@@ -3,7 +3,7 @@
 
 Visit http://diveintomark.org/projects/feed_parser/ for the latest version
 
-Handles RSS 0.9x, RSS 1.0, RSS 2.0, Pie feeds
+Handles RSS 0.9x, RSS 1.0, RSS 2.0, Pie/Atom/Echo feeds
 
 RSS 0.9x/common elements:
 - title, link, guid, description, webMaster, managingEditor, language
@@ -13,7 +13,7 @@ Additional RSS 1.0/2.0 elements:
 - dc:rights, dc:language, dc:creator, dc:date, dc:subject,
   content:encoded, admin:generatorAgent, admin:errorReportsTo,
   
-Addition Pie elements:
+Addition Pie/Atom/Echo elements:
 - subtitle, created, issued, modified, summary, id, content
 
 Things it handles that choke other parsers:
@@ -24,8 +24,8 @@ Things it handles that choke other parsers:
 - guid in item element
 - fullitem in item element
 - non-standard namespaces
-- inline XML in content (Pie)
-- multiple content items per entry (Pie)
+- inline XML in content (Pie/Atom/Echo)
+- multiple content items per entry (Pie/Atom/Echo)
 
 Requires Python 2.2 or later
 
@@ -33,11 +33,12 @@ Modified for rawdog usage by Adam Sampson <azz@us-lot.org>:
 - increased socket timeout to 30s
 """
 
-__version__ = "2.4"
-__author__ = "Mark Pilgrim (f8dy@diveintomark.org)"
+__version__ = "2.5.2"
+__author__ = "Mark Pilgrim <http://diveintomark.org/>"
 __copyright__ = "Copyright 2002-3, Mark Pilgrim"
-__contributors__ = ["Jason Diamond (jason@injektilo.org)"]
-__license__ = "GPL" # see full license below
+__contributors__ = ["Jason Diamond <http://injektilo.org/>",
+                    "John Beimler <http://john.beimler.org/>"]
+__license__ = "Python"
 __history__ = """
 1.0 - 9/27/2002 - MAP - fixed namespace processing on prefixed RSS 2.0 elements,
   added Simon Fell's test suite
@@ -65,33 +66,27 @@ __history__ = """
   also, make sure we send the User-Agent even if urllib2 isn't available.
   Match any variation of backend.userland.com/rss namespace.
 2.3.1 - 6/12/2003 - MAP - if item has both link and guid, return both as-is.
-2.4 - 7/9/2003 - MAP - added preliminary Pie support based on Sam Ruby's
+2.4 - 7/9/2003 - MAP - added preliminary Pie/Atom/Echo support based on Sam Ruby's
   snapshot of July 1 <http://www.intertwingly.net/blog/1506.html>; changed
   project name
+2.5 - 7/25/2003 - MAP - changed to Python license (all contributors agree);
+  removed unnecessary urllib code -- urllib2 should always be available anyway;
+  return actual url, status, and full HTTP headers (as result['url'],
+  result['status'], and result['headers']) if parsing a remote feed over HTTP --
+  this should pass all the HTTP tests at <http://diveintomark.org/tests/client/http/>;
+  added the latest namespace-of-the-week for RSS 2.0
+2.5.1 - 7/26/2003 - RMK - clear opener.addheaders so we only send our custom
+  User-Agent (otherwise urllib2 sends two, which confuses some servers)
+2.5.2 - 7/28/2003 - MAP - entity-decode inline xml properly; added support for
+  inline <xhtml:body> and <xhtml:div> as used in some RSS 2.0 feeds
 """
-
-# Copyright (C) 2003 Mark Pilgrim and Jason Diamond
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 try:
     import timeoutsocket # http://www.timo-tasi.org/python/timeoutsocket.py
     timeoutsocket.setDefaultSocketTimeout(30)
 except ImportError:
     pass
-import cgi, re, sgmllib, string, StringIO, urllib, gzip
+import cgi, re, sgmllib, string, StringIO, gzip, urllib2
 sgmllib.tagfind = re.compile('[a-zA-Z][-_.:a-zA-Z0-9]*')
 
 USER_AGENT = "UltraLiberalFeedParser/%s +http://diveintomark.org/projects/feed_parser/" % __version__
@@ -107,6 +102,7 @@ def decodeEntities(data):
 
 class FeedParser(sgmllib.SGMLParser):
     namespaces = {"http://backend.userland.com/rss": "",
+                  "http://blogs.law.harvard.edu/tech/rss": "",
                   "http://purl.org/rss/1.0/": "",
                   "http://example.com/newformat#": "",
                   "http://example.com/necho": "",
@@ -117,7 +113,8 @@ class FeedParser(sgmllib.SGMLParser):
                   "http://purl.org/rss/1.0/modules/company/": "co",
                   "http://purl.org/rss/1.0/modules/syndication/": "sy",
                   "http://purl.org/dc/elements/1.1/": "dc",
-                  "http://webns.net/mvcb/": "admin"}
+                  "http://webns.net/mvcb/": "admin",
+                  "http://www.w3.org/1999/xhtml": "xhtml"}
 
     def reset(self):
         self.channel = {}
@@ -349,6 +346,23 @@ class FeedParser(sgmllib.SGMLParser):
         self.contentmode = None
         self.contenttype = None
         self.contentlang = None
+
+    def start_body(self, attrs):
+        self.incontent = 1
+        self.contentmode = 'xml'
+        self.contenttype = 'application/xhtml+xml'
+        xmllang = [v for k, v in attrs if k=='xml:lang']
+        if xmllang:
+            self.contentlang = xmllang[0]
+        self.push('content', 1)
+
+    start_div = start_body
+    start_xhtml_body = start_body
+    start_xhtml_div = start_body
+    end_body = end_content
+    end_div = end_content
+    end_xhtml_body = end_content
+    end_xhtml_div = end_content
         
     def unknown_starttag(self, tag, attrs):
         if self.incontent and self.contentmode == 'xml':
@@ -393,18 +407,26 @@ class FeedParser(sgmllib.SGMLParser):
         # called for each character reference, e.g. for "&#160;", ref will be "160"
         # Reconstruct the original character reference.
         if not self.elementstack: return
-        self.elementstack[-1][2].append("&#%(ref)s;" % locals())
+        text = "&#%s;" % ref
+        if self.incontent and self.contentmode == 'xml':
+            text = cgi.escape(text)
+        self.elementstack[-1][2].append(text)
 
     def handle_entityref(self, ref):
         # called for each entity reference, e.g. for "&copy;", ref will be "copy"
         # Reconstruct the original entity reference.
         if not self.elementstack: return
-        self.elementstack[-1][2].append("&%(ref)s;" % locals())
+        text = "&%s;" % ref
+        if self.incontent and self.contentmode == 'xml':
+            text = cgi.escape(text)
+        self.elementstack[-1][2].append(text)
 
     def handle_data(self, text):
         # called for each block of plain text, i.e. outside of any tag and
         # not containing any character or entity references
         if not self.elementstack: return
+        if self.incontent and self.contentmode == 'xml':
+            text = cgi.escape(text)
         self.elementstack[-1][2].append(text)
 
     def handle_comment(self, text):
@@ -447,6 +469,29 @@ class FeedParser(sgmllib.SGMLParser):
             return k+3
         return sgmllib.SGMLParser.parse_declaration(self, i)
 
+class FeedURLHandler(urllib2.HTTPRedirectHandler, urllib2.HTTPDefaultErrorHandler):
+    def http_error_default(self, req, fp, code, msg, headers):
+        if ((code / 100) == 3) and (code != 304):
+            return self.http_error_302(req, fp, code, msg, headers)
+        from urllib import addinfourl
+        infourl = addinfourl(fp, headers, req.get_full_url())
+        infourl.status = code
+        return infourl
+#        raise urllib2.HTTPError(req.get_full_url(), code, msg, headers, fp)
+
+    def http_error_302(self, req, fp, code, msg, headers):
+        infourl = urllib2.HTTPRedirectHandler.http_error_302(self, req, fp, code, msg, headers)
+        infourl.status = code
+        return infourl
+
+    def http_error_301(self, req, fp, code, msg, headers):
+        infourl = urllib2.HTTPRedirectHandler.http_error_301(self, req, fp, code, msg, headers)
+        infourl.status = code
+        return infourl
+
+    http_error_300 = http_error_302
+    http_error_307 = http_error_302
+        
 def open_resource(source, etag=None, modified=None, agent=None, referrer=None):
     """
     URI, filename, or string --> stream
@@ -470,10 +515,6 @@ def open_resource(source, etag=None, modified=None, agent=None, referrer=None):
 
     If the referrer argument is supplied, it will be used as the value of a
     Referer[sic] request header.
-
-    The optional arguments are only used if the source argument is an HTTP
-    URL and the urllib2 module is importable (i.e., you must be using Python
-    version 2.0 or higher).
     """
 
     if hasattr(source, "read"):
@@ -486,37 +527,23 @@ def open_resource(source, etag=None, modified=None, agent=None, referrer=None):
         agent = USER_AGENT
         
     # try to open with urllib2 (to use optional headers)
-    try:
-        import urllib2
-        request = urllib2.Request(source)
-        if etag:
-            request.add_header("If-None-Match", etag)
-        if modified:
-            request.add_header("If-Modified-Since", format_http_date(modified))
-        request.add_header("User-Agent", agent)
-        if referrer:
-            # http://www.dictionary.com/search?q=referer
-            request.add_header("Referer", referrer)
+    request = urllib2.Request(source)
+    if etag:
+        request.add_header("If-None-Match", etag)
+    if modified:
+        request.add_header("If-Modified-Since", format_http_date(modified))
+    request.add_header("User-Agent", agent)
+    if referrer:
+        request.add_header("Referer", referrer)
         request.add_header("Accept-encoding", "gzip")
-        try:
-            return urllib2.urlopen(request)
-        except urllib2.HTTPError:
-            # either the resource is not modified or some other HTTP
-            # error occurred so return an empty resource
-            return StringIO.StringIO("")
-        except:
-            # source must not be a valid URL but it might be a valid filename
-            pass
-    except ImportError:
-        # urllib2 isn't available so try to open with urllib
-        o = urllib.FancyURLopener()
-        o.addheaders = [('User-agent', o.version + ", " + agent)]
-        try:
-            return o.open(source)
-        except:
-            # source still might be a filename
-            pass
-
+    opener = urllib2.build_opener(FeedURLHandler())
+    opener.addheaders = [] # RMK - must clear so we only send our custom User-Agent
+    try:
+        return opener.open(request)
+    except:
+        # source is not a valid URL, but it might be a valid filename
+        pass
+    
     # try to open with native open function (if source is a filename)
     try:
         return open(source)
@@ -632,6 +659,14 @@ def parse(uri, etag=None, modified=None, agent=None, referrer=None):
     newModified = get_modified(f)
     if newModified: result["modified"] = newModified
     elif modified: result["modified"] = modified
+    if hasattr(f, "url"):
+        result["url"] = f.url
+    if hasattr(f, "headers"):
+        result["headers"] = f.headers.dict
+    if hasattr(f, "status"):
+        result["status"] = f.status
+    elif hasattr(f, "url"):
+        result["status"] = 200
     f.close()
     return result
 
@@ -655,9 +690,7 @@ if __name__ == '__main__':
         print url
         print
         result = parse(url)
-        pprint(result['channel'])
-        if result['items']:
-            pprint(result['items'])
+        pprint(result)
         print
 
 """

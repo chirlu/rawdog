@@ -138,6 +138,17 @@ tidyhtml false
 # sorted by the time that rawdog first saw them.
 sortbyfeeddate false
 
+# The fields to use when detecting duplicate articles: "id" is the article's
+# unique ID or GUID; "link" is the article's link. rawdog will find the first
+# one of these that's present in the article, and ignore the article if it's
+# seen an article before (in any feed) that had the same value.  For example,
+# specifying "hideduplicates id link" will first look for id/guid, then for
+# link.
+# Note that some feeds use the same link for all their articles; if you specify
+# "link" here, you will probably want to specify the "allowduplicates" feed
+# argument (see below) for those feeds.
+hideduplicates id
+
 # The feeds you want to watch, in the format "feed period url [args]".
 # The period is the minimum time between updates; if less than period
 # minutes have passed, "rawdog update" will skip that feed. Specifying
@@ -151,6 +162,7 @@ sortbyfeeddate false
 #                     are unescaped plain text (rather than the usual HTML),
 #                     and should be escaped and wrapped in a <pre> element
 # X_proxy             Proxy URL for protocol X (for instance, "http_proxy")
+# allowduplicates     "true" to disable duplicate detection for this feed
 # You can specify as many feeds as you like.
 feed 1h http://www.advogato.org/rss/articles.xml
 feed 30m http://news.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss091.xml
@@ -158,4 +170,5 @@ feed 3h http://diveintomark.org/xml/rss.xml
 feed 3h http://secretfeed.example.com/secret.rss user=bob password=secret
 feed 3h http://brokenfeeds.com/my.rss format=text
 feed 3h http://proxyfeed.example.com/proxied.rss http_proxy=http://localhost:1234/
+feed 3h http://dupsfeed.example.com/duplicated.rss allowduplicates=true
 

@@ -26,6 +26,9 @@ Remove workarounds for early 1.x state file versions.
 Save the state file in the binary pickle format, and use cPickle instead
 of pickle so it can be read and written more rapidly.
 
+Add hideduplicates and allowduplicates options to attempt to hide
+duplicate articles (based on patch from Grant Edwards).
+
 - rawdog 1.13
 
 Handle OverflowError with parsed dates (patch from Matthew Scott).

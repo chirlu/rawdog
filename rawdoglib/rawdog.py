@@ -424,6 +424,10 @@ def parse_bool(value):
 	else:
 		raise ValueError("Bad boolean value: " + value)
 
+def parse_list(value):
+	"""Parse a list of keywords separated by whitespace."""
+	return value.strip().split(None)
+
 class ConfigError(Exception): pass
 
 class Config:
@@ -451,6 +455,7 @@ class Config:
 			"tidyhtml" : 0,
 			"sortbyfeeddate" : 0,
 			"currentonly" : 0,
+			"hideduplicates" : "",
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -530,6 +535,8 @@ class Config:
 			self["sortbyfeeddate"] = parse_bool(l[1])
 		elif l[0] == "currentonly":
 			self["currentonly"] = parse_bool(l[1])
+		elif l[0] == "hideduplicates":
+			self["hideduplicates"] = parse_list(l[1])
 		elif l[0] == "include":
 			self.load(l[1])
 		else:
@@ -726,26 +733,51 @@ __description__
 		itemtemplate = self.get_itemtemplate(config)
 		dw = DayWriter(f, config)
 
+		seen_links = {}
+		seen_guids = {}
+
 		count = 0
+		dup_count = 0
 		for article in articles:
 			age = now - article.added
 			if config["maxage"] != 0 and age > config["maxage"]:
 				break
+
+			feed = self.feeds[article.feed]
+			feed_info = feed.feed_info
+			entry_info = article.entry_info
+
+			link = entry_info.get("link")
+			if link == "":
+				link = None
+
+			guid = entry_info.get("id")
+			if guid == "":
+				guid = None
+
+			if feed.args.get("allowduplicates") != "true":
+				is_dup = False
+				for key in config["hideduplicates"]:
+					if key == "id" and guid is not None:
+						if seen_guids.has_key(guid):
+							is_dup = True
+						seen_guids[guid] = 1
+						break
+					elif key == "link" and link is not None:
+						if seen_links.has_key(link):
+							is_dup = True
+						seen_links[link] = 1
+						break
+				if is_dup:
+					dup_count += 1
+					continue
 
 			count += 1
 			dw.time(article_dates[article])
 
 			itembits = {}
 
-			feed = self.feeds[article.feed]
-			feed_info = feed.feed_info
-			entry_info = article.entry_info
-
 			title = detail_to_html(entry_info.get("title_detail"), True, config)
-
-			link = entry_info.get("link")
-			if link == "":
-				link = None
 
 			key = None
 			for k in ["content", "summary_detail"]:
@@ -799,7 +831,7 @@ __description__
 		dw.close()
 		bits["items"] = f.getvalue()
 		bits["num_items"] = str(numarticles)
-		config.log("Selected ", count, " of ", numarticles, " articles to write")
+		config.log("Selected ", count, " of ", numarticles, " articles to write; ignored ", dup_count, " duplicates")
 
 		f = StringIO()
 		print >>f, """<table id="feeds">

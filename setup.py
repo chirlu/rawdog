@@ -10,6 +10,7 @@ setup(name = "rawdog",
 	url = "http://offog.org/code/rawdog.html",
 	license = "GNU GPL v2 or later",
 	scripts = ['rawdog'],
+	data_files = [('share/man/man1', ['rawdog.1'])],
 	packages = ['rawdoglib'])
 
 

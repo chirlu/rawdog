@@ -6,5 +6,6 @@ include config
 include style.css
 include rawdog
 include MANIFEST.in
+include rawdog.1
 recursive-include rawdoglib *.py
 

@@ -3,6 +3,9 @@
 Add "clear: both;" to item style, so that items with floated images in
 don't extend into the items below them.
 
+Changed how rawdog selects the feeds to update; --verbose now shows
+only the feeds being updated.
+
 - rawdog 1.8
 
 Add format=text feed option to handle broken feeds that make their

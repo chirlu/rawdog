@@ -136,13 +136,18 @@ class Feed:
 		self.title = None
 		self.link = None
 		self.last_update = 0
+
+	def needs_update(self, now):
+		"""Return 1 if it's time to update this feed, or 0 if its
+		update period has not yet elapsed."""
+		if (now - self.last_update) < (self.period * 60):
+			return 0
+		else:
+			return 1
 	
-	def update(self, articles, now, force = 0):
+	def update(self, articles, now):
 		"""Fetch articles from a feed and add them to the collection.
 		Returns 1 if any articles were read, 0 otherwise."""
-
-		if not force and (now - self.last_update) < (self.period * 60):
-			return 0
 
 		if self.args.has_key("user") and self.args.has_key("password"):
 			authinfo = (self.args["user"], self.args["password"])
@@ -466,11 +471,10 @@ class Rawdog(Persistable):
 				del self.feeds[url]
 
 		if feedurl is None:
-			update_feeds = self.feeds.keys()
-			force = 0
+			update_feeds = [url for url in self.feeds.keys()
+			                    if self.feeds[url].needs_update(now)]
 		elif self.feeds.has_key(feedurl):
 			update_feeds = [feedurl]
-			force = 1
 		else:
 			print "No such feed: " + feedurl
 			update_feeds = []
@@ -483,7 +487,7 @@ class Rawdog(Persistable):
 		for url in update_feeds:
 			count += 1
 			config.log("Updating feed ", count, " of " , numfeeds, ": ", url)
-			if self.feeds[url].update(self.articles, now, force):
+			if self.feeds[url].update(self.articles, now):
 				seen_some_items[url] = 1
 
 		count = 0

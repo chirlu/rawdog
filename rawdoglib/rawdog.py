@@ -65,8 +65,32 @@ class Feed:
 			p = feedparser.parse(self.url, self.etag,
 				self.modified,	"rawdog/" + VERSION)
 		except:
-			print "Error fetching " + self.url
+			print "Feed:        " + self.url
+			print "Error parsing feed."
+			print
 			return 0
+
+		status = p["status"]
+		message = None
+		if status == 301:
+			# Permanent redirect. The feed URL needs changing.
+			message = "New URL:     " + p["url"] + "\n"
+			message += "The feed has moved permanently to a new URL.\n"
+			message += "You should update its entry in your config file."
+		elif status in [403, 410]:
+			# The feed is disallowed or gone. The feed should be unsubscribed.
+			message = "The feed has gone.\n"
+			message += "You should remove it from your config file."
+		elif status / 100 in [4, 5]:
+			# Some sort of client or server error. The feed may need unsubscribing.
+			message = "The feed returned an error.\n"
+			message += "If this condition persists, you should remove it from your config file."
+
+		if message is not None:
+			print "Feed:        " + self.url
+			print "HTTP Status: " + str(status)
+			print message
+			print
 
 		self.etag = p.get("etag")
 		self.modified = p.get("modified")

@@ -53,6 +53,9 @@ arguments.
 Add a meta element to the default template to stop search engines
 indexing rawdog pages (patch from Rick van Rein).
 
+Add new feeds at the end of the config file rather than before the first
+feed line (patch from Decklin Foster).
+
 - rawdog 2.1
 
 Fix a character encoding problem with format=text feeds.

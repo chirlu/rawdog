@@ -692,8 +692,7 @@ def edit_file(filename, editfunc):
 	newname = "%s.new-%d" % (filename, os.getpid())
 	oldfile = open(filename, "r")
 	newfile = open(newname, "w")
-	for line in oldfile.xreadlines():
-		editfunc(line, newfile)
+	editfunc(oldfile, newfile)
 	newfile.close()
 	oldfile.close()
 	os.rename(newname, filename)
@@ -701,14 +700,12 @@ def edit_file(filename, editfunc):
 class AddFeedEditor:
 	def __init__(self, feedline):
 		self.feedline = feedline
-		self.seen = False
-	def edit(self, line, outputfile):
-		if not self.seen:
-			ls = line.split(None, 1)
-			if len(ls) > 0 and ls[0] == "feed":
-				outputfile.write(self.feedline)
-				self.seen = True
-		outputfile.write(line)
+	def edit(self, inputfile, outputfile):
+		d = inputfile.read()
+		outputfile.write(d)
+		if not d.endswith("\n"):
+			outputfile.write("\n")
+		outputfile.write(self.feedline)
 
 def add_feed(filename, url, config):
 	"""Try to add a feed to the config file."""
@@ -725,11 +722,12 @@ class ChangeFeedEditor:
 	def __init__(self, oldurl, newurl):
 		self.oldurl = oldurl
 		self.newurl = newurl
-	def edit(self, line, outputfile):
-		ls = line.strip().split(None)
-		if len(ls) > 2 and ls[0] == "feed" and ls[2] == self.oldurl:
-			line = line.replace(self.oldurl, self.newurl, 1)
-		outputfile.write(line)
+	def edit(self, inputfile, outputfile):
+		for line in inputfile.xreadlines():
+			ls = line.strip().split(None)
+			if len(ls) > 2 and ls[0] == "feed" and ls[2] == self.oldurl:
+				line = line.replace(self.oldurl, self.newurl, 1)
+			outputfile.write(line)
 
 class Rawdog(Persistable):
 	"""The aggregator itself."""

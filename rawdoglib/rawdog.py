@@ -502,15 +502,17 @@ def usage():
 	print """rawdog, version """ + VERSION + """
 Usage: rawdog [OPTION]...
 
+General options (use only once):
+-d|--dir DIR                 Use DIR instead of ~/.rawdog
+--help                       Display this help and exit
+
+Actions (performed in order given):
 -u, --update                 Fetch data from feeds and store it
 -l, --list                   List feeds known at time of last update
 -w, --write                  Write out HTML output
 -f|--update-feed URL         Force an update on the single feed URL
 -c|--config FILE             Read additional config file FILE
 -t, --show-template          Print the template currently in use
---help                       Display this help and exit
-
-Actions are taken in the order they are given on the command line.
 
 Report bugs to <azz@us-lot.org>."""
 
@@ -518,16 +520,19 @@ def main(argv):
 	"""The command-line interface to the aggregator."""
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:c:t", ["update", "list", "write", "update-feed=", "help", "config=", "show-template"])
+		(optlist, args) = getopt.getopt(argv, "ulwf:c:td:", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir"])
 	except getopt.GetoptError, s:
 		print s
 		usage()
 		return 1
 
+	statedir = os.environ["HOME"] + "/.rawdog"
 	for o, a in optlist:
 		if o == "--help":
 			usage()
 			return 0
+		elif o in ("-d", "--dir"):
+			statedir = a
 
 	# Support old option syntax.
 	for action in args:
@@ -536,7 +541,6 @@ def main(argv):
 		else:
 			optlist.append(("update-feed", action))
 
-	statedir = os.environ["HOME"] + "/.rawdog"
 	try:
 		os.chdir(statedir)
 	except OSError:

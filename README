@@ -34,8 +34,6 @@ to perform -- for instance, "rawdog --update --write" tells it to do the
 "--update" action, then the "--write" action. The actions supported are
 as follows:
 
-"--help": Provide a brief summary of all the options rawdog supports.
-
 "--update" (or "-u"): Fetch data from the feeds and store it. This could
 take some time if you've got lots of feeds.
 
@@ -63,6 +61,17 @@ stdout. This is useful as a starting point if you want to modify your
 own template: do "rawdog -t >~/.rawdog/mytemplate" with "template
 default" in your config file, and you'll get a copy of the default
 template to edit.
+
+There are also the following options which may only be supplied once
+(they're read before any of the actions are performed):
+
+"--help": Provide a brief summary of all the options rawdog supports,
+and exit.
+
+"--dir DIR" (or "-d DIR"), where DIR is a directory: Use DIR instead of
+the $HOME/.rawdog directory. This is useful if you want to have two or
+more completely different rawdog setups with different sets of feeds;
+just create a directory for each.
 
 You will want to run "rawdog -uw" periodically to fetch data and write
 the output file. The easiest way to do this is to add a crontab entry

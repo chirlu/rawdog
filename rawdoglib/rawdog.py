@@ -240,9 +240,7 @@ class Feed:
 	
 	def update(self, rawdog, now, config):
 		"""Fetch articles from a feed and add them to the collection.
-		Returns 1 if any articles were read, 0 otherwise."""
-
-		plugins.call_hook("pre_update_feed", rawdog, config, self)
+		Returns True if any articles were read, False otherwise."""
 
 		articles = rawdog.articles
 		handlers = []
@@ -288,13 +286,13 @@ class Feed:
 		self.last_update = now
 
 		error = None
-		non_fatal = 0
+		non_fatal = False
 		old_url = self.url
 		if p is None:
 			error = "Error parsing feed."
 		elif status is None and len(p["feed"]) == 0:
 			if config["ignoretimeouts"]:
-				return 0
+				return False
 			else:
 				error = "Timeout while reading feed."
 		elif status is None:
@@ -310,7 +308,7 @@ class Feed:
 				error += "The config file has been updated automatically."
 			else:
 				error += "You should update its entry in your config file."
-			non_fatal = 1
+			non_fatal = True
 		elif status in [403, 410]:
 			# The feed is disallowed or gone. The feed should be unsubscribed.
 			error = "The feed has gone.\n"
@@ -320,6 +318,8 @@ class Feed:
 			error = "The feed returned an error.\n"
 			error += "If this condition persists, you should remove it from your config file."
 
+		plugins.call_hook("feed_fetched", rawdog, config, self, p, error, non_fatal)
+
 		if error is not None:
 			print >>sys.stderr, "Feed:        " + old_url
 			if status is not None:
@@ -327,7 +327,7 @@ class Feed:
 			print >>sys.stderr, error
 			print >>sys.stderr
 			if not non_fatal:
-				return 0
+				return False
 
 		self.etag = p.get("etag")
 		self.modified = p.get("modified")
@@ -336,7 +336,7 @@ class Feed:
 		# and feed will be empty. In this case we return 0 so that
 		# we know not to expire articles that came from this feed.
 		if len(p["entries"]) == 0:
-			return 0
+			return False
 
 		self.feed_info = p["feed"]
 		feed = self.url
@@ -362,7 +362,7 @@ class Feed:
 				articles[article.hash] = article
 				plugins.call_hook("article_added", rawdog, config, article, now)
 
-		return 1
+		return True
 
 	def get_html_name(self, config):
 		if self.feed_info.has_key("title_detail"):
@@ -834,7 +834,11 @@ class Rawdog(Persistable):
 		for url in update_feeds:
 			count += 1
 			config.log("Updating feed ", count, " of " , numfeeds, ": ", url)
-			if self.feeds[url].update(self, now, config):
+			feed = self.feeds[url]
+			plugins.call_hook("pre_update_feed", self, config, feed)
+			rc = feed.update(self, now, config)
+			plugins.call_hook("post_update_feed", self, config, feed, rc)
+			if rc:
 				seen_some_items[url] = 1
 
 		count = 0

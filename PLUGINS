@@ -150,6 +150,14 @@ be used to add extra template parameters.
 Called before a feed is updated. This hook can be used to perform extra
 actions before fetching a feed.
 
+### post_update_feed(rawdog, config, feed, seen_articles)
+
+* feed: the Feed about to be updated
+* seen_articles: a boolean indicating whether any articles were read
+  from the feed
+
+Called after a feed is updated.
+
 ### input_filter(rawdog, config, article, ignore)
 
 * article: the Article that has been received
@@ -214,6 +222,19 @@ cleaned string.
 Called before feedparser is used to fetch feed content. This hook can be
 used to add additional urllib2 handlers to cope with unusual protocol
 requirements; use `handlers.append` to add extra handlers.
+
+### feed_fetched(rawdog, config, feed, feed_data, error, non_fatal)
+
+* feed: the Feed that has just been fetched
+* feed_data: the data returned from feedparser.parse
+* error: the error string if an error occurred, or None if no error
+  occurred
+* non_fatal: if error is not None, a boolean indicating whether the
+  error was fatal
+
+Called after feedparser has been called to fetch the feed. This hook can
+be used to manipulate the received feed data or implement custom error
+handling.
 
 ## Examples
 

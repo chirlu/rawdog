@@ -604,11 +604,18 @@ __if_description__<div class="itemdescription">
 
 			feed = self.feeds[article.feed]
 			title = sanitise_html(article.title, 1)
+			if title == "":
+				title = None
 			link = article.link
+			if link == "":
+				link = None
 			if feed.args.has_key("format") and feed.args["format"] == "text":
 				description = "<pre>" + cgi.escape(article.description) + "</pre>"
 			else:
 				description = sanitise_html(article.description, 0)
+			if description == "":
+				description = None
+
 			date = article.get_date()
 			if title is None:
 				if link is None:

@@ -17,6 +17,10 @@ The persister module in rawdoglib is now licensed under the LGPL
 Made the error messages that listed the state dir reflect the -b
 setting (patch from Antonin Kral).
 
+Treat empty titles, links or descriptions as if they weren't supplied at
+all, to cope with broken feeds that specify "<title></title>" (patch
+from Michael Leuchtenburg).
+
 - rawdog 1.8
 
 Add format=text feed option to handle broken feeds that make their

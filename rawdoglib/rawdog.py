@@ -18,7 +18,7 @@
 
 VERSION = "2.0pre1"
 STATE_VERSION = 2
-import feedparser
+import feedparser, feedfinder
 from persister import Persistable, Persister
 import os, time, sha, getopt, sys, re, urlparse, cgi, socket, urllib2
 from StringIO import StringIO
@@ -459,6 +459,7 @@ class Config:
 			"sortbyfeeddate" : 0,
 			"currentonly" : 0,
 			"hideduplicates" : "",
+			"newfeedperiod" : "3h",
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -549,6 +550,42 @@ class Config:
 		"""If running in verbose mode, print a status message."""
 		if self["verbose"]:
 			print >>sys.stderr, "".join(map(str, args))
+
+def edit_file(filename, editfunc):
+	"""Edit a file in place: for each line in the input file, call
+	editfunc(line, outputfile), then rename the output file over the input
+	file."""
+	newname = "%s.new-%d" % (filename, os.getpid())
+	oldfile = open(filename, "r")
+	newfile = open(newname, "w")
+	for line in oldfile.xreadlines():
+		editfunc(line, newfile)
+	newfile.close()
+	oldfile.close()
+	os.rename(newname, filename)
+
+class AddFeedEditor:
+	def __init__(self, feedline):
+		self.feedline = feedline
+		self.seen = False
+	def edit(self, line, outputfile):
+		if not self.seen:
+			ls = line.split(None, 1)
+			if len(ls) > 0 and ls[0] == "feed":
+				outputfile.write(self.feedline)
+				self.seen = True
+		outputfile.write(line)
+
+def add_feed(filename, url, config):
+	"""Try to add a feed to the config file."""
+	feeds = feedfinder.getFeeds(url)
+	if feeds == []:
+		print >>sys.stderr, "Cannot find any feeds in " + url
+	else:
+		feed = feeds[0]
+		print >>sys.stderr, "Adding feed " + feed
+		feedline = "feed %s %s\n" % (config["newfeedperiod"], feed)
+		edit_file(filename, AddFeedEditor(feedline).edit)
 
 class Rawdog(Persistable):
 	"""The aggregator itself."""
@@ -884,6 +921,8 @@ Actions (performed in order given):
 -c|--config FILE             Read additional config file FILE
 -t, --show-template          Print the template currently in use
 -T, --show-itemtemplate      Print the item template currently in use
+-a|--add URL                 Try to find a feed associated with URL and
+                             add it to the config file
 
 Special actions (all other options are ignored if one of these is specified):
 --upgrade OLDDIR NEWDIR      Import feed state from rawdog 1.x directory
@@ -895,7 +934,7 @@ def main(argv):
 	"""The command-line interface to the aggregator."""
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:v", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade"])
+		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade", "add="])
 	except getopt.GetoptError, s:
 		print s
 		usage()
@@ -968,6 +1007,8 @@ def main(argv):
 			rawdog.show_itemtemplate(config)
 		elif o in ("-v", "--verbose"):
 			config["verbose"] = 1
+		elif o in ("-a", "--add"):
+			add_feed("config", a, config)
 
 	persister.save()
 

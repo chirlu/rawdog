@@ -5,6 +5,9 @@ just single spaces (reported by Joseph Reagle).
 
 Include a link to the rawdog home page in the default template.
 
+Fix the --dir argument: -d worked fine, but the getopt call was missing
+an "=" (reported by Gregory Margo).
+
 - rawdog 1.5
 
 Remove some debugging code that broke timeouts.

@@ -557,7 +557,7 @@ def main(argv):
 	"""The command-line interface to the aggregator."""
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:c:td:", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir"])
+		(optlist, args) = getopt.getopt(argv, "ulwf:c:td:", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir="])
 	except getopt.GetoptError, s:
 		print s
 		usage()

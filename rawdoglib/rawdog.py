@@ -45,6 +45,19 @@ def select_content(contents):
 	else:
 		return cs[0][1]
 
+def encode_references(s):
+	"""Encode characters in a Unicode string using HTML references."""
+	r = StringIO()
+	for c in s:
+		n = ord(c)
+		if n >= 128:
+			r.write("&#" + str(n) + ";")
+		else:
+			r.write(c)
+	v = r.getvalue()
+	r.close()
+	return v
+
 class Feed:
 	"""An RSS feed."""
 
@@ -147,18 +160,19 @@ class Feed:
 		return seen_items
 
 	def decode(self, s):
-		"""Convert a string retrieved from the feed to UTF-8."""
+		"""Convert a string retrieved from the feed from its original
+		encoding to our target encoding for HTML output."""
 		if s is None:
 			return None
 		try:
 			us = s.decode(self.encoding)
-			return us.encode("utf-8")
 		except ValueError:
 			# Badly-encoded string (or misguessed encoding).
-			return s
+			us = s
 		except LookupError:
 			# Unknown encoding.
-			return s
+			us = s
+		return encode_references(us).encode("iso-8859-1")
 
 	def get_html_name(self):
 		if self.title is not None:
@@ -371,7 +385,7 @@ class Rawdog(Persistable):
    "http://www.w3.org/TR/html4/strict.dtd">
 <html lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 """
 		if config["userefresh"]:
 			template += """__refresh__

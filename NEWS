@@ -4,9 +4,13 @@ Reverted the "retry immediately" behaviour from 1.2, since it causes
 denied or broken feeds to get checked every time rawdog is run.
 
 Updated feedparser to 2.5.3, which now returns the XML encoding used.
-rawdog uses this information to convert all incoming items into UTF-8,
-so multiple encodings are now handled correctly (and the HTML output is
-now encoded in UTF-8 rather than ISO-8859-1 as before).
+rawdog uses this information to convert all incoming items into Unicode,
+so multiple encodings are now handled correctly. Non-ASCII characters
+are encoded using HTML numeric character references (since this allows
+me to leave the HTML charset as ISO-8859-1; it's non-trivial to get
+Apache to serve arbitrary HTML files with the right Content-Type,
+and using <meta http-equiv="Content-Type"...> won't override HTTP
+headers).
 
 Use standard option syntax (i.e. "--update --write" instead of "update
 write").  The old syntax will be supported until 2.0.

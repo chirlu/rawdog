@@ -20,6 +20,10 @@ VERSION = "1.2"
 import feedparser
 from persister import Persistable, Persister
 import os, time, sha
+import timeoutsocket
+
+# Override the timeout set by feedparser.
+timeoutsocket.setDefaultSocketTimeout(30)
 
 def format_time(secs, config):
 	"""Format a time and date nicely."""

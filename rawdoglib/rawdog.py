@@ -88,7 +88,7 @@ class Feed:
 				self.modified,	"rawdog/" + VERSION,
 				None, authinfo)
 			status = p.get("status")
-		except IOError:
+		except:
 			p = None
 			status = None
 

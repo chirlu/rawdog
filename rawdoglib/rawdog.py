@@ -591,7 +591,12 @@ def main(argv):
 		return 1
 
 	persister = Persister("state", Rawdog)
-	rawdog = persister.load()
+	try:
+		rawdog = persister.load()
+	except:
+		print "An error occurred while reading state from ~/.rawdog/state."
+		print "This usually means the file is corrupt, and removing it will fix the problem."
+		return 1
 
 	for o, a in optlist:
 		if o in ("-u", "--update"):

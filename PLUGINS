@@ -1,0 +1,41 @@
+# Writing rawdog plugins
+
+## Introduction
+
+As provided, rawdog provides a fairly small set of features. In order to
+make it do more complex jobs, rawdog can be extended using plugin
+modules written in Python. This document is intended for developers who
+want to extend rawdog by writing plugins.
+
+Extensions work by registering hook functions which are called by
+various bits of rawdog's core as it runs. These functions can modify
+rawdog's internal state in various interesting ways. An arbitrary number
+of functions can be attached to each hook; they are called in the order
+they were attached. Hook functions take various arguments depending on
+where they're called from, and returns a boolean value indicating
+whether further functions attached to the same hook should be called.
+
+The "plugindirs" config option gives a list of directories to search for
+plugins; all Python modules found in those directories will be loaded by
+rawdog. In practice, this means that you need to call your file
+something ending in ".py" to have it recognised as a plugin.
+
+## Hooks
+
+Most hook functions are called with "rawdog" and "config" as their first
+two arguments; these are references to the aggregator's Rawdog and
+Config objects.
+
+If you need a hook that doesn't currently exist, please contact me.
+
+The following hooks are supported:
+
+### startup(rawdog, config)
+
+Run when rawdog starts up, after the state file and config file have
+been loaded, but before rawdog starts processing command-line arguments.
+
+### shutdown(rawdog, config)
+
+Run just before rawdog saves the state file and exits.
+

@@ -10,6 +10,11 @@
 # assume minutes.
 # Boolean (yes/no) values in this file are specified as "true" or "false".
 
+# rawdog can be extended using plugin modules written in Python. This
+# option specifies the directories to search for plugins to load. If a
+# directory does not exist or cannot be read, it will be ignored.
+plugindirs plugins
+
 # The maximum number of articles to show on the generated page.
 # Set this to 0 for no limit.
 maxarticles 200

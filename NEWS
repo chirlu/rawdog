@@ -26,6 +26,9 @@ as ISO-8859-1 (in case it just contains non-UTF-8 junk).
 Don't print the "state file may be corrupt" error if the user hits
 Ctrl-C while rawdog's loading it.
 
+Add support for extending rawdog with plugin modules; see the "PLUGINS"
+file for more information.
+
 - rawdog 2.1
 
 Fix a character encoding problem with format=text feeds.

@@ -1,4 +1,5 @@
 include README
+include PLUGINS
 include NEWS
 include COPYING
 include COPYING.LGPL

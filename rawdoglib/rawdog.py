@@ -18,7 +18,7 @@
 
 VERSION = "2.2"
 STATE_VERSION = 2
-import feedparser, feedfinder
+import feedparser, feedfinder, plugins
 from persister import Persistable, Persister
 import os, time, sha, getopt, sys, re, urlparse, cgi, socket, urllib2, calendar
 from StringIO import StringIO
@@ -481,6 +481,7 @@ class Config:
 			"feedslist" : [],
 			"feeddefaults" : {},
 			"defines" : {},
+			"plugindirs" : [],
 			"outputfile" : "output.html",
 			"maxarticles" : 200,
 			"maxage" : 0,
@@ -553,6 +554,8 @@ class Config:
 			if len(l) != 2:
 				raise ConfigError("Bad line in config: " + line)
 			self["defines"][l[0]] = l[1]
+		elif l[0] == "plugindirs":
+			self["plugindirs"] = parse_list(l[1])
 		elif l[0] == "outputfile":
 			self["outputfile"] = l[1]
 		elif l[0] == "maxarticles":
@@ -1116,6 +1119,8 @@ def main(argv):
 
 	rawdog.sync_from_config(config)
 
+	plugins.load_plugins(config)
+	plugins.call_hook("startup", rawdog, config)
 	stats = Stats()
 
 	for o, a in optlist:
@@ -1143,6 +1148,7 @@ def main(argv):
 			config.reload()
 			rawdog.sync_from_config(config)
 
+	plugins.call_hook("shutdown", rawdog, config)
 	if showstats:
 		stats.show()
 

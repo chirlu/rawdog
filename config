@@ -27,9 +27,6 @@ timeformat %H:%M
 # __refresh__         The HTML 4 <meta http-equiv="refresh" ...> header
 # __items__           The aggregated items
 # __feeds__           The listing of feeds
-# Note that rawdog's output is always in the UTF-8 encoding, so you should
-# preserve the <meta http-equiv="Content-type" ...> header from the default
-# template when building your own.
 template default
 
 # Similarly, the template used for each item shown. Use "rawdog -T" to show the

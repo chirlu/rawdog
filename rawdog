@@ -17,10 +17,7 @@
 # Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 # MA 02111-1307 USA, or see http://www.gnu.org/.
 
-# Rawdog, Article and Feed are imported to allow loading of state from versions
-# prior to 0.4. (This should be removed for 0.5, since pickle updates the
-# module path correctly once the state has been pickled again.)
-from rawdoglib.rawdog import main, Rawdog, Article, Feed
+from rawdoglib.rawdog import main
 import sys
 
 if __name__ == "__main__":

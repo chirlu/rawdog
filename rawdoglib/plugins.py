@@ -56,8 +56,10 @@ def attach_hook(hookname, func):
 def call_hook(hookname, *args):
 	"""Call all the functions attached to a hook with the given
 	arguments, in the order they were added, stopping if a hook function
-	returns False."""
+	returns False. Returns True if any hook function returned False (i.e.
+	returns True if any hook function handled the request)."""
 	for func in attached.get(hookname, []):
 		if not func(*args):
-			break
+			return True
+	return False
 

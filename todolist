@@ -1,10 +1,14 @@
+Look at Expires header to automatically select "periods"
+
+New Python-ish syntax for multiline feed entries in config file:
+
+feed 3h http://foo.bar.com/:
+  id fish
+  proxyuser foo
+
 FIXME: redo sorting hack in feedparser.
 
-- Length limiting in template
-- feed_name for use in classes
-- Include author info (and update template)
 - add new feeds at end of file (checking newline)
-- mx.Tidy flag to output xhtml
 
 - Longer-term future: split features out to plugins
   - refresh header
@@ -14,6 +18,8 @@ FIXME: redo sorting hack in feedparser.
   - mx.Tidy
   - proxy auth
   - per-feed proxies
+  - length limiting in templates
+  - mx.Tidy flag to output xhtml
 - And new features to write as plugins
   - sort by feeds first (should work since sort is stable)
 

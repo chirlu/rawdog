@@ -13,6 +13,10 @@ makes rawdog show what it's doing while it's running.
 Add an "include" statement in config files that can be used to include
 another config file.
 
+Add feed options to select proxies (contributed by Neil Padgen). This is
+straightforward for Python 2.3, but 2.2's urllib2 has a bug which
+prevents ProxyHandlers from working; I've added a workaround for now.
+
 - rawdog 1.7
 
 Fix code in iso8601.py that caused a warning with Python 2.3.

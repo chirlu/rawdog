@@ -148,11 +148,17 @@ class Feed:
 			authinfo = (self.args["user"], self.args["password"])
 		else:
 			authinfo = None
+		proxies = {}
+		for key in self.args.keys():
+			if key.endswith("_proxy"):
+				proxies[key[:-6]] = self.args[key]
+		if len(proxies.keys()) == 0:
+			proxies = None
 
 		try:
 			p = feedparser.parse(self.url, self.etag,
 				self.modified,	"rawdog/" + VERSION,
-				None, authinfo)
+				None, authinfo, proxies)
 			status = p.get("status")
 		except:
 			p = None

@@ -93,10 +93,12 @@ verbose 0
 # format              "text" to indicate that the descriptions in this feed
 #                     are unescaped plain text (rather than the usual HTML),
 #                     and should be escaped and wrapped in a <pre> element
+# X_proxy             Proxy URL for protocol X (for instance, "http_proxy")
 # You can specify as many feeds as you like.
 feed 60 http://www.advogato.org/rss/articles.xml
 feed 30 http://news.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss091.xml
 feed 180 http://diveintomark.org/xml/rss.xml
 feed 180 http://secretfeed.example.com/secret.rss user=bob password=secret
 feed 180 http://brokenfeeds.com/my.rss format=text
+feed 180 http://proxyfeed.example.com/proxied.rss http_proxy=http://localhost:1234/
 

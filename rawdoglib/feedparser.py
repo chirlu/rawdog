@@ -81,6 +81,7 @@ __history__ = """
 
 Modifications for rawdog by Adam Sampson <azz@us-lot.org>
   Added HTTP basic auth support.
+  Added proxy support.
 """
 
 try:
@@ -508,7 +509,7 @@ class FeedURLHandler(urllib2.HTTPRedirectHandler, urllib2.HTTPDefaultErrorHandle
     http_error_300 = http_error_302
     http_error_307 = http_error_302
         
-def open_resource(source, etag=None, modified=None, agent=None, referrer=None, authinfo=None):
+def open_resource(source, etag=None, modified=None, agent=None, referrer=None, authinfo=None, proxies=None):
     """
     URI, filename, or string --> stream
 
@@ -534,6 +535,9 @@ def open_resource(source, etag=None, modified=None, agent=None, referrer=None, a
 
     If the authinfo argument is supplied, it will be used as a (user, password)
     pair for HTTP basic authentication.
+
+    If the proxies argument is supplied, it will be used as a dictionary
+    mapping protocol names to proxy URLs.
     """
 
     if hasattr(source, "read"):
@@ -556,6 +560,8 @@ def open_resource(source, etag=None, modified=None, agent=None, referrer=None, a
         request.add_header("Referer", referrer)
         request.add_header("Accept-encoding", "gzip")
     opener = urllib2.build_opener(FeedURLHandler())
+    if proxies:
+        opener.add_handler(urllib2.ProxyHandler(proxies))
     if authinfo:
         (user, password) = authinfo
         class DummyPasswordMgr:
@@ -563,6 +569,16 @@ def open_resource(source, etag=None, modified=None, agent=None, referrer=None, a
             def find_user_password(self, realm, authuri):
                 return (user, password)
         opener.add_handler(urllib2.HTTPBasicAuthHandler(DummyPasswordMgr()))
+    # This is a workaround for a urllib2 bug in Python 2.2: ProxyHandler
+    # must be checked first, but the old urllib2 doesn't sort it to the
+    # front of the list automatically.
+    if not hasattr(urllib2.ProxyHandler, "handler_order"):
+        for proto in opener.handle_open.keys():
+            def order(handler):
+                if isinstance(handler, urllib2.ProxyHandler):
+                    return 100
+                return 500
+            opener.handle_open[proto].sort(lambda a, b: cmp(order(a), order(b)))
     opener.addheaders = [] # RMK - must clear so we only send our custom User-Agent
     try:
         return opener.open(request)
@@ -666,9 +682,9 @@ def parse_http_date(date):
         # the month or weekday lookup probably failed indicating an invalid timestamp
         return None
 
-def parse(uri, etag=None, modified=None, agent=None, referrer=None, authinfo=None):
+def parse(uri, etag=None, modified=None, agent=None, referrer=None, authinfo=None, proxies=None):
     r = FeedParser()
-    f = open_resource(uri, etag=etag, modified=modified, agent=agent, referrer=referrer, authinfo=authinfo)
+    f = open_resource(uri, etag=etag, modified=modified, agent=agent, referrer=referrer, authinfo=authinfo, proxies=proxies)
     data = f.read()
     if hasattr(f, "headers"):
         if f.headers.get('content-encoding', '') == 'gzip':

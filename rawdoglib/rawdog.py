@@ -723,7 +723,7 @@ def main(argv):
 	try:
 		os.chdir(statedir)
 	except OSError:
-		print "No ~/.rawdog directory"
+		print "No " + statedir + " directory"
 		return 1
 
 	config = Config()
@@ -738,7 +738,7 @@ def main(argv):
 	try:
 		rawdog = persister.load()
 	except:
-		print "An error occurred while reading state from ~/.rawdog/state."
+		print "An error occurred while reading state from " + statedir + "/state."
 		print "This usually means the file is corrupt, and removing it will fix the problem."
 		return 1
 

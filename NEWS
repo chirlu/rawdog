@@ -14,6 +14,9 @@ favour of the more-capable feedparser equivalents.
 The persister module in rawdoglib is now licensed under the LGPL
 (requested by Giles Radford).
 
+Made the error messages that listed the state dir reflect the -b
+setting (patch from Antonin Kral).
+
 - rawdog 1.8
 
 Add format=text feed option to handle broken feeds that make their

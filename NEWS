@@ -25,7 +25,8 @@ to have cron mail the output to you rather than putting it on a web
 page.
 
 Added --show-template option to show the template currently in use (so
-you can customise it yourself).
+you can customise it yourself), and "template" config option to allow
+the user to specify their own template.
 
 - rawdog 1.2
 

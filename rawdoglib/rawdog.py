@@ -252,6 +252,7 @@ class Config:
 			"userefresh" : 0,
 			"showfeeds" : 1,
 			"timeout" : 30,
+			"template" : "default",
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -297,6 +298,8 @@ class Config:
 			self["showfeeds"] = int(l[1])
 		elif l[0] == "timeout":
 			self["timeout"] = int(l[1])
+		elif l[0] == "template":
+			self["template"] = l[1]
 		else:
 			raise ConfigError("Unknown config command: " + l[0])
 
@@ -355,6 +358,12 @@ class Rawdog(Persistable):
 		self.modified()
 
 	def get_template(self, config):
+		if config["template"] != "default":
+			f = open(config["template"])
+			template = f.read()
+			f.close()
+			return template
+
 		template = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
    "http://www.w3.org/TR/html4/strict.dtd">
 <html lang="en">
@@ -476,7 +485,7 @@ by <a href="mailto:azz@us-lot.org">Adam Sampson</a>.</p>
 		print >>f, """</table>"""
 		bits["feeds"] = f.getvalue()
 
-		s = get_template()
+		s = self.get_template(config)
 		for k in bits.keys():
 			s = s.replace("__" + k + "__", bits[k])
 

@@ -12,6 +12,19 @@ dayformat %A, %d %B
 # a 12-hour clock.
 timeformat %H:%M
 
+# The template file to use, or "default" to use the built-in template
+# (which is probably sufficient for most users). Use "rawdog -t" to show
+# the template currently in use as a starting-point for customisation.
+# The following strings will be replaced in the output:
+# __version__         The rawdog version in use
+# __refresh__         The HTML 4 <meta http-equiv="refresh" ...> header
+# __items__           The aggregated items
+# __feeds__           The listing of feeds
+# Note that rawdog's output is always in the UTF-8 encoding, so you should
+# preserve the <meta http-equiv="Content-type" ...> header from the default
+# template when building your own.
+template default
+
 # Where to write the output HTML to. You should place style.css in the same
 # directory. Specify this as "-" to write the HTML to stdout.
 outputfile /home/azz/public_html/rawdog.html
@@ -20,9 +33,15 @@ outputfile /home/azz/public_html/rawdog.html
 # in the generated HTML to indicate that the page should be refreshed
 # automatically. If this is turned on, then the page will refresh every N
 # minutes, where N is the shortest feed period value specified below.
+# (This works by controlling whether the default template includes
+# __refresh__; if you use a custom template, __refresh__ is always
+# available.)
 userefresh 1
 
 # Whether to show the list of active feeds in the generated HTML.
+# (This works by controlling whether the default template includes
+# __feeds__; if you use a custom template, __feeds__ is always
+# available.)
 showfeeds 1
 
 # The time in seconds that rawdog will wait before considering a feed

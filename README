@@ -6,12 +6,14 @@ feed parser. It's just an aggregator; it's not a weblog authoring tool, nor is
 it an NNTP gateway, outliner, mailserver or anything else.  rawdog probably
 only runs on Unix-like systems.
 
-rawdog reads articles from a number of feeds and writes out a single HTML file
-containing the latest articles it's seen. It uses the ETags and Last-Modified
-headers to avoid fetching a file that hasn't changed, and supports gzip
-compression to reduce bandwidth when it has. It is configured from a simple
-text file; the only state kept between invocations that can't be reconstructed
-from the feeds is the ordering of articles.
+rawdog reads articles from a number of feeds and writes out a single
+HTML file, based on a template either provided by the user or generated
+by rawdog, containing the latest articles it's seen. It uses the ETags
+and Last-Modified headers to avoid fetching a file that hasn't changed,
+and supports gzip compression to reduce bandwidth when it has. It is
+configured from a simple text file; the only state kept between
+invocations that can't be reconstructed from the feeds is the ordering
+of articles.
 
 To install rawdog on your system, use distutils -- "python setup.py install".
 This will install the library modules that rawdog needs, and will install the
@@ -31,6 +33,8 @@ When you invoke rawdog from the command line, you give it a series of actions
 to perform -- for instance, "rawdog --update --write" tells it to do the
 "--update" action, then the "--write" action. The actions supported are
 as follows:
+
+"--help": Provide a brief summary of all the options rawdog supports.
 
 "--update" (or "-u"): Fetch data from the feeds and store it. This could
 take some time if you've got lots of feeds.
@@ -53,6 +57,12 @@ This is useful if you want rawdog to write two different output files
 with different sets of options ("rawdog -u -w -c config2 -w" will first
 update and write with the default config, then read config2, then write
 again).
+
+"--show-template" (or "-t"): Print the template currently in use to
+stdout. This is useful as a starting point if you want to modify your
+own template: do "rawdog -t >~/.rawdog/mytemplate" with "template
+default" in your config file, and you'll get a copy of the default
+template to edit.
 
 You will want to run "rawdog -uw" periodically to fetch data and write
 the output file. The easiest way to do this is to add a crontab entry

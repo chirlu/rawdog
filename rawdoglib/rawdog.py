@@ -561,16 +561,15 @@ __if_description__<div class="itemdescription">
 				else:
 					title = "Link"
 
-			itembits["title"] = ""
-			if link is not None: itembits["title"] += '<a href="' + article.link + '">'
-			itembits["title"] += title
-			if link is not None: itembits["title"] += '</a>'
+			if link is None:
+				itembits["title"] = title
+			else:
+				itembits["title"] = '<a href="' + link + '">' + title + '</a>'
 
 			itembits["feed_title"] = feed.get_html_link()
 
 			if description is not None:
-				description = make_links_absolute(feed.url, description)
-				itembits["description"] = description
+				itembits["description"] = make_links_absolute(feed.url, description)
 			else:
 				itembits["description"] = ""
 

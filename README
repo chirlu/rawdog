@@ -52,6 +52,15 @@ looks something like this:
 (If you don't know how to use cron, then "man crontab" is probably a good
 start.) This will run rawdog every ten minutes.
 
+If you want rawdog to fetch URLs through a proxy server, then set your
+"http_proxy" environment variable appropriately; depending on your version of
+cron, putting something like:
+
+http_proxy=http://myproxy.mycompany.com:3128/
+
+at the top of your crontab should be appropriate. (The http_proxy variable will
+work for many other programs too.)
+
 In the event that rawdog gets horribly confused (for instance, if your system
 clock has a huge jump and it thinks it won't need to fetch anything for the
 next thirty years), you can forcibly clear its state by removing the

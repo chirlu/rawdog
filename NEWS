@@ -6,7 +6,7 @@ floated images in don't extend into the items below them.
 Changed how rawdog selects the feeds to update; --verbose now shows
 only the feeds being updated.
 
-rawdog now uses feedparser 2.7.1, which adds date parsing and limited
+rawdog now uses feedparser 2.7.6, which adds date parsing and limited
 sanitisation of feed-provided HTML; I've removed rawdog's own
 date-parsing (including iso8601.py) and relative-link-fixing code in
 favour of the more-capable feedparser equivalents.
@@ -36,6 +36,9 @@ Added datetimeformat option so that you can display feed and article
 times differently from the day and time headings, and added some
 examples including ISO 8601 format to the config file (patch from Tero
 Karvinen).
+
+Forcing a feed to be updated with -f now clears its ETag and
+Last-Modified, so it should always be refetched from the server.
 
 - rawdog 1.8
 

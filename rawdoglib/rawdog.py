@@ -517,6 +517,8 @@ class Rawdog(Persistable):
 			                    if self.feeds[url].needs_update(now)]
 		elif self.feeds.has_key(feedurl):
 			update_feeds = [feedurl]
+			self.feeds[feedurl].etag = None
+			self.feeds[feedurl].modified = None
 		else:
 			print "No such feed: " + feedurl
 			update_feeds = []

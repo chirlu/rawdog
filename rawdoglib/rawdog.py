@@ -246,6 +246,7 @@ class Feed:
 
 		error = None
 		non_fatal = 0
+		old_url = self.url
 		if p is None:
 			error = "Error parsing feed."
 		elif status is None:
@@ -274,7 +275,7 @@ class Feed:
 			error += "If this condition persists, you should remove it from your config file."
 
 		if error is not None:
-			print >>sys.stderr, "Feed:        " + self.url
+			print >>sys.stderr, "Feed:        " + old_url
 			if status is not None:
 				print >>sys.stderr, "HTTP Status: " + str(status)
 			print >>sys.stderr, error

@@ -60,21 +60,25 @@ class Feed:
 		if not force and (now - self.last_update) < (self.period * 60):
 			return 0
 
-		error = None
 		try:
 			p = feedparser.parse(self.url, self.etag,
 				self.modified,	"rawdog/" + VERSION)
+			status = p.get("status")
 		except:
-			error = "Error parsing feed."
+			p = None
 
-		status = p.get("status")
-		if status is None:
+		error = None
+		non_fatal = 0
+		if p is None:
+			error = "Error parsing feed."
+		elif status is None:
 			error = "Timeout while reading feed."
 		elif status == 301:
 			# Permanent redirect. The feed URL needs changing.
 			error = "New URL:     " + p["url"] + "\n"
 			error += "The feed has moved permanently to a new URL.\n"
 			error += "You should update its entry in your config file."
+			non_fatal = 1
 		elif status in [403, 410]:
 			# The feed is disallowed or gone. The feed should be unsubscribed.
 			error = "The feed has gone.\n"
@@ -90,7 +94,8 @@ class Feed:
 				print "HTTP Status: " + str(status)
 			print error
 			print
-			return 0
+			if not non_fatal:
+				return 0
 
 		self.last_update = now
 

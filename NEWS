@@ -1,3 +1,7 @@
+- rawdog 2.2
+
+Add "feeddefaults" statement to specify default feed options.
+
 - rawdog 2.1
 
 Fix a character encoding problem with format=text feeds.

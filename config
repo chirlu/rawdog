@@ -176,7 +176,9 @@ changeconfig true
 # proxyuser           User for proxy basic authentication
 # proxypassword       Password for proxy basic authentication
 # allowduplicates     "true" to disable duplicate detection for this feed
-# You can specify as many feeds as you like.
+# You can provide a default set of arguments for all feeds with
+# "feeddefaults [args]". You can specify as many feeds as you like.
+feeddefaults http_proxy=http://proxy.example.com:3128/
 feed 1h http://www.advogato.org/rss/articles.xml
 feed 30m http://news.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss091.xml
 feed 3h http://diveintomark.org/xml/rss.xml

@@ -455,6 +455,16 @@ def parse_list(value):
 	"""Parse a list of keywords separated by whitespace."""
 	return value.strip().split(None)
 
+def parse_feed_args(l):
+	"""Parse a list of feed arguments. Raise ConfigError if the syntax is invalid."""
+	args = {}
+	for a in l:
+		as = a.split("=", 1)
+		if len(as) != 2:
+			raise ConfigError("Bad feed argument in config: " + a)
+		args[as[0]] = as[1]
+	return args
+
 class ConfigError(Exception): pass
 
 class Config:
@@ -463,6 +473,7 @@ class Config:
 	def __init__(self):
 		self.config = {
 			"feedslist" : [],
+			"feeddefaults" : {},
 			"outputfile" : "output.html",
 			"maxarticles" : 200,
 			"maxage" : 0,
@@ -519,13 +530,9 @@ class Config:
 			l = l[1].split(None)
 			if len(l) < 2:
 				raise ConfigError("Bad line in config: " + line)
-			args = {}
-			for a in l[2:]:
-				as = a.split("=", 1)
-				if len(as) != 2:
-					raise ConfigError("Bad feed argument in config: " + a)
-				args[as[0]] = as[1]
-			self["feedslist"].append((l[1], parse_time(l[0]), args))
+			self["feedslist"].append((l[1], parse_time(l[0]), parse_feed_args(l[2:])))
+		elif l[0] == "feeddefaults":
+			self["feeddefaults"] = parse_feed_args(l[1].split(None))
 		elif l[0] == "outputfile":
 			self["outputfile"] = l[1]
 		elif l[0] == "maxarticles":
@@ -687,7 +694,9 @@ class Rawdog(Persistable):
 				config.log("Adding new feed: ", url)
 				self.feeds[url] = Feed(url)
 			self.feeds[url].period = period
-			self.feeds[url].args = args
+			self.feeds[url].args = {}
+			self.feeds[url].args.update(config["feeddefaults"])
+			self.feeds[url].args.update(args)
 		for url in self.feeds.keys():
 			if not seenfeeds.has_key(url):
 				config.log("Removing feed: ", url)

@@ -478,6 +478,7 @@ class Config:
 		self.config = {
 			"feedslist" : [],
 			"feeddefaults" : {},
+			"defines" : {},
 			"outputfile" : "output.html",
 			"maxarticles" : 200,
 			"maxage" : 0,
@@ -545,6 +546,11 @@ class Config:
 			self["feedslist"].append((l[1], parse_time(l[0]), parse_feed_args(l[2:])))
 		elif l[0] == "feeddefaults":
 			self["feeddefaults"] = parse_feed_args(l[1].split(None))
+		elif l[0] == "define":
+			l = l[1].split(None, 1)
+			if len(l) != 2:
+				raise ConfigError("Bad line in config: " + line)
+			self["defines"][l[0]] = l[1]
 		elif l[0] == "outputfile":
 			self["outputfile"] = l[1]
 		elif l[0] == "maxarticles":
@@ -830,6 +836,7 @@ __description__
 		now = time.time()
 
 		bits = { "version" : VERSION }
+		bits.update(config["defines"])
 
 		refresh = config["expireage"]
 		for feed in self.feeds.values():
@@ -910,6 +917,9 @@ __description__
 			dw.time(article_dates[article])
 
 			itembits = {}
+			for name, value in feed.args.items():
+				if name.startswith("define_"):
+					itembits[name[7:]] = value
 
 			title = detail_to_html(entry_info.get("title_detail"), True, config)
 

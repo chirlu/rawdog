@@ -63,6 +63,9 @@ datetimeformat %H:%M, %A, %d %B
 # __num_items__       The number of items on the page
 # __feeds__           The listing of feeds
 # __num_feeds__       The number of feeds listed
+# You can define additional strings using "define" in this config file; for
+# example, if you say "define myname Adam Sampson", then "__myname__" will be
+# replaced by "Adam Sampson" in the output.
 template default
 
 # Similarly, the template used for each item shown. Use "rawdog -T" to
@@ -82,11 +85,14 @@ template default
 #                     The feed title (as text)
 # __feed_url__        The feed URL
 # __feed_hash__       A hash of the feed URL (useful for per-feed styles)
+# You can define additional strings on a per-feed basis by using the
+# "define_X" feed option; see the description of "feed" below for more
+# details.
 # Simple conditional expansion is possible by saying something like
 # "__if_items__ hello __endif__"; the text between the if and endif will
 # only be included if __items__ would expand to something other than
 # the empty string. Ifs can be nested, and __else__ is supported. (This also
-# works for the "template" option, but it's only really useful for item
+# works for the "template" option, but it's more useful for item
 # templates.)
 itemtemplate default
 
@@ -176,6 +182,8 @@ changeconfig true
 # proxyuser           User for proxy basic authentication
 # proxypassword       Password for proxy basic authentication
 # allowduplicates     "true" to disable duplicate detection for this feed
+# define_X            Equivalent to "define X ..." for item templates
+#                     when displaying items from this feed
 # You can provide a default set of arguments for all feeds with
 # "feeddefaults [args]". You can specify as many feeds as you like.
 feeddefaults http_proxy=http://proxy.example.com:3128/
@@ -183,7 +191,7 @@ feed 1h http://www.advogato.org/rss/articles.xml
 feed 30m http://news.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss091.xml
 feed 3h http://diveintomark.org/xml/rss.xml
 feed 3h http://secretfeed.example.com/secret.rss user=bob password=secret
-feed 3h http://brokenfeeds.com/my.rss format=text
+feed 3h http://brokenfeeds.com/my.rss format=text define_myclass=broken
 feed 3h http://proxyfeed.example.com/proxied.rss http_proxy=http://localhost:1234/
 feed 3h http://dupsfeed.example.com/duplicated.rss allowduplicates=true
 

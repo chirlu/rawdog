@@ -33,9 +33,9 @@ def select_content(contents):
 	preferred = ["text/html", "application/xhtml+xml"]
 	cs = []
 	for c in contents:
-		type = c["type"]
-		if type in preferred:
-			score = preferred.index(type)
+		ctype = c["type"]
+		if ctype in preferred:
+			score = preferred.index(ctype)
 			cs.append((score, c["value"]))
 	cs.sort()
 	if len(cs) == 0:

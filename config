@@ -18,9 +18,9 @@ maxarticles 200
 # Set this to 0 for no limit.
 maxage 0
 
-# The age after which articles will be discarded if they do not
-# appear in a feed. Set this to a larger value if you want your rawdog
-# output to cover more than a day's worth of articles.
+# The age after which articles will be discarded if they do not appear
+# in a feed. Set this to a larger value if you want your rawdog output
+# to cover more than a day's worth of articles.
 expireage 1d
 
 # The format to write day headings in. See "man strftime" for more
@@ -49,9 +49,9 @@ datetimeformat %H:%M, %A, %d %B
 # __feeds__           The listing of feeds
 template default
 
-# Similarly, the template used for each item shown. Use "rawdog -T" to show the
-# template currently in use as a starting-point for customisation. The
-# following strings will be replaced in the output:
+# Similarly, the template used for each item shown. Use "rawdog -T" to
+# show the template currently in use as a starting-point for
+# customisation. The following strings will be replaced in the output:
 # __title__           The item title (as an HTML link, if possible)
 # __title_no_link__   The item title (as text)
 # __description__     The item's descriptive text, or the empty string
@@ -75,10 +75,10 @@ itemtemplate default
 # directory. Specify this as "-" to write the HTML to stdout.
 outputfile /home/azz/public_html/rawdog.html
 
-# Whether to use a <meta http-equiv="Refresh" ...> tag
-# in the generated HTML to indicate that the page should be refreshed
-# automatically. If this is turned on, then the page will refresh every N
-# minutes, where N is the shortest feed period value specified below.
+# Whether to use a <meta http-equiv="Refresh" ...> tag in the generated
+# HTML to indicate that the page should be refreshed automatically. If
+# this is turned on, then the page will refresh every N minutes, where N
+# is the shortest feed period value specified below.
 # (This works by controlling whether the default template includes
 # __refresh__; if you use a custom template, __refresh__ is always
 # available.)
@@ -90,23 +90,23 @@ userefresh true
 # available.)
 showfeeds true
 
-# The time that rawdog will wait before considering a feed
-# unreachable when trying to connect. If you're getting lots of timeout
-# errors and are on a slow connection, increase this.
-# (Unlike other times in this file, this will be assumed to be in seconds if no
-# unit is specified.)
+# The time that rawdog will wait before considering a feed unreachable
+# when trying to connect. If you're getting lots of timeout errors and
+# are on a slow connection, increase this.
+# (Unlike other times in this file, this will be assumed to be in
+# seconds if no unit is specified.)
 timeout 30s
 
-# Whether to display verbose status messages
-# saying what rawdog's doing while it runs. Specifying -v or --verbose
-# on the command line is equivalent to saying "verbose true" here.
+# Whether to display verbose status messages saying what rawdog's doing
+# while it runs. Specifying -v or --verbose on the command line is
+# equivalent to saying "verbose true" here.
 verbose false
 
 # The feeds you want to watch, in the format "feed period url [args]".
-# The period is the minimum time between updates; if less
-# than period minutes have passed, "rawdog update" will skip that feed.
-# Specifying a period less than 30 minutes is considered to be bad manners; it
-# is suggested that you make the period as long as possible.
+# The period is the minimum time between updates; if less than period
+# minutes have passed, "rawdog update" will skip that feed. Specifying
+# a period less than 30 minutes is considered to be bad manners; it is
+# suggested that you make the period as long as possible.
 # Arguments are optional, and are of the form "key=value", seperated by spaces;
 # possible arguments are:
 # user                User for HTTP basic authentication

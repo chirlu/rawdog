@@ -110,11 +110,12 @@ class Feed:
 		for item in p["items"]:
 			title = item.get("title")
 			link = item.get("link")
-			if item.has_key("content_encoded"):
-				description = item["content_encoded"]
-			elif item.has_key("content"):
+			description = None
+			if description is None and item.has_key("content"):
 				description = select_content(item["content"])
-			else:
+			if description is None and item.has_key("content_encoded"):
+				description = item["content_encoded"]
+			if description is None:
 				description = item.get("description")
 
 			article = Article(feed, title, link, description,

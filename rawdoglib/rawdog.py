@@ -140,6 +140,30 @@ def detail_to_html(details, inline, config, force_preformatted = False):
 
 	return sanitise_html(html, detail["base"], inline, config)
 
+def author_to_html(entry, feedurl, config):
+	"""Convert feedparser author information to HTML."""
+	author_detail = entry.get("author_detail")
+
+	if author_detail is not None and author_detail.has_key("name"):
+		name = author_detail["name"]
+	else:
+		name = entry.get("author")
+
+	url = None
+	if author_detail is not None:
+		if author_detail.has_key("url"):
+			url = author_detail["url"]
+		elif author_detail.has_key("email"):
+			url = "mailto:" + author_detail["email"]
+
+	if url is None:
+		html = name
+	else:
+		html = "<a href=\"" + cgi.escape(url) + "\">" + cgi.escape(name) + "</a>"
+
+	# We shouldn't need a base URL here anyway.
+	return sanitise_html(html, feedurl, True, config)
+
 def url_to_html(url):
 	"""Convert a URL string to HTML."""
 	return cgi.escape(url)
@@ -245,7 +269,7 @@ class Feed:
 
 		plugins.call_hook("add_urllib2_handlers", rawdog, config, self, handlers)
 
-		feedparser._FeedParserMixin.can_contain_relative_uris = []
+		feedparser._FeedParserMixin.can_contain_relative_uris = ["url"]
 		feedparser._FeedParserMixin.can_contain_dangerous_markup = []
 		try:
 			p = feedparser.parse(self.url,
@@ -1000,7 +1024,7 @@ __description__
 			else:
 				itembits["description"] = ""
 
-			author = entry_info.get("author")
+			author = author_to_html(entry_info, feed.url, config)
 			if author is not None:
 				itembits["author"] = author
 			else:

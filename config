@@ -61,8 +61,8 @@ timeout 30
 # than period minutes have passed, "rawdog update" will skip that feed.
 # Specifying a period less than 30 minutes is considered to be bad manners; it
 # is suggested that you make the period as long as possible.
-# Arguments are optional, and are of the form "key=value"; possible arguments
-# are:
+# Arguments are optional, and are of the form "key=value", seperated by spaces;
+# possible arguments are:
 # user                User for HTTP basic authentication
 # password            Password for HTTP basic authentication
 # You can specify as many feeds as you like.

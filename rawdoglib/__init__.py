@@ -1,1 +1,1 @@
-__all__ = ['rssparser']
+__all__ = ['rssparser', 'timeoutsocket']

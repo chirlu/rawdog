@@ -56,13 +56,18 @@ showfeeds 1
 # errors and are on a slow connection, increase this.
 timeout 30
 
-# The feeds you want to watch, in the format "feed period url".
+# The feeds you want to watch, in the format "feed period url [args]".
 # The period is the minimum time in minutes between updates; if less
 # than period minutes have passed, "rawdog update" will skip that feed.
 # Specifying a period less than 30 minutes is considered to be bad manners; it
 # is suggested that you make the period as long as possible.
+# Arguments are optional, and are of the form "key=value"; possible arguments
+# are:
+# user                User for HTTP basic authentication
+# password            Password for HTTP basic authentication
 # You can specify as many feeds as you like.
 feed 60 http://www.advogato.org/rss/articles.xml
 feed 30 http://news.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss091.xml
 feed 180 http://diveintomark.org/xml/rss.xml
+feed 180 http://secretfeed.example.com/secret.rss user=bob password=secret
 

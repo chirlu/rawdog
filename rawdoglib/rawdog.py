@@ -61,9 +61,10 @@ def encode_references(s):
 class Feed:
 	"""An RSS feed."""
 
-	def __init__(self, url, period):
+	def __init__(self, url):
 		self.url = url
-		self.period = period
+		self.period = 30
+		self.args = {}
 		self.etag = None
 		self.modified = None
 		self.title = None
@@ -77,18 +78,17 @@ class Feed:
 		if not force and (now - self.last_update) < (self.period * 60):
 			return 0
 
-		try:
-			# Kludge for inadequate authentication support in
-			# urllib2.
-			u = self.url
-			if u.startswith("https:"):
-				import urllib
-				u = urllib.urlopen(u)
+		if self.args.has_key("user") and self.args.has_key("password"):
+			authinfo = (self.args["user"], self.args["password"])
+		else:
+			authinfo = None
 
-			p = feedparser.parse(u, self.etag,
-				self.modified,	"rawdog/" + VERSION)
+		try:
+			p = feedparser.parse(self.url, self.etag,
+				self.modified,	"rawdog/" + VERSION,
+				None, authinfo)
 			status = p.get("status")
-		except:
+		except IOError:
 			p = None
 			status = None
 
@@ -302,10 +302,16 @@ class Config:
 			raise ConfigError("Bad line in config: " + line)
 
 		if l[0] == "feed":
-			l = l[1].split(" ", 1)
-			if len(l) != 2:
+			l = l[1].split(" ")
+			if len(l) < 2:
 				raise ConfigError("Bad line in config: " + line)
-			self["feedslist"].append((l[1], int(l[0])))
+			args = {}
+			for a in l[2:]:
+				as = a.split("=", 1)
+				if len(as) != 2:
+					raise ConfigError("Bad feed argument in config: " + a)
+				args[as[0]] = as[1]
+			self["feedslist"].append((l[1], int(l[0]), args))
 		elif l[0] == "outputfile":
 			self["outputfile"] = l[1]
 		elif l[0] == "maxarticles":
@@ -347,12 +353,12 @@ class Rawdog(Persistable):
 		timeoutsocket.setDefaultSocketTimeout(config["timeout"])
 
 		seenfeeds = {}
-		for (url, period) in config["feedslist"]:
+		for (url, period, args) in config["feedslist"]:
 			seenfeeds[url] = 1
 			if not self.feeds.has_key(url):
-				self.feeds[url] = Feed(url, period)
-			else:
-				self.feeds[url].period = period
+				self.feeds[url] = Feed(url)
+			self.feeds[url].period = period
+			self.feeds[url].args = args
 		for url in self.feeds.keys():
 			if not seenfeeds.has_key(url):
 				del self.feeds[url]

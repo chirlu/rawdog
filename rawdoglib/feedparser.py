@@ -78,6 +78,9 @@ __history__ = """
   inline <xhtml:body> and <xhtml:div> as used in some RSS 2.0 feeds
 2.5.3 - 8/6/2003 - TvdV - patch to track whether we're inside an image or
   textInput, and also to return the character encoding (if specified)
+
+Modifications for rawdog by Adam Sampson <azz@us-lot.org>
+  Added HTTP basic auth support.
 """
 
 try:
@@ -505,7 +508,7 @@ class FeedURLHandler(urllib2.HTTPRedirectHandler, urllib2.HTTPDefaultErrorHandle
     http_error_300 = http_error_302
     http_error_307 = http_error_302
         
-def open_resource(source, etag=None, modified=None, agent=None, referrer=None):
+def open_resource(source, etag=None, modified=None, agent=None, referrer=None, authinfo=None):
     """
     URI, filename, or string --> stream
 
@@ -528,6 +531,9 @@ def open_resource(source, etag=None, modified=None, agent=None, referrer=None):
 
     If the referrer argument is supplied, it will be used as the value of a
     Referer[sic] request header.
+
+    If the authinfo argument is supplied, it will be used as a (user, password)
+    pair for HTTP basic authentication.
     """
 
     if hasattr(source, "read"):
@@ -550,6 +556,13 @@ def open_resource(source, etag=None, modified=None, agent=None, referrer=None):
         request.add_header("Referer", referrer)
         request.add_header("Accept-encoding", "gzip")
     opener = urllib2.build_opener(FeedURLHandler())
+    if authinfo:
+        (user, password) = authinfo
+        class DummyPasswordMgr:
+            def add_password(self, realm, uri, user, passwd): pass
+            def find_user_password(self, realm, authuri):
+                return (user, password)
+        opener.add_handler(urllib2.HTTPBasicAuthHandler(DummyPasswordMgr()))
     opener.addheaders = [] # RMK - must clear so we only send our custom User-Agent
     try:
         return opener.open(request)
@@ -653,9 +666,9 @@ def parse_http_date(date):
         # the month or weekday lookup probably failed indicating an invalid timestamp
         return None
 
-def parse(uri, etag=None, modified=None, agent=None, referrer=None):
+def parse(uri, etag=None, modified=None, agent=None, referrer=None, authinfo=None):
     r = FeedParser()
-    f = open_resource(uri, etag=etag, modified=modified, agent=agent, referrer=referrer)
+    f = open_resource(uri, etag=etag, modified=modified, agent=agent, referrer=referrer, authinfo=authinfo)
     data = f.read()
     if hasattr(f, "headers"):
         if f.headers.get('content-encoding', '') == 'gzip':

@@ -2,7 +2,8 @@
 
 Updated feedparser to 2.5.2, which fixes a bug that was making rawdog
 handle content incorrectly in Echo feeds, handles more content encoding
-methods, and returns HTTP status codes.
+methods, and returns HTTP status codes. (I've applied a small patch to
+correct handling of some Echo feeds.)
 
 Added useful messages for different HTTP status codes and HTTP timeouts.
 Since rawdog reads a config file, it can't automatically update

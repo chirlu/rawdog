@@ -1,9 +1,6 @@
 - rawdog 1.4
 
-Remove the broken option-compatibility code; the old syntax now isn't
-supported. This means changing "rawdog update write" to "rawdog
---update --write" when you invoke rawdog, if you're still using the old
-syntax.
+Fix option-compatibility code (reported by BAM).
 
 Add HTTP basic authentication support (which means modifying feedparser
 again).

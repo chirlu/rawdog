@@ -82,6 +82,21 @@ class Feed:
 				articles[hash] = Article(feed, title,
 					link, description, hash, now)
 
+	def get_html_name(self):
+		if self.title is not None:
+			return self.title
+		elif self.link is not None:
+			return self.link
+		else:
+			return self.url
+
+	def get_html_link(self):
+		s = self.get_html_name()
+		if self.link is not None:
+			return '<a href="' + self.link + '">' + s + '</a>'
+		else:
+			return s
+
 class Article:
 	"""An article retrieved from an RSS feed."""
 
@@ -238,14 +253,7 @@ class Rawdog:
 			if link is not None: f.write('</a>')
 			f.write('</span>\n')
 
-			f.write('<span class="itemfrom">[')
-			if feed.link is not None: f.write('<a href="' + feed.link + '">')
-			if feed.title is None:
-				f.write(feed.url,)
-			else:
-				f.write(feed.title,)
-			if feed.link is not None: f.write('</a>',)
-			f.write(']</span>\n')
+			f.write('<span class="itemfrom">[' + feed.get_html_link() + ']</span>')
 
 			f.write('</p>\n')
 

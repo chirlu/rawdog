@@ -6,8 +6,10 @@ feed parser. It's just an aggregator; it's not a weblog authoring tool, nor is
 it an NNTP gateway, outliner, mailserver or anything else.  rawdog probably
 only runs on Unix-like systems.
 
-rawdog requires Python 2.2 or later. It doesn't need any additional
-modules to be installed.
+rawdog requires Python 2.2 or later. rawdog itself doesn't need any
+additional modules to be installed, but it uses distutils for
+installation, so if you're on a Debian system you'll need to install the
+"python-dev" package first.
 
 rawdog reads articles from a number of feeds and writes out a single
 HTML file, based on a template either provided by the user or generated

@@ -1,3 +1,7 @@
+- rawdog 2.0
+
+Update to feedparser 3.3. FIXME detail what I've done to it
+
 - rawdog 1.13
 
 Handle OverflowError with parsed dates (patch from Matthew Scott).

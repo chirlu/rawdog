@@ -1,4 +1,3 @@
-# FIXME update content selection stuff
 # FIXME redo sorting hack in feedparser
 # FIXME maybe redo numeric entities patch?
 # rawdog: RSS aggregator without delusions of grandeur.
@@ -22,7 +21,7 @@
 VERSION = "2.0rc1"
 import feedparser
 from persister import Persistable, Persister
-import os, time, sha, getopt, sys, re, urlparse, cgi, socket
+import os, time, sha, getopt, sys, re, urlparse, cgi, socket, urllib2
 from StringIO import StringIO
 
 def set_socket_timeout(n):
@@ -41,23 +40,6 @@ def format_time(secs, config):
 	if format is None:
 		format = config["timeformat"] + ", " + config["dayformat"]
 	return time.strftime(format, t)
-
-def select_content(contents):
-	"""Given a list of contents with alternative content types, select a
-	preferred version."""
-	types = {"text/html": 30,
-	         "application/xhtml+xml": 20,
-	         "text/plain": 10}
-	cs = []
-	for c in contents:
-		ctype = c.get("type")
-		if types.has_key(ctype):
-			score = types[ctype]
-		else:
-			score = 0
-		cs.append((score, c["value"]))
-	cs.sort()
-	return cs[-1][1]
 
 def encode_references(s):
 	"""Encode characters in a Unicode string using HTML references."""
@@ -81,6 +63,8 @@ def sanitise_html(html, baseurl, inline, config):
 	sequence of block-level elements."""
 	if html is None:
 		return None
+
+	html = encode_references(html)
 
 	# sgmllib handles "<br/>/" as a SHORTTAG; this workaround from
 	# feedparser.
@@ -109,7 +93,53 @@ def sanitise_html(html, baseurl, inline, config):
 		html = output[output.find("<body>") + 6
 		              : output.rfind("</body>")].strip()
 
-	return encode_references(html)
+	return html
+
+def select_detail(details):
+	"""Pick the preferred type of detail from a list of details. (If the
+	argument isn't a list, treat it as a list of one.)"""
+	types = {"text/html": 30,
+	         "application/xhtml+xml": 20,
+	         "text/plain": 10}
+
+	if details is None:
+		return None
+	if type(details) is not list:
+		details = [details]
+
+	ds = []
+	for detail in details:
+		ctype = detail["type"]
+		if types.has_key(ctype):
+			score = types[ctype]
+		else:
+			score = 0
+		if detail["value"] != "":
+			ds.append((score, detail))
+	ds.sort()
+
+	if len(ds) == 0:
+		return None
+	else:
+		return ds[-1][1]
+
+def detail_to_html(details, inline, config):
+	"""Convert a detail hash or list of detail hashes as returned by
+	feedparser into HTML."""
+	detail = select_detail(details)
+	if detail is None:
+		return None
+
+	if detail["type"] == "text/plain":
+		html = cgi.escape(detail["value"])
+	else:
+		html = detail["value"]
+
+	return sanitise_html(html, detail["base"], inline, config)
+
+def url_to_html(url):
+	"""Convert a URL string to HTML."""
+	return cgi.escape(url)
 
 template_re = re.compile(r'__(.*?)__')
 def fill_template(template, bits):
@@ -164,10 +194,8 @@ class Feed:
 		self.args = {}
 		self.etag = None
 		self.modified = None
-		self.title = None
-		self.link = None
 		self.last_update = 0
-		self.baseurl = url
+		self.feed_info = {}
 
 	def needs_update(self, now):
 		"""Return 1 if it's time to update this feed, or 0 if its
@@ -252,26 +280,12 @@ class Feed:
 		self.etag = p.get("etag")
 		self.modified = p.get("modified")
 
-		self.encoding = p.get("encoding")
-		if self.encoding is None:
-			self.encoding = "utf-8"
-
-		self.baseurl = self.url
-		if p.has_key("headers") and p["headers"].has_key("content-location"):
-			self.baseurl = p["headers"]["content-location"]
-		elif p.has_key("url"):
-			self.baseurl = p["url"]
-
-		channel = p["channel"]
-		if channel.has_key("title"):
-			self.title = self.decode(channel["title"])
-		if channel.has_key("link"):
-			self.link = self.decode(channel["link"])
+		self.feed_info = p["feed"]
 
 		# In the event that the feed hasn't changed, then both channel
 		# and feed will be empty. In this case we return 0 so that
 		# we know not to expire articles that came from this feed.
-		if len(p["items"]) == 0:
+		if len(p["entries"]) == 0:
 			return 0
 
 		feed = self.url
@@ -282,25 +296,8 @@ class Feed:
 					del articles[hash]
 
 		sequence = 0
-		for item in p["items"]:
-			title = self.decode(item.get("title"))
-			link = self.decode(item.get("link"))
-
-			date = item.get("date_parsed")
-			if date is not None:
-				try:
-					date = time.mktime(date)
-				except OverflowError:
-					date = None
-
-			description = None
-			if description is None and item.has_key("content"):
-				description = self.decode(item["content"])
-			if description is None:
-				description = self.decode(item.get("description"))
-
-			article = Article(feed, title, link, description,
-				now, sequence, date)
+		for entry_info in p["entries"]:
+			article = Article(feed, entry_info, now, sequence)
 			sequence += 1
 
 			if articles.has_key(article.hash):
@@ -310,76 +307,60 @@ class Feed:
 
 		return 1
 
-	def decode(self, s):
-		"""Convert a string or alternatives list retrieved from the
-		feed from its original encoding to our target encoding for HTML
-		output."""
-		if s is None:
-			return None
-		if type(s) != str:
-			s = select_content(s)
-		try:
-			us = s.decode(self.encoding)
-		except ValueError:
-			# Badly-encoded string (or misguessed encoding).
-			us = s
-		except LookupError:
-			# Unknown encoding.
-			us = s
-		return encode_references(us)
-
-	def get_html_name(self):
-		if self.title is not None:
-			return self.title
-		elif self.link is not None:
-			return self.link
+	def get_html_name(self, config):
+		if self.feed_info.has_key("title_detail"):
+			return detail_to_html(self.feed_info["title_detail"], True, config)
+		elif self.feed_info.has_key("link"):
+			return url_to_html(self.feed_info["link"])
 		else:
-			return self.url
+			return url_to_html(self.url)
 
 	def get_html_link(self, config):
-		s = sanitise_html(self.get_html_name(), self.get_baseurl(), 1, config)
-		if self.link is not None:
-			return '<a href="' + cgi.escape(self.link) + '">' + s + '</a>'
+		s = self.get_html_name(config)
+		if self.feed_info.has_key("link"):
+			return '<a href="' + url_to_html(self.feed_info["link"]) + '">' + s + '</a>'
 		else:
 			return s
-
-	def get_baseurl(self):
-		try:
-			return self.baseurl
-		except AttributeError:
-			# This Feed came from an old state file.
-			return self.url
 
 class Article:
 	"""An article retrieved from an RSS feed."""
 
-	def __init__(self, feed, title, link, description, now, sequence, date):
+	def __init__(self, feed, entry_info, now, sequence):
 		self.feed = feed
-		self.title = title
-		self.link = link
-		self.description = description
+		self.entry_info = entry_info
 		self.sequence = sequence
-		self.date = date
 
-		s = str(feed) + str(title) + str(link) + str(description)
-		self.hash = sha.new(s).hexdigest()
+		modified = entry_info.get("modified_parsed")
+		self.date = None
+		if modified is not None:
+			try:
+				self.date = time.mktime(modified)
+			except OverflowError:
+				pass
+
+		self.hash = self.compute_hash()
 
 		self.last_seen = now
 		self.added = now
 
-	def get_sequence(self):
-		try:
-			return self.sequence
-		except AttributeError:
-			# This Article came from an old state file.
-			return 0
+	def compute_hash(self):
+		h = sha.new()
+		def add_hash(s):
+			h.update(s.encode("UTF-8"))
 
-	def get_date(self):
-		try:
-			return self.date
-		except AttributeError:
-			# This Article came from an old state file.
-			return None
+		add_hash(self.feed)
+		entry_info = self.entry_info
+		if entry_info.has_key("title_raw"):
+			add_hash(entry_info["title_raw"])
+		if entry_info.has_key("link"):
+			add_hash(entry_info["link"])
+		if entry_info.has_key("content"):
+			for content in entry_info["content"]:
+				add_hash(content["value_raw"])
+		if entry_info.has_key("summary"):
+			add_hash(entry_info["summary_detail"]["value_raw"])
+
+		return h.hexdigest()
 
 	def can_expire(self, now, config):
 		return ((now - self.last_seen) > config["expireage"])
@@ -571,10 +552,11 @@ class Rawdog(Persistable):
 	def list(self):
 		for url in self.feeds.keys():
 			feed = self.feeds[url]
+			feed_info = feed.feed_info
 			print url
 			print "  Hash:", short_hash(url)
-			print "  Title:", feed.title
-			print "  Link:", feed.link
+			print "  Title:", feed_info.get("title")
+			print "  Link:", feed_info.get("link")
 
 	def update(self, config, feedurl = None):
 		config.log("Starting update")
@@ -710,7 +692,7 @@ __description__
 		articles = self.articles.values()
 		for a in articles:
 			if config["sortbyfeeddate"]:
-				article_dates[a] = a.get_date() or a.added
+				article_dates[a] = a.date or a.added
 			else:
 				article_dates[a] = a.added
 		numarticles = len(articles)
@@ -724,7 +706,7 @@ __description__
 			i = cmp(a.feed, b.feed)
 			if i != 0:
 				return i
-			i = cmp(a.get_sequence(), b.get_sequence())
+			i = cmp(a.sequence, b.sequence)
 			if i != 0:
 				return i
 			return cmp(a.hash, b.hash)
@@ -748,21 +730,29 @@ __description__
 			itembits = {}
 
 			feed = self.feeds[article.feed]
-			baseurl = feed.get_baseurl()
-			title = sanitise_html(article.title, baseurl, 1, config)
-			if title == "":
-				title = None
-			link = article.link
+			feed_info = feed.feed_info
+			entry_info = article.entry_info
+
+			title = detail_to_html(entry_info.get("title_detail"), True, config)
+
+			link = entry_info.get("link")
 			if link == "":
 				link = None
-			if feed.args.has_key("format") and feed.args["format"] == "text":
-				description = "<pre>" + cgi.escape(article.description) + "</pre>"
-			else:
-				description = sanitise_html(article.description, baseurl, 0, config)
-			if description == "":
-				description = None
 
-			date = article.get_date()
+			key = None
+			for k in ["content", "summary_detail"]:
+				if entry_info.has_key(k):
+					key = k
+					break
+			if key is None:
+				description = None
+			elif feed.args.has_key("format") and feed.args["format"] == "text":
+				description = select_detail(entry_info[key])["value"]
+				description = "<pre>" + cgi.escape(description) + "</pre>"
+			else:
+				description = detail_to_html(entry_info[key], False, config)
+
+			date = article.date
 			if title is None:
 				if link is None:
 					title = "Article"
@@ -777,9 +767,9 @@ __description__
 			if link is None:
 				itembits["title"] = title
 			else:
-				itembits["title"] = '<a href="' + cgi.escape(link) + '">' + title + '</a>'
+				itembits["title"] = '<a href="' + url_to_html(link) + '">' + title + '</a>'
 
-			itembits["feed_title_no_link"] = sanitise_html(feed.title, baseurl, 1, config)
+			itembits["feed_title_no_link"] = detail_to_html(feed_info.get("title_detail"), True, config)
 			itembits["feed_title"] = feed.get_html_link(config)
 			itembits["feed_url"] = feed.url
 			itembits["feed_hash"] = short_hash(feed.url)
@@ -809,7 +799,7 @@ __description__
 <th>Feed</th><th>RSS</th><th>Last update</th><th>Next update</th>
 </tr>"""
 		feeds = self.feeds.values()
-		feeds.sort(lambda a, b: cmp(a.get_html_name().lower(), b.get_html_name().lower()))
+		feeds.sort(lambda a, b: cmp(a.get_html_name(config).lower(), b.get_html_name(config).lower()))
 		for feed in feeds:
 			print >>f, '<tr class="feedsrow">'
 			print >>f, '<td>' + feed.get_html_link(config) + '</td>'

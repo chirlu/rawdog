@@ -1,3 +1,9 @@
+If rawdog crashes while updating a feed, it shouldn't forget the feeds it's
+already updated. Perhaps have an exception handler that keeps a safety copy of
+the state file and saves where it's got to so far?
+
+Improve efficiency -- memoise stuff before comparing articles.
+
 Detect duplicate articles (BBC News).
 
 Detect edited articles by guid.
@@ -38,9 +44,7 @@ latest version.
 
 For next release:
 - generalise templating (so the show template option takes a name, etc.)
-- remove Article compat methods
 - remove old option parsing
-- add date to Article hash
 - require Python 2.3; kill 2.2 urllib2 workaround
 - use unicode.encode('ascii','xmlcharrefreplace') if possible?
 

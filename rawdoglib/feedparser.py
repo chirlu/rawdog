@@ -9,9 +9,12 @@ Visit http://feedparser.org/docs/ for the latest documentation
 Required: Python 2.1 or later
 Recommended: Python 2.3 or later
 Recommended: CJKCodecs and iconv_codec <http://cjkpython.i18n.org/>
+
+Changes made by Adam Sampson <azz@us-lot.org> for rawdog:
+- provide _raw versions of text content
 """
 
-#__version__ = "pre-3.3-" + "$Revision: 1.18 $"[11:15] + "-cvs"
+#__version__ = "pre-3.3-" + "$Revision: 1.19 $"[11:15] + "-cvs"
 __version__ = "3.3"
 __license__ = "Python"
 __copyright__ = "Copyright 2002-4, Mark Pilgrim"
@@ -512,6 +515,15 @@ class _FeedParserMixin:
         output = "".join(pieces)
         output = output.strip()
         if not expectingText: return output
+        if self.encoding and (type(output) == types.StringType):
+            try:
+                output_raw = unicode(output, self.encoding)
+            except:
+                # Invalid encoding, but we need to turn it into a valid Unicode
+                # string of some kind.
+                output_raw = unicode(output, "ISO-8859-1")
+        else:
+            output_raw = output
         
         # decode base64 content
         if self.contentparams.get('mode') == 'base64' and base64:
@@ -551,6 +563,7 @@ class _FeedParserMixin:
                 self.entries[-1].setdefault(element, [])
                 contentparams = copy.deepcopy(self.contentparams)
                 contentparams['value'] = output
+                contentparams['value_raw'] = output
                 self.entries[-1][element].append(contentparams)
             elif element == 'category':
                 self.entries[-1][element] = output
@@ -558,30 +571,37 @@ class _FeedParserMixin:
                 self.entries[-1]['categories'][-1] = (domain, output)
             elif element == 'source':
                 self.entries[-1]['source']['value'] = output
+                self.entries[-1]['source']['value_raw'] = output_raw
             elif element == 'link':
                 self.entries[-1][element] = output
                 if output:
                     self.entries[-1]['links'][-1]['href'] = output
+                    self.entries[-1]['links'][-1]['href_raw'] = output_raw
             else:
                 if element == 'description':
                     element = 'summary'
                 self.entries[-1][element] = output
+                self.entries[-1][element + "_raw"] = output_raw
                 if self.incontent:
                     contentparams = copy.deepcopy(self.contentparams)
                     contentparams['value'] = output
+                    contentparams['value_raw'] = output_raw
                     self.entries[-1][element + '_detail'] = contentparams
         elif self.infeed and (not self.intextinput) and (not self.inimage):
             if element == 'description':
                 element = 'tagline'
             self.feeddata[element] = output
+            self.feeddata[element + "_raw"] = output_raw
             if element == 'category':
                 domain = self.feeddata['categories'][-1][0]
                 self.feeddata['categories'][-1] = (domain, output)
             elif element == 'link':
                 self.feeddata['links'][-1]['href'] = output
+                self.feeddata['links'][-1]['href_raw'] = output_raw
             elif self.incontent:
                 contentparams = copy.deepcopy(self.contentparams)
                 contentparams['value'] = output
+                contentparams['value_raw'] = output_raw
                 self.feeddata[element + '_detail'] = contentparams
         return output
 

@@ -19,6 +19,7 @@
 # MA 02111-1307 USA, or see http://www.gnu.org/.
 
 VERSION = "2.0rc1"
+STATE_VERSION = 2
 import feedparser
 from persister import Persistable, Persister
 import os, time, sha, getopt, sys, re, urlparse, cgi, socket, urllib2
@@ -548,6 +549,16 @@ class Rawdog(Persistable):
 	def __init__(self):
 		self.feeds = {}
 		self.articles = {}
+		self.state_version = STATE_VERSION
+
+	def check_state_version(self):
+		"""Check the version of the state file."""
+		try:
+			version = self.state_version
+		except AttributeError:
+			# rawdog 1.x didn't keep track of this.
+			version = 1
+		return version == STATE_VERSION
 
 	def list(self):
 		for url in self.feeds.keys():
@@ -886,6 +897,12 @@ def main(argv):
 	except:
 		print "An error occurred while reading state from " + statedir + "/state."
 		print "This usually means the file is corrupt, and removing it will fix the problem."
+		return 1
+
+	if not rawdog.check_state_version():
+		print "The state file " + statedir + "/state was created by an older"
+		print "version of rawdog, and cannot be read by this version."
+		print "Removing the state file will fix it."
 		return 1
 
 	for o, a in optlist:

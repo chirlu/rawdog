@@ -5,6 +5,9 @@ internals; state files from old versions will no longer work with rawdog
 2.0 (and external programs that manipulate rawdog state files will also
 be broken).
 
+rawdog now keeps track of a version number in the state file, and will
+complain if you use a state file from an incompatible version.
+
 The old option syntax ("rawdog update write") is no longer supported.
 
 - rawdog 1.13

@@ -175,6 +175,28 @@ normal expansion process); you can thus use this hook either for
 manipulating template parameters, or for replacing the template system
 entirely.
 
+### clean_html(config, html, baseurl, inline)
+
+* html: a Boxed Unicode string containing the HTML being cleaned
+* baseurl: the URL at which the HTML was originally found
+* inline: a boolean indicating whether the output should be inline HTML
+  or a block element
+
+Called whenever HTML is being sanitised by rawdog (after its existing
+HTML sanitisation processes). You can use this to implement extra
+sanitisation passes. You'll need to update the boxed value with the new,
+cleaned string.
+
+### add_urllib2_handlers(rawdog, config, feed, handlers)
+
+* feed: the Feed to which the request will be made
+* handlers: the mutable list of urllib2 *Handler objects that will be
+  passed to feedparser
+
+Called before feedparser is used to fetch feed content. This hook can be
+used to add additional urllib2 handlers to cope with unusual protocol
+requirements; use `handlers.append` to add extra handlers.
+
 ## Examples
 
 ### backwards.py

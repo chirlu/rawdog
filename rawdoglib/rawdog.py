@@ -244,6 +244,8 @@ class Feed:
 			mgr = DummyPasswordMgr((self.args["proxyuser"], self.args["proxypassword"]))
 			handlers.append(urllib2.ProxyBasicAuthHandler(mgr))
 
+		plugins.call_hook("add_urllib2_handlers", rawdog, config, self, handlers)
+
 		feedparser._FeedParserMixin.can_contain_relative_uris = []
 		feedparser._FeedParserMixin.can_contain_dangerous_markup = []
 		try:

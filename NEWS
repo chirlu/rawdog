@@ -24,6 +24,9 @@ Allow "outputfile -" to write the output to stdout; useful if you want
 to have cron mail the output to you rather than putting it on a web
 page.
 
+Added --show-template option to show the template currently in use (so
+you can customise it yourself).
+
 - rawdog 1.2
 
 Updated feedparser to 2.5.2, which fixes a bug that was making rawdog

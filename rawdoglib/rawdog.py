@@ -354,16 +354,7 @@ class Rawdog(Persistable):
 
 		self.modified()
 
-	def write(self, config):
-		outputfile = config["outputfile"]
-		now = time.time()
-
-		bits = { "version" : VERSION }
-
-		refresh = 24 * 60
-		for feed in self.feeds.values():
-			if feed.period < refresh: refresh = feed.period
-
+	def get_template(self, config):
 		template = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
    "http://www.w3.org/TR/html4/strict.dtd">
 <html lang="en">
@@ -373,7 +364,7 @@ class Rawdog(Persistable):
 		if config["userefresh"]:
 			template += """__refresh__
 """
-		template += """<link rel="stylesheet" href="style.css" type="text/css">
+		template += """    <link rel="stylesheet" href="style.css" type="text/css">
     <title>rawdog</title>
 </head>
 <body id="rawdog">
@@ -396,6 +387,20 @@ by <a href="mailto:azz@us-lot.org">Adam Sampson</a>.</p>
 </div>
 </body>
 </html>"""
+		return template
+
+	def show_template(self, config):
+		print self.get_template(config)
+
+	def write(self, config):
+		outputfile = config["outputfile"]
+		now = time.time()
+
+		bits = { "version" : VERSION }
+
+		refresh = 24 * 60
+		for feed in self.feeds.values():
+			if feed.period < refresh: refresh = feed.period
 
 		bits["refresh"] = """<meta http-equiv="Refresh" """ + 'content="' + str(refresh * 60) + '"' + """>"""
 
@@ -471,7 +476,7 @@ by <a href="mailto:azz@us-lot.org">Adam Sampson</a>.</p>
 		print >>f, """</table>"""
 		bits["feeds"] = f.getvalue()
 
-		s = template
+		s = get_template()
 		for k in bits.keys():
 			s = s.replace("__" + k + "__", bits[k])
 
@@ -493,6 +498,7 @@ Usage: rawdog [OPTION]...
 -w, --write                  Write out HTML output
 -f|--update-feed URL         Force an update on the single feed URL
 -c|--config FILE             Read additional config file FILE
+-t, --show-template          Print the template currently in use
 --help                       Display this help and exit
 
 Actions are taken in the order they are given on the command line.
@@ -503,7 +509,7 @@ def main(argv):
 	"""The command-line interface to the aggregator."""
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:c:", ["update", "list", "write", "update-feed=", "help", "config="])
+		(optlist, args) = getopt.getopt(argv, "ulwf:c:t", ["update", "list", "write", "update-feed=", "help", "config=", "show-template"])
 	except getopt.GetoptError, s:
 		print s
 		usage()
@@ -555,6 +561,8 @@ def main(argv):
 				print >>sys.stderr, "In " + a + ":"
 				print >>sys.stderr, err
 				return 1
+		elif o in ("-t", "--show-template"):
+			rawdog.show_template(config)
 
 	persister.save()
 

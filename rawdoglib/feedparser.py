@@ -28,12 +28,9 @@ Things it handles that choke other parsers:
 - multiple content items per entry (Pie/Atom/Echo)
 
 Requires Python 2.2 or later
-
-Modified for rawdog usage by Adam Sampson <azz@us-lot.org>:
-- increased socket timeout to 30s
 """
 
-__version__ = "2.5.2"
+__version__ = "2.5.3"
 __author__ = "Mark Pilgrim <http://diveintomark.org/>"
 __copyright__ = "Copyright 2002-3, Mark Pilgrim"
 __contributors__ = ["Jason Diamond <http://injektilo.org/>",
@@ -79,11 +76,13 @@ __history__ = """
   User-Agent (otherwise urllib2 sends two, which confuses some servers)
 2.5.2 - 7/28/2003 - MAP - entity-decode inline xml properly; added support for
   inline <xhtml:body> and <xhtml:div> as used in some RSS 2.0 feeds
+2.5.3 - 8/6/2003 - TvdV - patch to track whether we're inside an image or
+  textInput, and also to return the character encoding (if specified)
 """
 
 try:
     import timeoutsocket # http://www.timo-tasi.org/python/timeoutsocket.py
-    timeoutsocket.setDefaultSocketTimeout(30)
+    timeoutsocket.setDefaultSocketTimeout(10)
 except ImportError:
     pass
 import cgi, re, sgmllib, string, StringIO, gzip, urllib2
@@ -123,6 +122,8 @@ class FeedParser(sgmllib.SGMLParser):
         self.inchannel = 0
         self.initem = 0
         self.incontent = 0
+        self.intextinput = 0
+        self.inimage = 0
         self.contentmode = None
         self.contenttype = None
         self.contentlang = None
@@ -144,9 +145,8 @@ class FeedParser(sgmllib.SGMLParser):
                 self.items[-1][element] = []
             self.items[-1][element].append({"language":self.contentlang, "type":self.contenttype, "value":output})
         elif self.initem:
-            if not (self.items[-1].has_key(element) and output.strip() == ""):
-                self.items[-1][element] = output
-        elif self.inchannel:
+            self.items[-1][element] = output
+        elif self.inchannel and (not self.intextinput) and (not self.inimage):
             self.channel[element] = output
 
     def _addNamespaces(self, attrs):
@@ -183,6 +183,18 @@ class FeedParser(sgmllib.SGMLParser):
     def end_channel(self):
         self.pop('channel')
         self.inchannel = 0
+    
+    def start_image(self, attrs):
+        self.inimage = 1
+            
+    def end_image(self):
+        self.inimage = 0
+                
+    def start_textinput(self, attrs):
+        self.intextinput = 1
+        
+    def end_textinput(self):
+        self.intextinput = 0
 
     def start_item(self, attrs):
         self.items.append({})
@@ -668,6 +680,12 @@ def parse(uri, etag=None, modified=None, agent=None, referrer=None):
         result["status"] = f.status
     elif hasattr(f, "url"):
         result["status"] = 200
+    # get the xml encoding
+    if result.get('encoding', '') == '':
+        xmlheaderRe = re.compile('<\?.*encoding="(.*)".*\?>')
+        match = xmlheaderRe.match(data)
+        if match:
+            result['encoding'] = match.groups()[0].lower()
     f.close()
     return result
 

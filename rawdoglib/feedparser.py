@@ -4,6 +4,7 @@
 Modifications for rawdog by Adam Sampson <azz@us-lot.org>
   Added HTTP basic auth support.
   Added proxy support.
+  Disabled <br/> workaround.
 
 Visit http://diveintomark.org/projects/feed_parser/ for the latest version
 
@@ -477,7 +478,7 @@ class FeedParser(sgmllib.SGMLParser):
             output = output.replace('&amp;', '&')
         output = output.replace('&quot;', '"')
         output = output.replace('&apos;', "'")
-        output = re.sub(r'(\S)/>', r'\1 />', output)
+        #output = re.sub(r'(\S)/>', r'\1 />', output)
 
         # resolve relative URIs within embedded markup
         if element in self.can_contain_relative_uris:

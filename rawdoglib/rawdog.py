@@ -61,13 +61,17 @@ def encode_references(s):
 	r.close()
 	return v
 
-def sanitise_html(html, inline = 0):
+def sanitise_html(html, baseurl, inline = 0):
 	"""Attempt to turn arbitrary feed-provided HTML into something
 	suitable for safe inclusion into the rawdog output. The inline
 	parameter says whether to expect a fragment of inline text, or a
 	sequence of block-level elements."""
 	if html is None:
 		return None
+	# sgmllib handles "<br/>/" as a SHORTTAG; this workaround from
+	# feedparser.
+	html = re.sub(r'(\S)/>', r'\1 />', html)
+	html = feedparser.resolveRelativeURIs(html, baseurl)
 	p = feedparser.HTMLSanitizer()
 	p.feed(html)
 	return p.output()
@@ -128,6 +132,7 @@ class Feed:
 		self.title = None
 		self.link = None
 		self.last_update = 0
+		self.baseurl = url
 
 	def needs_update(self, now):
 		"""Return 1 if it's time to update this feed, or 0 if its
@@ -152,6 +157,7 @@ class Feed:
 		if len(proxies.keys()) == 0:
 			proxies = None
 
+		feedparser.FeedParser.can_contain_relative_uris = []
 		feedparser.FeedParser.can_contain_dangerous_markup = []
 		try:
 			p = feedparser.parse(self.url, self.etag,
@@ -203,6 +209,12 @@ class Feed:
 		self.encoding = p.get("encoding")
 		if self.encoding is None:
 			self.encoding = "utf-8"
+
+		self.baseurl = self.url
+		if p.has_key("headers") and p["headers"].has_key("content-location"):
+			self.baseurl = p["headers"]["content-location"]
+		elif p.has_key("url"):
+			self.baseurl = p["url"]
 
 		channel = p["channel"]
 		if channel.has_key("title"):
@@ -268,6 +280,13 @@ class Feed:
 			return '<a href="' + self.link + '">' + s + '</a>'
 		else:
 			return s
+
+	def get_baseurl(self):
+		try:
+			return self.baseurl
+		except AttributeError:
+			# This Feed came from an old state file.
+			return self.url
 
 class Article:
 	"""An article retrieved from an RSS feed."""
@@ -638,7 +657,8 @@ __if_description__<div class="itemdescription">
 			itembits = {}
 
 			feed = self.feeds[article.feed]
-			title = sanitise_html(article.title, 1)
+			baseurl = feed.get_baseurl()
+			title = sanitise_html(article.title, baseurl, 1)
 			if title == "":
 				title = None
 			link = article.link
@@ -647,7 +667,7 @@ __if_description__<div class="itemdescription">
 			if feed.args.has_key("format") and feed.args["format"] == "text":
 				description = "<pre>" + cgi.escape(article.description) + "</pre>"
 			else:
-				description = sanitise_html(article.description, 0)
+				description = sanitise_html(article.description, baseurl, 0)
 			if description == "":
 				description = None
 

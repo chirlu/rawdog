@@ -32,6 +32,9 @@ timeformat %H:%M
 # template when building your own.
 template default
 
+# Similarly, the template used for each item shown.
+itemtemplate default
+
 # Where to write the output HTML to. You should place style.css in the same
 # directory. Specify this as "-" to write the HTML to stdout.
 outputfile /home/azz/public_html/rawdog.html

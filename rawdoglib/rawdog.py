@@ -72,6 +72,46 @@ def make_links_absolute(base, html):
 	html = link_nq_re.sub(fix, html)
 	return html
 
+template_re = re.compile(r'__(.*?)__')
+def fill_template(template, bits):
+	"""Expand a template, replacing __x__ with bits["x"], and only
+	including sections bracketed by __if_x__ .. __endif__ if bits["x"]
+	is not "" (these cannot be nested). If not bits.has_key("x"),
+	__x__ expands to ""."""
+	f = StringIO()
+	l = template_re.split(template)
+	i = 0
+	writing = 1
+	while 1:
+		if writing:
+			f.write(l[i])
+		i += 1
+		if i == len(l):
+			break
+		key = l[i]
+		if key.startswith("if_"):
+			k = key[3:]
+			if bits.has_key(k) and bits[k] != "":
+				writing = 1
+			else:
+				writing = 0
+		elif key == "endif":
+			writing = 1
+		elif bits.has_key(key):
+			f.write(bits[key])
+		i += 1
+	return f.getvalue()
+
+file_cache = {}
+def load_file(name):
+	"""Read the contents of a file, caching the result so we don't have to
+	read the file multiple times."""
+	if not file_cache.has_key(name):
+		f = open(name)
+		file_cache[name] = f.read()
+		f.close()
+	return file_cache[name]
+
 class Feed:
 	"""An RSS feed."""
 
@@ -289,6 +329,7 @@ class Config:
 			"showfeeds" : 1,
 			"timeout" : 30,
 			"template" : "default",
+			"itemtemplate" : "default",
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -344,6 +385,8 @@ class Config:
 			self["timeout"] = int(l[1])
 		elif l[0] == "template":
 			self["template"] = l[1]
+		elif l[0] == "itemtemplate":
+			self["itemtemplate"] = l[1]
 		else:
 			raise ConfigError("Unknown config command: " + l[0])
 
@@ -403,10 +446,7 @@ class Rawdog(Persistable):
 
 	def get_template(self, config):
 		if config["template"] != "default":
-			f = open(config["template"])
-			template = f.read()
-			f.close()
-			return template
+			return load_file(config["template"])
 
 		template = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
    "http://www.w3.org/TR/html4/strict.dtd">
@@ -444,8 +484,28 @@ by <a href="mailto:azz@us-lot.org">Adam Sampson</a>.</p>
 </html>"""
 		return template
 
+	def get_itemtemplate(self, config):
+		if config["itemtemplate"] != "default":
+			return load_file(config["itemtemplate"])
+
+		template = """<div class="item">
+<p class="itemheader">
+<span class="itemtitle">__title__</span>
+<span class="itemfrom">[__feed_title__]</span>
+</p>
+__if_description__<div class="itemdescription">
+<p>__description__</p>
+</div>__endif__
+</div>
+
+"""
+		return template
+
 	def show_template(self, config):
 		print self.get_template(config)
+
+	def show_itemtemplate(self, config):
+		print self.get_itemtemplate(config)
 
 	def write(self, config):
 		outputfile = config["outputfile"]
@@ -479,6 +539,7 @@ by <a href="mailto:azz@us-lot.org">Adam Sampson</a>.</p>
 			articles = articles[:config["maxarticles"]]
 
 		f = StringIO()
+		itemtemplate = self.get_itemtemplate(config)
 		dw = DayWriter(f, config)
 
 		for article in articles:
@@ -488,10 +549,9 @@ by <a href="mailto:azz@us-lot.org">Adam Sampson</a>.</p>
 
 			dw.time(article.added)
 
-			feed = self.feeds[article.feed]
-			f.write('<div class="item">\n')
-			f.write('<p class="itemheader">\n')
+			itembits = {}
 
+			feed = self.feeds[article.feed]
 			title = article.title
 			link = article.link
 			description = article.description
@@ -501,21 +561,20 @@ by <a href="mailto:azz@us-lot.org">Adam Sampson</a>.</p>
 				else:
 					title = "Link"
 
-			f.write('<span class="itemtitle">')
-			if link is not None: f.write('<a href="' + article.link + '">')
-			f.write(title)
-			if link is not None: f.write('</a>')
-			f.write('</span>\n')
+			itembits["title"] = ""
+			if link is not None: itembits["title"] += '<a href="' + article.link + '">'
+			itembits["title"] += title
+			if link is not None: itembits["title"] += '</a>'
 
-			f.write('<span class="itemfrom">[' + feed.get_html_link() + ']</span>')
-
-			f.write('</p>\n')
+			itembits["feed_title"] = feed.get_html_link()
 
 			if description is not None:
 				description = make_links_absolute(feed.url, description)
-				f.write('<div class="itemdescription"><p>' + description + '</p></div>\n')
+				itembits["description"] = description
+			else:
+				itembits["description"] = ""
 
-			f.write('</div>\n')
+			f.write(fill_template(itemtemplate, itembits))
 
 		dw.close()
 		bits["items"] = f.getvalue()
@@ -537,10 +596,7 @@ by <a href="mailto:azz@us-lot.org">Adam Sampson</a>.</p>
 		print >>f, """</table>"""
 		bits["feeds"] = f.getvalue()
 
-		s = self.get_template(config)
-		for k in bits.keys():
-			s = s.replace("__" + k + "__", bits[k])
-
+		s = fill_template(self.get_template(config), bits)
 		if outputfile == "-":
 			print s
 		else:
@@ -565,6 +621,7 @@ Actions (performed in order given):
 -f|--update-feed URL         Force an update on the single feed URL
 -c|--config FILE             Read additional config file FILE
 -t, --show-template          Print the template currently in use
+-T, --show-itemtemplate      Print the item template currently in use
 
 Report bugs to <azz@us-lot.org>."""
 
@@ -572,7 +629,7 @@ def main(argv):
 	"""The command-line interface to the aggregator."""
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:c:td:", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir="])
+		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate"])
 	except getopt.GetoptError, s:
 		print s
 		usage()
@@ -633,6 +690,8 @@ def main(argv):
 				return 1
 		elif o in ("-t", "--show-template"):
 			rawdog.show_template(config)
+		elif o in ("-T", "--show-itemtemplate"):
+			rawdog.show_itemtemplate(config)
 
 	persister.save()
 

@@ -1,0 +1,50 @@
+Detect duplicate articles (BBC News).
+
+Detect edited articles by guid.
+
+__comments__ from the feed (and anything else worth having?).
+
+Option to choose whether full content or summary is preferred.
+
+Review expiry logic: is maxage=0 the same as currentonly?
+
+Escape characters in text/plain?
+
+Plugin that gets run on new articles.
+
+OPML listing -- needs feed type.
+Do for now as separate program once config parser separate.
+
+Error reporting as feed (or as separate display?) (Dorward)
+
+RSS output. raymond@dotsphinx.com
+
+Feed schedule spreading.
+
+Timeouts should be ignored unless it's been getting timeouts for more than a
+configurable amount of time.
+
+Replace feed_hash with feed_id; let the user specify the ID in the config file
+(defaulting to the hash); let the user use the ID instead of the URL when
+specifying a feed.
+
+Add a needs_update() method to Feed; make Rawdog call that on all the feeds
+(when not being forced) and then call update() on each of them that needs it.
+
+Make feedparser take a urllib2.Opener rather than proxies etc.
+
+Where articles can be shown to have been updated (by unique ID), only show the
+latest version.
+
+For next release:
+- generalise templating (so the show template option takes a name, etc.)
+- remove Article compat methods
+- remove old option parsing
+- add date to Article hash
+- require Python 2.3; kill 2.2 urllib2 workaround
+- use unicode.encode('ascii','xmlcharrefreplace') if possible?
+
+Abandoned:
+- __feednumber_mod_N__ (for easier default styles, i.e. _mod_4 counts 0-3,0-3)
+  (didn't really work for lots of feeds)
+

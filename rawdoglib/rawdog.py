@@ -1008,8 +1008,8 @@ __description__
 					continue
 
 			count += 1
-			dw.time(article_dates[article])
-			plugins.call_hook("output_items_heading", self, config, f, article, article_dates[article])
+			if not plugins.call_hook("output_items_heading", self, config, f, article, article_dates[article]):
+				dw.time(article_dates[article])
 
 			itembits = {}
 			for name, value in feed.args.items():

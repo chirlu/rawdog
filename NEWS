@@ -8,6 +8,9 @@ Update article-added dates correctly when "currentonly true" is used
 Clarify description of -c in README and man page (reported by Rick van
 Rein).
 
+If you return false from an output_items_heading function, then disable
+DayWriter (suggested by Ian Glover).
+
 - rawdog 2.3
 
 Make the id= parameter work correctly (patch from Jon Nelson).

@@ -119,7 +119,8 @@ headings.
 * article: the Article object about to be written
 * date: the Article's date for sorting purposes
 
-Called before each item is written.
+Called before each item is written. If you return False from this hook,
+then rawdog's normal time-based section headings will not be written.
 
 ### output_items_end(rawdog, config, f)
 

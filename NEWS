@@ -2,6 +2,9 @@
 
 Provide guid in item templates (suggested by Rick van Rein).
 
+Update article-added dates correctly when "currentonly true" is used
+(reported by Rick van Rein).
+
 - rawdog 2.3
 
 Make the id= parameter work correctly (patch from Jon Nelson).

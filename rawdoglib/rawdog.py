@@ -341,11 +341,7 @@ class Feed:
 		self.feed_info = p["feed"]
 		feed = self.url
 
-		if config["currentonly"]:
-			for (hash, a) in articles.items():
-				if a.feed == feed:
-					del articles[hash]
-
+		seen = {}
 		sequence = 0
 		for entry_info in p["entries"]:
 			article = Article(feed, entry_info, now, sequence)
@@ -353,6 +349,7 @@ class Feed:
 			plugins.call_hook("article_seen", rawdog, config, article, ignore)
 			if ignore.value:
 				continue
+			seen[article.hash] = True
 			sequence += 1
 
 			if articles.has_key(article.hash):
@@ -361,6 +358,11 @@ class Feed:
 			else:
 				articles[article.hash] = article
 				plugins.call_hook("article_added", rawdog, config, article, now)
+
+		if config["currentonly"]:
+			for (hash, a) in articles.items():
+				if a.feed == feed and not seen.has_key(hash):
+					del articles[hash]
 
 		return True
 

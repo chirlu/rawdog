@@ -679,17 +679,19 @@ __description__
 
 		bits["refresh"] = """<meta http-equiv="Refresh" """ + 'content="' + str(refresh) + '"' + """>"""
 
+		article_dates = {}
 		articles = self.articles.values()
+		for a in articles:
+			if config["sortbyfeeddate"]:
+				article_dates[a] = a.get_date() or a.added
+			else:
+				article_dates[a] = a.added
 		numarticles = len(articles)
 		def compare(a, b):
 			"""Compare two articles to decide how they
 			   should be sorted. Sort by added date, then
 			   by feed, then by sequence, then by hash."""
-			if config["sortbyfeeddate"]:
-				i = cmp(b.date or b.added, a.date or a.added)
-				if i != 0:
-					return i
-			i = cmp(b.added, a.added)
+			i = cmp(article_dates[b], article_dates[a])
 			if i != 0:
 				return i
 			i = cmp(a.feed, b.feed)
@@ -714,7 +716,7 @@ __description__
 				break
 
 			count += 1
-			dw.time(article.added)
+			dw.time(article_dates[article])
 
 			itembits = {}
 

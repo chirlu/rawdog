@@ -1,3 +1,5 @@
+- rawdog 2.1
+
 - rawdog 2.0
 
 Update to feedparser 3.3. This meant reworking some of rawdog's

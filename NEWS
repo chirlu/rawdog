@@ -14,6 +14,10 @@ select classes for groups of feeds, generate different HTML for
 different sorts of feeds, or set the title in different pages generated
 from the same template (suggested by Decklin Foster).
 
+Add -S|--stats option to print a machine-readable count of articles
+added/updated/expired/stored for use by scripts (requested by Jon
+Lasser).
+
 - rawdog 2.1
 
 Fix a character encoding problem with format=text feeds.

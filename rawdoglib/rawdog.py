@@ -207,7 +207,7 @@ class Feed:
 		else:
 			return 1
 	
-	def update(self, rawdog, now, config):
+	def update(self, rawdog, now, config, stats):
 		"""Fetch articles from a feed and add them to the collection.
 		Returns 1 if any articles were read, 0 otherwise."""
 
@@ -315,8 +315,10 @@ class Feed:
 
 			if articles.has_key(article.hash):
 				articles[article.hash].update_from(article, now)
+				stats.updated += 1
 			else:
 				articles[article.hash] = article
+				stats.added += 1
 
 		return 1
 
@@ -728,7 +730,7 @@ class Rawdog(Persistable):
 						del self.articles[key]
 				self.modified()
 
-	def update(self, config, feedurl = None):
+	def update(self, config, stats, feedurl = None):
 		config.log("Starting update")
 		now = time.time()
 
@@ -753,7 +755,7 @@ class Rawdog(Persistable):
 		for url in update_feeds:
 			count += 1
 			config.log("Updating feed ", count, " of " , numfeeds, ": ", url)
-			if self.feeds[url].update(self, now, config):
+			if self.feeds[url].update(self, now, config, stats):
 				seen_some_items[url] = 1
 
 		count = 0
@@ -763,6 +765,8 @@ class Rawdog(Persistable):
 				count += 1
 				del self.articles[key]
 		config.log("Expired ", count, " articles, leaving ", len(self.articles.keys()))
+		stats.expired += count
+		stats.total = len(self.articles.keys())
 
 		self.modified()
 		config.log("Finished update")
@@ -1005,6 +1009,17 @@ __description__
 
 		config.log("Finished write")
 
+class Stats:
+	"""Track counts of articles."""
+	def __init__(self):
+		self.added = 0
+		self.updated = 0
+		self.expired = 0
+		self.total = 0
+
+	def show(self):
+		print "%d %d %d %d" % (self.added, self.updated, self.expired, self.total)
+
 def usage():
 	"""Display usage information."""
 	print """rawdog, version """ + VERSION + """
@@ -1013,6 +1028,9 @@ Usage: rawdog [OPTION]...
 General options (use only once):
 -d|--dir DIR                 Use DIR instead of ~/.rawdog
 -v, --verbose                Print more detailed status information
+-S, --stats                  Print article counts after run (added, updated,
+                             expired, total stored; more may be added after
+                             this in the future)
 --help                       Display this help and exit
 
 Actions (performed in order given):
@@ -1036,7 +1054,7 @@ def main(argv):
 	"""The command-line interface to the aggregator."""
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade", "add="])
+		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:S", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade", "add=", "stats"])
 	except getopt.GetoptError, s:
 		print s
 		usage()
@@ -1053,6 +1071,7 @@ def main(argv):
 
 	statedir = os.environ["HOME"] + "/.rawdog"
 	verbose = 0
+	showstats = 0
 	for o, a in optlist:
 		if o == "--help":
 			usage()
@@ -1061,6 +1080,8 @@ def main(argv):
 			statedir = a
 		elif o in ("-v", "--verbose"):
 			verbose = 1
+		elif o in ("-S", "--stats"):
+			showstats = 1
 
 	try:
 		os.chdir(statedir)
@@ -1093,15 +1114,17 @@ def main(argv):
 
 	rawdog.sync_from_config(config)
 
+	stats = Stats()
+
 	for o, a in optlist:
 		if o in ("-u", "--update"):
-			rawdog.update(config)
+			rawdog.update(config, stats)
+		elif o in ("-f", "--update-feed"):
+			rawdog.update(config, stats, a)
 		elif o in ("-l", "--list"):
 			rawdog.list()
 		elif o in ("-w", "--write"):
 			rawdog.write(config)
-		elif o in ("-f", "--update-feed"):
-			rawdog.update(config, a)
 		elif o in ("-c", "--config"):
 			try:
 				config.load(a)
@@ -1117,6 +1140,9 @@ def main(argv):
 			add_feed("config", a, config)
 			config.reload()
 			rawdog.sync_from_config(config)
+
+	if showstats:
+		stats.show()
 
 	persister.save()
 

@@ -18,6 +18,11 @@ Add -S|--stats option to print a machine-readable count of articles
 added/updated/expired/stored for use by scripts (requested by Jon
 Lasser).
 
+Fix a logic error in the _raw changes to feedparser: if a feed didn't
+specify its encoding but contained non-ASCII characters, rawdog will
+now try to parse it as UTF-8 (which it should be) and, failing that,
+as ISO-8859-1 (in case it just contains non-UTF-8 junk).
+
 - rawdog 2.1
 
 Fix a character encoding problem with format=text feeds.

@@ -13,7 +13,7 @@ Changes made by Adam Sampson <azz@us-lot.org> for rawdog:
 - provide _raw versions of text content
 """
 
-#__version__ = "pre-3.3-" + "$Revision: 1.20 $"[11:15] + "-cvs"
+#__version__ = "pre-3.3-" + "$Revision: 1.21 $"[11:15] + "-cvs"
 __version__ = "3.3"
 __license__ = "Python"
 __copyright__ = "Copyright 2002-4, Mark Pilgrim"
@@ -514,9 +514,14 @@ class _FeedParserMixin:
         output = "".join(pieces)
         output = output.strip()
         if not expectingText: return output
-        if self.encoding and (type(output) == types.StringType):
+
+        if self.encoding:
+            enc = self.encoding
+        else:
+            enc = "UTF-8"
+        if type(output) == types.StringType:
             try:
-                output_raw = unicode(output, self.encoding)
+                output_raw = unicode(output, enc)
             except:
                 # Invalid encoding, but we need to turn it into a valid Unicode
                 # string of some kind.
@@ -562,7 +567,7 @@ class _FeedParserMixin:
                 self.entries[-1].setdefault(element, [])
                 contentparams = copy.deepcopy(self.contentparams)
                 contentparams['value'] = output
-                contentparams['value_raw'] = output
+                contentparams['value_raw'] = output_raw
                 self.entries[-1][element].append(contentparams)
             elif element == 'category':
                 self.entries[-1][element] = output

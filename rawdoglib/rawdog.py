@@ -19,7 +19,7 @@
 VERSION = "1.8"
 import feedparser, iso8601
 from persister import Persistable, Persister
-import os, time, sha, getopt, sys, re, urlparse
+import os, time, sha, getopt, sys, re, urlparse, cgi
 from StringIO import StringIO
 import timeoutsocket
 
@@ -601,6 +601,9 @@ __if_description__<div class="itemdescription">
 				itembits["description"] = make_links_absolute(feed.url, description)
 			else:
 				itembits["description"] = ""
+
+			if feed.args.has_key("format") and feed.args["format"] == "text":
+				itembits["description"] = "<pre>" + cgi.escape(itembits["description"]) + "</pre>"
 
 			itembits["added"] = format_time(article.added, config)
 			if date is not None:

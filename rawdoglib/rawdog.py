@@ -67,6 +67,7 @@ class Feed:
 
 		feed = self.url
 		seen_items = 0
+		sequence = 0
 		for item in p["items"]:
 			title = item.get("title")
 			link = item.get("link")
@@ -75,7 +76,9 @@ class Feed:
 			else:
 				description = item.get("description")
 
-			article = Article(feed, title, link, description, now)
+			article = Article(feed, title, link, description,
+				now, sequence)
+			sequence += 1
 
 			if articles.has_key(article.hash):
 				articles[article.hash].last_seen = now
@@ -103,17 +106,25 @@ class Feed:
 class Article:
 	"""An article retrieved from an RSS feed."""
 
-	def __init__(self, feed, title, link, description, now):
+	def __init__(self, feed, title, link, description, now, sequence):
 		self.feed = feed
 		self.title = title
 		self.link = link
 		self.description = description
+		self.sequence = sequence
 
 		s = str(feed) + str(title) + str(link) + str(description)
 		self.hash = sha.new(s).hexdigest()
 
 		self.last_seen = now
 		self.added = now
+
+	def get_sequence(self):
+		try:
+			return self.sequence
+		except AttributeError:
+			# This Article came from an old state file.
+			return 0
 
 	def can_expire(self, now):
 		return ((now - self.last_seen) > (24 * 60 * 60))
@@ -294,11 +305,14 @@ class Rawdog(Persistable):
 		def compare(a, b):
 			"""Compare two articles to decide how they
 			   should be sorted. Sort by added date, then
-			   by feed, then by hash."""
+			   by feed, then by sequence, then by hash."""
 			i = cmp(b.added, a.added)
 			if i != 0:
 				return i
 			i = cmp(a.feed, b.feed)
+			if i != 0:
+				return i
+			i = cmp(a.get_sequence(), b.get_sequence())
 			if i != 0:
 				return i
 			return cmp(a.hash, b.hash)

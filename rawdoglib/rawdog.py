@@ -356,11 +356,14 @@ class DayWriter:
 
 	def time(self, s):
 		tm = time.localtime(s)
-		if tm[:3] != self.lasttime[:3]:
+		if tm[:3] != self.lasttime[:3] and self.config["daysections"]:
 			self.close(0)
 			self.start_day(tm)
-		if tm[:6] != self.lasttime[:6]:
-			self.close(1)
+		if tm[:6] != self.lasttime[:6] and self.config["timesections"]:
+			if self.config["daysections"]:
+				self.close(1)
+			else:
+				self.close(0)
 			self.start_time(tm)
 		self.lasttime = tm
 
@@ -413,6 +416,8 @@ class Config:
 			"itemtemplate" : "default",
 			"verbose" : 0,
 			"ignoretimeouts" : 0,
+			"daysections" : 1,
+			"timesections" : 1,
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -482,6 +487,10 @@ class Config:
 			self["verbose"] = parse_bool(l[1])
 		elif l[0] == "ignoretimeouts":
 			self["ignoretimeouts"] = parse_bool(l[1])
+		elif l[0] == "daysections":
+			self["daysections"] = parse_bool(l[1])
+		elif l[0] == "timesections":
+			self["timesections"] = parse_bool(l[1])
 		elif l[0] == "include":
 			self.load(l[1])
 		else:

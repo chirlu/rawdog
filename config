@@ -23,11 +23,19 @@ maxage 0
 # to cover more than a day's worth of articles.
 expireage 1d
 
+# Whether to divide the articles up by day, writing a "dayformat" heading
+# before each set.
+daysections true
+
 # The format to write day headings in. See "man strftime" for more
 # information; for example:
 # %A, %d %B           Wednesday, 21 January
 # %Y-%m-%d            2004-01-21 (ISO 8601 format)
 dayformat %A, %d %B
+
+# Whether to divide the articles up by time, writing a "timeformat" heading
+# before each set.
+timesections true
 
 # The format to write time headings in. For example:
 # %H:%M               06:07 (ISO 8601 format)

@@ -1,5 +1,3 @@
-# FIXME redo sorting hack in feedparser
-# FIXME maybe redo numeric entities patch?
 # rawdog: RSS aggregator without delusions of grandeur.
 # Copyright 2003, 2004 Adam Sampson <azz@us-lot.org>
 #

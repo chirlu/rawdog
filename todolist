@@ -1,3 +1,5 @@
+FIXME: redo sorting hack in feedparser.
+
 If rawdog crashes while updating a feed, it shouldn't forget the feeds it's
 already updated. Perhaps have an exception handler that keeps a safety copy of
 the state file and saves where it's got to so far?

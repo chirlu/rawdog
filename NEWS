@@ -1,5 +1,8 @@
 - rawdog 1.6
 
+Config file lines are now split on arbitary strings of whitespace, not
+just single spaces (reported by Joseph Reagle).
+
 - rawdog 1.5
 
 Remove some debugging code that broke timeouts.

@@ -12,6 +12,17 @@ Relative links (href and src attributes) in feed-provided HTML are now
 made absolute in the output. (The feed validator will complain about
 feeds with relative links in, but there are quite a few out there.)
 
+Item templates are now supported, making it easier to customise item
+appearance (requested by a number of users, including Giles Radford and
+David Dorward).
+
+Simple conditions are supported in templates: __if_x__ .. __endif__ only
+expands to its contents if x is not empty. These conditions cannot be
+nested.
+
+PyXML's iso8601 module is now included so that rawdog can parse dates in
+feeds.
+
 - rawdog 1.5
 
 Remove some debugging code that broke timeouts.

@@ -5,10 +5,23 @@ internals; state files from old versions will no longer work with rawdog
 2.0 (and external programs that manipulate rawdog state files will also
 be broken).
 
+rawdog now has a --upgrade option to allow it to import state from
+rawdog 1.x state files into rawdog 2.x; to upgrade from 1.x to 2.x,
+you'll need to perform the following steps:
+- cp -R ~/.rawdog ~/.rawdog-old
+- rm ~/.rawdog/state
+- rawdog -u (with the new rawdog, to add and fetch all the feeds)
+- rawdog --upgrade ~/.rawdog-old ~/.rawdog (to copy the state)
+- rawdog -w
+- rm -r ~/.rawdog-old (once you're happy with the new version)
+
 rawdog now keeps track of a version number in the state file, and will
 complain if you use a state file from an incompatible version.
 
 The old option syntax ("rawdog update write") is no longer supported.
+
+The state file is now saved in the binary pickle format, and cPickle is
+used instead of pickle so it can be read and written more rapidly.
 
 - rawdog 1.13
 

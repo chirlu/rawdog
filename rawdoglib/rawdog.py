@@ -851,17 +851,26 @@ Actions (performed in order given):
 -t, --show-template          Print the template currently in use
 -T, --show-itemtemplate      Print the item template currently in use
 
+Special actions (all other options are ignored if one of these is specified):
+--upgrade OLDDIR NEWDIR      Import feed state from rawdog 1.x directory
+                             OLDDIR into rawdog 2.x directory NEWDIR
+
 Report bugs to <azz@us-lot.org>."""
 
 def main(argv):
 	"""The command-line interface to the aggregator."""
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:v", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose"])
+		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:v", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade"])
 	except getopt.GetoptError, s:
 		print s
 		usage()
 		return 1
+
+	for o, a in optlist:
+		if o == "--upgrade" and len(args) == 2:
+			import upgrade_1_2
+			return upgrade_1_2.upgrade(args[0], args[1])
 
 	if len(args) != 0:
 		usage()

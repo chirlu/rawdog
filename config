@@ -23,13 +23,21 @@ maxage 0
 # output to cover more than a day's worth of articles.
 expireage 1d
 
-# The format to write day headings in. (See "man strftime" if you want to
-# change this.)
+# The format to write day headings in. See "man strftime" for more
+# information; for example:
+# %A, %d %B           Wednesday, 21 January
+# %Y-%m-%d            2004-01-21 (ISO 8601 format)
 dayformat %A, %d %B
 
-# The format to write time headings in. Use "%I:%M %p" if you prefer
-# a 12-hour clock.
+# The format to write time headings in. For example:
+# %H:%M               06:07 (ISO 8601 format)
+# %I:%M %p            18:07 PM
 timeformat %H:%M
+
+# The format to display feed update and article times in. For example:
+# %H:%M, %A, %d %B    18:07, Wednesday, 21 January
+# %Y-%m-%d %H:%M      2004-01-21 18:07 (ISO 8601 format)
+datetimeformat %H:%M, %A, %d %B
 
 # The template file to use, or "default" to use the built-in template
 # (which is probably sufficient for most users). Use "rawdog -t" to show

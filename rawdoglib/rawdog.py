@@ -26,7 +26,10 @@ import timeoutsocket
 def format_time(secs, config):
 	"""Format a time and date nicely."""
 	t = time.localtime(secs)
-	return time.strftime(config["timeformat"], t) + ", " + time.strftime(config["dayformat"], t)
+	format = config["datetimeformat"]
+	if format is None:
+		format = config["timeformat"] + ", " + config["dayformat"]
+	return time.strftime(format, t)
 
 def select_content(contents):
 	"""Select the best content element from an Echo feed."""
@@ -372,6 +375,7 @@ class Config:
 			"expireage" : 24 * 60 * 60,
 			"dayformat" : "%A, %d %B %Y",
 			"timeformat" : "%I:%M %p",
+			"datetimeformat" : None,
 			"userefresh" : 0,
 			"showfeeds" : 1,
 			"timeout" : 30,
@@ -431,6 +435,8 @@ class Config:
 			self["dayformat"] = l[1]
 		elif l[0] == "timeformat":
 			self["timeformat"] = l[1]
+		elif l[0] == "datetimeformat":
+			self["datetimeformat"] = l[1]
 		elif l[0] == "userefresh":
 			self["userefresh"] = parse_bool(l[1])
 		elif l[0] == "showfeeds":

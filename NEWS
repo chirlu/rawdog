@@ -32,6 +32,11 @@ specified as "true" or "false" (or "1" or "0" for backwards
 compatibility). rawdog now gives useful errors rather than Python
 exceptions for bad values. (Based on suggestions by Tero Karvinen.)
 
+Added datetimeformat option so that you can display feed and article
+times differently from the day and time headings, and added some
+examples including ISO 8601 format to the config file (patch from Tero
+Karvinen).
+
 - rawdog 1.8
 
 Add format=text feed option to handle broken feeds that make their

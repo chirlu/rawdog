@@ -8,6 +8,10 @@ Include a link to the rawdog home page in the default template.
 Fix the --dir argument: -d worked fine, but the getopt call was missing
 an "=" (reported by Gregory Margo).
 
+Relative links (href and src attributes) in feed-provided HTML are now
+made absolute in the output. (The feed validator will complain about
+feeds with relative links in, but there are quite a few out there.)
+
 - rawdog 1.5
 
 Remove some debugging code that broke timeouts.

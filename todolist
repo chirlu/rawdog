@@ -1,14 +1,19 @@
 FIXME: redo sorting hack in feedparser.
 
+- Length limiting in template
+- feed_name for use in classes
+- Parseable stats output mode
+- default feed options
+
+- Article numbering (probably not)
+
+- Ctrl-C shouldn't print the "error loading" warning.
+
 If rawdog crashes while updating a feed, it shouldn't forget the feeds it's
 already updated. Perhaps have an exception handler that keeps a safety copy of
 the state file and saves where it's got to so far?
 
 Improve efficiency -- memoise stuff before comparing articles.
-
-Detect duplicate articles (BBC News).
-
-Detect edited articles by guid.
 
 __comments__ from the feed (and anything else worth having?).
 
@@ -37,13 +42,11 @@ specifying a feed.
 Add a needs_update() method to Feed; make Rawdog call that on all the feeds
 (when not being forced) and then call update() on each of them that needs it.
 
-Where articles can be shown to have been updated (by unique ID), only show the
-latest version.
-
-For next release:
+For rawdog 3:
 - generalise templating (so the show template option takes a name, etc.)
-- require Python 2.3; kill 2.2 urllib2 workaround
-- use unicode.encode('ascii','xmlcharrefreplace') if possible?
+- require Python 2.3
+  - use unicode.encode('ascii','xmlcharrefreplace') if possible?
+- include author in article hash
 
 Abandoned:
 - __feednumber_mod_N__ (for easier default styles, i.e. _mod_4 counts 0-3,0-3)

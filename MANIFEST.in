@@ -1,0 +1,7 @@
+include README
+include COPYING
+include config
+include style.css
+include rawdog
+recursive-include rawdoglib *.py
+

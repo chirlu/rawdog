@@ -8,6 +8,7 @@
 # "4h").  Units available are "s" (seconds), "m" (minutes), "h" (hours),
 # "d" (days) and "w" (weeks). If no unit is specified, rawdog will
 # assume minutes.
+# Boolean (yes/no) values in this file are specified as "true" or "false".
 
 # The maximum number of articles to show on the generated page.
 # Set this to 0 for no limit.
@@ -66,20 +67,20 @@ itemtemplate default
 # directory. Specify this as "-" to write the HTML to stdout.
 outputfile /home/azz/public_html/rawdog.html
 
-# Whether to use (1) or not use (0) a <meta http-equiv="Refresh" ...> tag
+# Whether to use a <meta http-equiv="Refresh" ...> tag
 # in the generated HTML to indicate that the page should be refreshed
 # automatically. If this is turned on, then the page will refresh every N
 # minutes, where N is the shortest feed period value specified below.
 # (This works by controlling whether the default template includes
 # __refresh__; if you use a custom template, __refresh__ is always
 # available.)
-userefresh 1
+userefresh true
 
 # Whether to show the list of active feeds in the generated HTML.
 # (This works by controlling whether the default template includes
 # __feeds__; if you use a custom template, __feeds__ is always
 # available.)
-showfeeds 1
+showfeeds true
 
 # The time that rawdog will wait before considering a feed
 # unreachable when trying to connect. If you're getting lots of timeout
@@ -88,10 +89,10 @@ showfeeds 1
 # unit is specified.)
 timeout 30s
 
-# Whether to display (1) or not display (0) verbose status messages
+# Whether to display verbose status messages
 # saying what rawdog's doing while it runs. Specifying -v or --verbose
-# on the command line is equivalent to saying "verbose 1" here.
-verbose 0
+# on the command line is equivalent to saying "verbose true" here.
+verbose false
 
 # The feeds you want to watch, in the format "feed period url [args]".
 # The period is the minimum time between updates; if less

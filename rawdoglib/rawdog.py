@@ -347,6 +347,17 @@ def parse_time(value, default = "m"):
 			return int(value[:-len(unit)]) * units[unit]
 	return int(value) * units[default]
 
+def parse_bool(value):
+	"""Parse a boolean value (0, 1, false or true). Raise ValueError if
+	the value isn't recognised."""
+	value = value.strip().lower()
+	if value == "0" or value == "false":
+		return 0
+	elif value == "1" or value == "true":
+		return 1
+	else:
+		raise ValueError("Bad boolean value: " + value)
+
 class ConfigError(Exception): pass
 
 class Config:
@@ -381,7 +392,11 @@ class Config:
 		except IOError:
 			raise ConfigError("Can't read config file: " + filename)
 		for line in lines:
-			self.load_line(line.strip())
+			line = line.strip()
+			try:
+				self.load_line(line)
+			except ValueError:
+				raise ConfigError("Bad value in config: " + line)
 
 	def load_line(self, line):
 		"""Process a configuration line."""
@@ -417,9 +432,9 @@ class Config:
 		elif l[0] == "timeformat":
 			self["timeformat"] = l[1]
 		elif l[0] == "userefresh":
-			self["userefresh"] = int(l[1])
+			self["userefresh"] = parse_bool(l[1])
 		elif l[0] == "showfeeds":
-			self["showfeeds"] = int(l[1])
+			self["showfeeds"] = parse_bool(l[1])
 		elif l[0] == "timeout":
 			self["timeout"] = parse_time(l[1], "s")
 		elif l[0] == "template":
@@ -427,7 +442,7 @@ class Config:
 		elif l[0] == "itemtemplate":
 			self["itemtemplate"] = l[1]
 		elif l[0] == "verbose":
-			self["verbose"] = int(l[1])
+			self["verbose"] = parse_bool(l[1])
 		elif l[0] == "include":
 			self.load(l[1])
 		else:

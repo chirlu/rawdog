@@ -514,7 +514,7 @@ by <a href="mailto:azz@us-lot.org">Adam Sampson</a>.</p>
 		if config["itemtemplate"] != "default":
 			return load_file(config["itemtemplate"])
 
-		template = """<div class="item feed-__feed_hash__">
+		template = """<div class="item feed-__feed_hash__" id="item-__hash__">
 <p class="itemheader">
 <span class="itemtitle">__title__</span>
 <span class="itemfrom">[__feed_title__]</span>

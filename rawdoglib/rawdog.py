@@ -38,8 +38,9 @@ class Feed:
 		self.link = None
 		self.last_update = 0
 	
-	def update(self, articles, now):
-		if (now - self.last_update) < (self.period * 60): return
+	def update(self, articles, now, force = 0):
+		if not force and (now - self.last_update) < (self.period * 60):
+			return
 		self.last_update = now
 
 		try:
@@ -219,7 +220,7 @@ class Rawdog(Persistable):
 			print "  Title:", feed.title
 			print "  Link:", feed.link
 
-	def update(self, config):
+	def update(self, config, feedurl = None):
 		now = time.time()
 
 		seenfeeds = {}
@@ -232,8 +233,15 @@ class Rawdog(Persistable):
 		for url in self.feeds.keys():
 			if not seenfeeds.has_key(url):
 				del self.feeds[url]
-			else:
+	
+		if feedurl is None:	
+			for url in self.feeds.keys():	
 				self.feeds[url].update(self.articles, now)
+		else:
+			if self.feeds.has_key(feedurl):
+				self.feeds[feedurl].update(self.articles, now, 1)
+			else:
+				print "No such feed: " + feedurl
 
 		for key in self.articles.keys():
 			if self.articles[key].can_expire(now) or not self.feeds.has_key(self.articles[key].feed):
@@ -353,7 +361,7 @@ def main(argv):
 
 	if len(argv) < 1:
 		print "Usage: rawdog action [action ...]"
-		print "action can be list, update, write"
+		print "action can be list, update, write, <feed URL>"
 		return 1
 
 	statedir = os.environ["HOME"] + "/.rawdog"
@@ -381,8 +389,7 @@ def main(argv):
 		elif action == "write":
 			rawdog.write(config)
 		else:
-			print "Unknown action: " + action
-			return 1
+			rawdog.update(config, action)
 
 	persister.save()
 

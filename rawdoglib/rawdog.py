@@ -291,7 +291,7 @@ class Feed:
 		old_url = self.url
 		if p is None:
 			error = "Error parsing feed."
-		elif status is None and len(feed) == 0:
+		elif status is None and len(p["feed"]) == 0:
 			if config["ignoretimeouts"]:
 				return 0
 			else:

@@ -297,6 +297,9 @@ class Feed:
 				return 0
 			else:
 				error = "Timeout while reading feed."
+		elif status is None:
+			# Fetched by some protocol that doesn't have status.
+			pass
 		elif status == 301:
 			# Permanent redirect. The feed URL needs changing.
 

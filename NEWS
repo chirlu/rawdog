@@ -9,6 +9,8 @@ rawdog to throw an exception upon writing with feeds containing
 non-US-ASCII characters in attribute values (reported by David Dorward,
 Dmitry Mark and Steve Pomeroy).
 
+Include MANIFEST.in in the distribution (reported by Chris Cutler).
+
 - rawdog 1.9
 
 Add "clear: both;" to item, time and date styles, so that items with

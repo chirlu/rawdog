@@ -7,6 +7,7 @@ Modifications for rawdog by Adam Sampson <azz@us-lot.org>
   Disabled <br/> workaround.
   Added <description/> workaround.
   Handle numeric entities in encoded elements.
+  Handle nested CDATA.
 
 Visit http://diveintomark.org/projects/feed_parser/ for the latest version
 
@@ -437,10 +438,27 @@ class FeedParser(sgmllib.SGMLParser):
         # override internal declaration handler to handle CDATA blocks
         if _debug: sys.stderr.write("entering parse_declaration\n")
         if self.rawdata[i:i+9] == '<![CDATA[':
-            k = self.rawdata.find(']]>', i)
-            if k == -1: k = len(self.rawdata)
-            self.handle_data(cgi.escape(self.rawdata[i+9:k]))
-            return k+3
+            # Since CDATA blocks can nest, we need to find the corresponding
+            # end marker.
+            n = 1
+            loc = i + 9
+            while 1:
+                sp = self.rawdata.find('<![CDATA[', loc)
+                ep = self.rawdata.find(']]>', loc)
+                if ep == -1:
+                    ep = len(self.rawdata)
+                    break
+                elif sp != -1 and sp < ep:
+                    n += 1
+                    loc = sp + 9
+                elif n == 1:
+                    break
+                else:
+                    n -= 1
+                    loc = ep + 3
+
+            self.handle_data(cgi.escape(self.rawdata[i+9:ep]))
+            return ep+3
         else:
             k = self.rawdata.find('>', i)
             return k+1
@@ -867,6 +885,35 @@ class BaseHTMLProcessor(sgmllib.SGMLParser):
         # Reconstruct original DOCTYPE
         self.pieces.append("<!%(text)s>" % locals())
         
+    def parse_declaration(self, i):
+        # override internal declaration handler to handle CDATA blocks
+        if _debug: sys.stderr.write("entering parse_declaration\n")
+        if self.rawdata[i:i+9] == '<![CDATA[':
+            # Since CDATA blocks can nest, we need to find the corresponding
+            # end marker.
+            n = 1
+            loc = i + 9
+            while 1:
+                sp = self.rawdata.find('<![CDATA[', loc)
+                ep = self.rawdata.find(']]>', loc)
+                if ep == -1:
+                    ep = len(self.rawdata)
+                    break
+                elif sp != -1 and sp < ep:
+                    n += 1
+                    loc = sp + 9
+                elif n == 1:
+                    break
+                else:
+                    n -= 1
+                    loc = ep + 3
+
+            self.handle_data(cgi.escape(self.rawdata[i+9:ep]))
+            return ep+3
+        else:
+            k = self.rawdata.find('>', i)
+            return k+1
+
     def output(self):
         """Return processed HTML as a single string"""
         return "".join(self.pieces)

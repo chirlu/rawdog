@@ -5,6 +5,8 @@ Dorward).
 
 Add "currentonly" option (patch from Chris Cutler).
 
+Handle nested CDATA blocks in feed XML and HTML correctly in feedparser.
+
 - rawdog 1.11
 
 Add __num_items__ and __num_feeds__ to the page template, and __url__ to

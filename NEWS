@@ -1,3 +1,18 @@
+- rawdog 1.2
+
+Updated feedparser to 2.5.2, which fixes a bug that was making rawdog
+handle content incorrectly in Echo feeds, handles more content encoding
+methods, and returns HTTP status codes.
+
+Added useful messages for different HTTP status codes and HTTP timeouts.
+Since rawdog reads a config file, it can't automatically update
+redirected feeds, but it will now tell you about them.  Note that for
+"fatal" errors (anything except a 2xx response or a redirect), rawdog
+will now retry the feed next time it's run.
+
+Prefer "content" over "content_encoded", and fall back correctly if no
+useful "content" is found.
+
 - rawdog 1.1
 
 rawdog now preserves the ordering of articles in the RSS when a group of

@@ -275,7 +275,7 @@ class Feed:
 			return self.url
 
 	def get_html_link(self):
-		s = self.get_html_name()
+		s = sanitise_html(self.get_html_name(), self.get_baseurl(), 1)
 		if self.link is not None:
 			return '<a href="' + self.link + '">' + s + '</a>'
 		else:
@@ -686,7 +686,7 @@ __if_description__<div class="itemdescription">
 			else:
 				itembits["title"] = '<a href="' + link + '">' + title + '</a>'
 
-			itembits["feed_title_no_link"] = feed.title
+			itembits["feed_title_no_link"] = sanitise_html(feed.title, baseurl, 1)
 			itembits["feed_title"] = feed.get_html_link()
 			itembits["feed_url"] = feed.url
 			itembits["feed_hash"] = short_hash(feed.url)

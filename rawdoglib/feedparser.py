@@ -482,8 +482,15 @@ class FeedParser(sgmllib.SGMLParser):
         output = output.replace('&apos;', "'")
         def decode(m):
             s = m.group(1)
-            if s[0] == "x": return chr(int(s[1:], 16))
-            return chr(int(s))
+            if s[0] == "x":
+                n = int(s[1:], 16)
+            else:
+                n = int(s)
+            if n < 128:
+                # Only decode US-ASCII characters.
+                return chr(n)
+            else:
+                return m.group(0)
         output = re.sub(r'&#(x[0-9a-fA-F]+|[0-9]+);', decode, output)
         #output = re.sub(r'(\S)/>', r'\1 />', output)
 

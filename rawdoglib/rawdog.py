@@ -68,6 +68,7 @@ class Feed:
 			status = p.get("status")
 		except:
 			p = None
+			status = None
 
 		error = None
 		non_fatal = 0

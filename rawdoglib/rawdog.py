@@ -862,6 +862,7 @@ class Rawdog(Persistable):
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta name="robots" content="noindex,nofollow,noarchive">
 """
 		if config["userefresh"]:
 			template += """__refresh__

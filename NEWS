@@ -50,6 +50,9 @@ Allow feed arguments to be given on indented lines after the "feed" or
 "feeddefaults" lines; this makes it possible to have spaces in feed
 arguments.
 
+Add a meta element to the default template to stop search engines
+indexing rawdog pages (patch from Rick van Rein).
+
 - rawdog 2.1
 
 Fix a character encoding problem with format=text feeds.

@@ -18,6 +18,12 @@
 
 import os, os.path, imp
 
+class Box:
+	"""Utility class that holds a mutable value. Useful for passing
+	immutable types by reference."""
+	def __init__(self, value = None):
+		self.value = value
+
 plugin_count = 0
 
 def load_plugins(dir, config):

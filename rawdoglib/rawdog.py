@@ -207,7 +207,7 @@ class Feed:
 		else:
 			return 1
 	
-	def update(self, rawdog, now, config, stats):
+	def update(self, rawdog, now, config):
 		"""Fetch articles from a feed and add them to the collection.
 		Returns 1 if any articles were read, 0 otherwise."""
 
@@ -311,14 +311,18 @@ class Feed:
 		sequence = 0
 		for entry_info in p["entries"]:
 			article = Article(feed, entry_info, now, sequence)
+			ignore = plugins.Box(False)
+			plugins.call_hook("article_seen", rawdog, config, article, ignore)
+			if ignore.value:
+				continue
 			sequence += 1
 
 			if articles.has_key(article.hash):
 				articles[article.hash].update_from(article, now)
-				stats.updated += 1
+				plugins.call_hook("article_updated", rawdog, config, article, now)
 			else:
 				articles[article.hash] = article
-				stats.added += 1
+				plugins.call_hook("article_added", rawdog, config, article, now)
 
 		return 1
 
@@ -733,7 +737,7 @@ class Rawdog(Persistable):
 						del self.articles[key]
 				self.modified()
 
-	def update(self, config, stats, feedurl = None):
+	def update(self, config, feedurl = None):
 		config.log("Starting update")
 		now = time.time()
 
@@ -758,18 +762,17 @@ class Rawdog(Persistable):
 		for url in update_feeds:
 			count += 1
 			config.log("Updating feed ", count, " of " , numfeeds, ": ", url)
-			if self.feeds[url].update(self, now, config, stats):
+			if self.feeds[url].update(self, now, config):
 				seen_some_items[url] = 1
 
 		count = 0
 		for key, article in self.articles.items():
 			if (seen_some_items.has_key(article.feed)
 			    and article.can_expire(now, config)):
+				plugins.call_hook("article_expired", self, config, article, now)
 				count += 1
 				del self.articles[key]
 		config.log("Expired ", count, " articles, leaving ", len(self.articles.keys()))
-		stats.expired += count
-		stats.total = len(self.articles.keys())
 
 		self.modified()
 		config.log("Finished update")
@@ -1022,17 +1025,6 @@ __description__
 
 		config.log("Finished write")
 
-class Stats:
-	"""Track counts of articles."""
-	def __init__(self):
-		self.added = 0
-		self.updated = 0
-		self.expired = 0
-		self.total = 0
-
-	def show(self):
-		print "%d %d %d %d" % (self.added, self.updated, self.expired, self.total)
-
 def usage():
 	"""Display usage information."""
 	print """rawdog, version """ + VERSION + """
@@ -1041,9 +1033,6 @@ Usage: rawdog [OPTION]...
 General options (use only once):
 -d|--dir DIR                 Use DIR instead of ~/.rawdog
 -v, --verbose                Print more detailed status information
--S, --stats                  Print article counts after run (added, updated,
-                             expired, total stored; more may be added after
-                             this in the future)
 --help                       Display this help and exit
 
 Actions (performed in order given):
@@ -1067,7 +1056,7 @@ def main(argv):
 	"""The command-line interface to the aggregator."""
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:S", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade", "add=", "stats"])
+		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade", "add="])
 	except getopt.GetoptError, s:
 		print s
 		usage()
@@ -1084,7 +1073,6 @@ def main(argv):
 
 	statedir = os.environ["HOME"] + "/.rawdog"
 	verbose = 0
-	showstats = 0
 	for o, a in optlist:
 		if o == "--help":
 			usage()
@@ -1093,8 +1081,6 @@ def main(argv):
 			statedir = a
 		elif o in ("-v", "--verbose"):
 			verbose = 1
-		elif o in ("-S", "--stats"):
-			showstats = 1
 
 	try:
 		os.chdir(statedir)
@@ -1131,13 +1117,12 @@ def main(argv):
 	rawdog.sync_from_config(config)
 
 	plugins.call_hook("startup", rawdog, config)
-	stats = Stats()
 
 	for o, a in optlist:
 		if o in ("-u", "--update"):
-			rawdog.update(config, stats)
+			rawdog.update(config)
 		elif o in ("-f", "--update-feed"):
-			rawdog.update(config, stats, a)
+			rawdog.update(config, a)
 		elif o in ("-l", "--list"):
 			rawdog.list()
 		elif o in ("-w", "--write"):
@@ -1159,8 +1144,6 @@ def main(argv):
 			rawdog.sync_from_config(config)
 
 	plugins.call_hook("shutdown", rawdog, config)
-	if showstats:
-		stats.show()
 
 	persister.save()
 

@@ -20,6 +20,25 @@ plugins; all Python modules found in those directories will be loaded by
 rawdog. In practice, this means that you need to call your file
 something ending in ".py" to have it recognised as a plugin.
 
+## The plugins module
+
+All plugins should import the `rawdoglib.plugins` module, which provides
+the functions for registering and calling hooks, along with some
+utilities for plugins. Many plugins will also want to import the
+`rawdoglib.rawdog` module, which contains rawdog's core functionality,
+much of which is reusable.
+
+### rawdoglib.plugins.attach_hook(hook_name, function)
+
+The attach_hook function adds a hook function to the hook of the given
+name.
+
+### rawdoglib.plugins.Box
+
+The Box class is used to pass immutable types by reference to hook
+functions; this allows several plugins to modify a value. It contains a
+single `value` attribute for the value it is holding.
+
 ## Hooks
 
 Most hook functions are called with "rawdog" and "config" as their first
@@ -96,4 +115,49 @@ Called before each item is written.
 * f: a writable file object (__items__)
 
 Called after all items are written.
+
+### input_filter(rawdog, config, article, ignore)
+
+* article: the Article that has been received
+* ignore: a Boxed boolean indicating whether to ignore the article
+
+Called when an article is received from a feed. This hook can be used to
+modify or ignore incoming articles.
+
+### article_updated(rawdog, config, article, now)
+
+* article: the Article that has been updated
+* now: the current time
+
+Called after an article has been updated (when rawdog receives an
+article from a feed that it already has).
+
+### article_added(rawdog, config, article, now)
+
+* article: the Article that has been added
+* now: the current time
+
+Called after a new article has been added.
+
+### article_expired(rawdog, config, article, now)
+
+* article: the Article that will be expired
+* now: the current time
+
+Called before an article is expired.
+
+## Examples
+
+### backwards.py
+
+This is probably the simplest useful example plugin: it reverses the
+sort order of the output.
+
+	import rawdoglib.plugins
+	
+	def backwards(rawdog, config, articles):
+		articles.reverse()
+		return False
+	
+	rawdoglib.plugins.attach_hook("output_sort", backwards)
 

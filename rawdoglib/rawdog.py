@@ -313,7 +313,7 @@ class Feed:
 			sequence += 1
 
 			if articles.has_key(article.hash):
-				articles[article.hash].last_seen = now
+				articles[article.hash].update_from(article, now)
 			else:
 				articles[article.hash] = article
 
@@ -376,6 +376,15 @@ class Article:
 			add_hash(entry_info["summary_detail"]["value_raw"])
 
 		return h.hexdigest()
+
+	def update_from(self, new_article, now):
+		"""Update this article's contents from a newer article that's
+		been identified to be the same (i.e. has hashed the same, but
+		might have other changes that aren't part of the hash)."""
+		self.entry_info = new_article.entry_info
+		self.sequence = new_article.sequence
+		self.date = new_article.date
+		self.last_seen = now
 
 	def can_expire(self, now, config):
 		return ((now - self.last_seen) > config["expireage"])

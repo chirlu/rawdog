@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Universal feed parser
 
 Handles RSS 0.9x, RSS 1.0, RSS 2.0, CDF, Atom feeds
@@ -14,7 +13,7 @@ Changes made by Adam Sampson <azz@us-lot.org> for rawdog:
 - provide _raw versions of text content
 """
 
-#__version__ = "pre-3.3-" + "$Revision: 1.19 $"[11:15] + "-cvs"
+#__version__ = "pre-3.3-" + "$Revision: 1.20 $"[11:15] + "-cvs"
 __version__ = "3.3"
 __license__ = "Python"
 __copyright__ = "Copyright 2002-4, Mark Pilgrim"

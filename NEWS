@@ -8,6 +8,9 @@ Nelson).
 
 Add a manual page (written by Decklin Foster).
 
+Remove extraneous #! line from feedparser.py (reported by Decklin
+Foster).
+
 - rawdog 2.0
 
 Update to feedparser 3.3. This meant reworking some of rawdog's

@@ -122,14 +122,16 @@ def select_detail(details):
 	else:
 		return ds[-1][1]
 
-def detail_to_html(details, inline, config):
+def detail_to_html(details, inline, config, force_preformatted = False):
 	"""Convert a detail hash or list of detail hashes as returned by
 	feedparser into HTML."""
 	detail = select_detail(details)
 	if detail is None:
 		return None
 
-	if detail["type"] == "text/plain":
+	if force_preformatted:
+		html = "<pre>" + cgi.escape(detail["value"]) + "</pre>"
+	elif detail["type"] == "text/plain":
 		html = cgi.escape(detail["value"])
 	else:
 		html = detail["value"]
@@ -870,11 +872,9 @@ __description__
 					break
 			if key is None:
 				description = None
-			elif feed.args.has_key("format") and feed.args["format"] == "text":
-				description = select_detail(entry_info[key])["value"]
-				description = "<pre>" + cgi.escape(description) + "</pre>"
 			else:
-				description = detail_to_html(entry_info[key], False, config)
+				force_preformatted = feed.args.has_key("format") and (feed.args["format"] == "text")
+				description = detail_to_html(entry_info[key], False, config, force_preformatted)
 
 			date = article.date
 			if title is None:

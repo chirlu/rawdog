@@ -1,5 +1,7 @@
 - rawdog 2.1
 
+Fix a character encoding problem with format=text feeds.
+
 - rawdog 2.0
 
 Update to feedparser 3.3. This meant reworking some of rawdog's

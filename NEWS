@@ -1,3 +1,5 @@
+- rawdog 2.4
+
 - rawdog 2.3
 
 Make the id= parameter work correctly (patch from Jon Nelson).

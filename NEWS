@@ -1,3 +1,9 @@
+- rawdog 1.10
+
+Add "ignoretimeouts" option to silently ignore timeout errors.
+
+Fix SSL and socket timeouts on Python 2.3.
+
 - rawdog 1.9
 
 Add "clear: both;" to item, time and date styles, so that items with

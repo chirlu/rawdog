@@ -19,9 +19,17 @@
 VERSION = "1.10rc1"
 import feedparser
 from persister import Persistable, Persister
-import os, time, sha, getopt, sys, re, urlparse, cgi
+import os, time, sha, getopt, sys, re, urlparse, cgi, socket
 from StringIO import StringIO
-import timeoutsocket
+
+def set_socket_timeout(n):
+	"""Set the system socket timeout."""
+	if hasattr(socket, "setdefaulttimeout"):
+		socket.setdefaulttimeout(n)
+	else:
+		# Python 2.2 and earlier need to use an external module.
+		import timeoutsocket
+		timeoutsocket.setDefaultSocketTimeout(n)
 
 def format_time(secs, config):
 	"""Format a time and date nicely."""
@@ -503,7 +511,7 @@ class Rawdog(Persistable):
 		config.log("Starting update")
 		now = time.time()
 
-		timeoutsocket.setDefaultSocketTimeout(config["timeout"])
+		set_socket_timeout(config["timeout"])
 
 		seenfeeds = {}
 		for (url, period, args) in config["feedslist"]:

@@ -10,6 +10,9 @@ the Mozilla sidebar, for instance). (Requested by David Dorward.)
 Add the --verbose argument (and the "verbose" option to match); this
 makes rawdog show what it's doing while it's running.
 
+Add an "include" statement in config files that can be used to include
+another config file.
+
 - rawdog 1.7
 
 Fix code in iso8601.py that caused a warning with Python 2.3.

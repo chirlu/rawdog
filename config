@@ -2,6 +2,7 @@
 # it to suit your preferences.
 # All paths in this file should be either absolute, or relative to your .rawdog
 # directory.
+# If you want to include another config file, then use "include FILENAME".
 
 # The maximum number of articles to show on the generated page.
 # Set this to 0 for no limit.

@@ -415,6 +415,8 @@ class Config:
 			self["itemtemplate"] = l[1]
 		elif l[0] == "verbose":
 			self["verbose"] = int(l[1])
+		elif l[0] == "include":
+			self.load(l[1])
 		else:
 			raise ConfigError("Unknown config command: " + l[0])
 

@@ -33,7 +33,7 @@ Other features:
   - converts character entities to numeric entities
   - requires tidylib <http://utidylib.sourceforge.net/> or mxTidy <http://www.lemburg.com/files/python/mxTidy.html>
 
-Requires Python 2.3 or later
+Requires Python 2.1; 2.3 or later recommended
 """
 
 __version__ = "2.7"
@@ -83,7 +83,7 @@ __history__ = """
   User-Agent (otherwise urllib2 sends two, which confuses some servers)
 2.5.2 - 7/28/2003 - MAP - entity-decode inline xml properly; added support for
   inline <xhtml:body> and <xhtml:div> as used in some RSS 2.0 feeds
- 2.5.3 - 8/6/2003 - TvdV - patch to track whether we're inside an image or
+2.5.3 - 8/6/2003 - TvdV - patch to track whether we're inside an image or
   textInput, and also to return the character encoding (if specified)
 2.6 - 1/1/2004 - MAP - dc:author support (MarekK); fixed bug tracking
   nested divs within content (JohnD); fixed missing sys import (JohanS);
@@ -111,6 +111,9 @@ __history__ = """
   'issued' are parsed into 9-tuple date format and stored in 'created_parsed',
   'modified_parsed', and 'issued_parsed'; 'date' is duplicated in 'modified'
   and vice-versa; 'date_parsed' is duplicated in 'modified_parsed' and vice-versa
+2.7.1 - 1/9/2004 - MAP - fixed bug handling &quot; and &apos;.  fixed memory
+  leak not closing url opener (JohnD); added dc:publisher support (MarekK);
+  added admin:errorReportsTo support (MarekK); Python 2.1 dict support (MarekK)
 
 Modifications for rawdog by Adam Sampson <azz@us-lot.org>
   Added HTTP basic auth support.
@@ -153,6 +156,13 @@ except:
 
 # ---------- don't touch this ----------
 sgmllib.tagfind = re.compile('[a-zA-Z][-_.:a-zA-Z0-9]*')
+
+if not dict:
+    def dict(aList):
+        rc = {}
+        for k, v in aList:
+            rc[k] = v
+        return rc
 
 class FeedParser(sgmllib.SGMLParser):
     namespaces = {"http://backend.userland.com/rss": "",
@@ -374,14 +384,14 @@ class FeedParser(sgmllib.SGMLParser):
             output = self.resolveURI(output)
         
         # decode entities within embedded markup
+        output = output or ''
         if (element in self.explicitly_set_type and self.contentparams.get('type') in self.html_types) or \
            (element not in self.explicitly_set_type):
-            output = output or ''
             output = output.replace('&lt;', '<')
             output = output.replace('&gt;', '>')
-            output = output.replace('&quot;', '"')
-            output = output.replace('&apos;', "'")
             output = output.replace('&amp;', '&')
+        output = output.replace('&quot;', '"')
+        output = output.replace('&apos;', "'")
         
         # resolve relative URIs within embedded markup
         if element in self.can_contain_relative_uris:
@@ -503,6 +513,12 @@ class FeedParser(sgmllib.SGMLParser):
     def _end_dc_author(self):
         self.pop('author')
     _end_author = _end_dc_author
+
+    def _start_dc_publisher(self, attrs):
+        self.push('publisher', 1)
+
+    def _end_dc_publisher(self):
+        self.pop('publisher')
         
     def _start_dc_rights(self, attrs):
         self.push('rights', 1)
@@ -627,6 +643,13 @@ class FeedParser(sgmllib.SGMLParser):
             self.elementstack[-1][2].append(value)
         self.pop('generator')
 
+    def _start_admin_errorreportsto(self, attrs):
+        self.push('errorreportsto', 1)
+        value = self._getAttribute(attrs, 'rdf:resource')
+        if value:
+            self.elementstack[-1][2].append(value)
+        self.pop('errorreportsto')
+        
     def _start_summary(self, attrs):
         self.push('summary', 1)
 
@@ -935,10 +958,13 @@ def open_resource(source, etag=None, modified=None, agent=None, referrer=None, a
             opener.handle_open[proto].sort(lambda a, b: cmp(order(a), order(b)))
     opener.addheaders = [] # RMK - must clear so we only send our custom User-Agent
     try:
-        return opener.open(request)
-    except:
-        # source is not a valid URL, but it might be a valid filename
-        pass
+        try:
+            return opener.open(request)
+        except:
+            # source is not a valid URL, but it might be a valid filename
+            pass
+    finally:
+        opener.close() # JohnD
     
     # try to open with native open function (if source is a filename)
     try:

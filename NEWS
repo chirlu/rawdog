@@ -6,7 +6,7 @@ don't extend into the items below them.
 Changed how rawdog selects the feeds to update; --verbose now shows
 only the feeds being updated.
 
-rawdog now uses feedparser 2.7, which adds date parsing and limited
+rawdog now uses feedparser 2.7.1, which adds date parsing and limited
 sanitisation of feed-provided HTML; I've removed rawdog's own
 date-parsing (including iso8601.py) and relative-link-fixing code in
 favour of the more-capable feedparser equivalents.

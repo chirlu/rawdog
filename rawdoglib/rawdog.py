@@ -92,7 +92,9 @@ def sanitise_html(html, baseurl, inline, config):
 		html = output[output.find("<body>") + 6
 		              : output.rfind("</body>")].strip()
 
-	return html
+	box = plugins.Box(html)
+	plugins.call_hook("clean_html", config, box, baseurl, inline)
+	return box.value
 
 def select_detail(details):
 	"""Pick the preferred type of detail from a list of details. (If the
@@ -148,6 +150,11 @@ def fill_template(template, bits):
 	including sections bracketed by __if_x__ .. [__else__ ..]
 	__endif__ if bits["x"] is not "". If not bits.has_key("x"),
 	__x__ expands to ""."""
+	result = plugins.Box()
+	plugins.call_hook("fill_template", template, bits, result)
+	if result.value is not None:
+		return result.value
+
 	f = StringIO()
 	l = template_re.split(template)
 	i = 0

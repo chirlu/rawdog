@@ -162,6 +162,19 @@ Called after a new article has been added.
 
 Called before an article is expired.
 
+### fill_template(template, bits, result)
+
+* template: the template string to fill
+* bits: a dictionary of template arguments
+* result: a Boxed Unicode string for the result of template expansion
+
+Called whenever template expansion is performed. If you set the value
+inside result to something other than None, then rawdog will treat that
+value as the result of template expansion (rather than performing its
+normal expansion process); you can thus use this hook either for
+manipulating template parameters, or for replacing the template system
+entirely.
+
 ## Examples
 
 ### backwards.py

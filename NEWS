@@ -23,6 +23,9 @@ specify its encoding but contained non-ASCII characters, rawdog will
 now try to parse it as UTF-8 (which it should be) and, failing that,
 as ISO-8859-1 (in case it just contains non-UTF-8 junk).
 
+Don't print the "state file may be corrupt" error if the user hits
+Ctrl-C while rawdog's loading it.
+
 - rawdog 2.1
 
 Fix a character encoding problem with format=text feeds.

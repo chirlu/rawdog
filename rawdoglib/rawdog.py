@@ -1101,6 +1101,8 @@ def main(argv):
 	persister = Persister("state", Rawdog)
 	try:
 		rawdog = persister.load()
+	except KeyboardInterrupt:
+		return 1
 	except:
 		print "An error occurred while reading state from " + statedir + "/state."
 		print "This usually means the file is corrupt, and removing it will fix the problem."

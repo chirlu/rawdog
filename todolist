@@ -4,6 +4,8 @@ FIXME: redo sorting hack in feedparser.
 - feed_name for use in classes
 - Parseable stats output mode
 - default feed options
+- Include author info (and update template)
+- define_X to provide template bits per-feed
 
 - Article numbering (probably not)
 

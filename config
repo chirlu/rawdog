@@ -33,11 +33,15 @@ template default
 # template currently in use as a starting-point for customisation. The
 # following strings will be replaced in the output:
 # __title__           The item title (as an HTML link, if possible)
+# __title_no_link__   The item title (as text)
 # __description__     The item's descriptive text, or the empty string
 #                     if it doesn't have a description
 # __date__            The item's date as provided by the feed
 # __added__           The date the article was received by rawdog
+# __hash__            A hash of the article (useful for summary pages)
 # __feed_title__      The feed title (as an HTML link, if possible)
+# __feed_title_no_link__
+#                     The feed title (as text)
 # __feed_url__        The feed URL
 # __feed_hash__       A hash of the feed URL (useful for per-feed styles)
 # Simple conditional expansion is possible by saying something like

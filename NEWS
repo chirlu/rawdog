@@ -3,6 +3,10 @@
 Add format=text feed option to handle broken feeds that make their
 descriptions unescaped text.
 
+Add __hash__ and unlinked titles to item templates, so that you can use
+multiple config files to build a summary list of item titles (for use in
+the Mozilla sidebar, for instance). (Requested by David Dorward.)
+
 - rawdog 1.7
 
 Fix code in iso8601.py that caused a warning with Python 2.3.

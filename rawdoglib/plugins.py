@@ -18,32 +18,34 @@
 
 import os, os.path, imp
 
-def load_plugins(config):
-	count = 0
-	for dir in config["plugindirs"]:
-		try:
-			files = os.listdir(dir)
-		except OSError:
-			# Ignore directories that can't be read.
-			files = []
+plugin_count = 0
 
-		for file in files:
-			if file == "" or file[0] == ".":
-				continue
+def load_plugins(dir, config):
+	global plugin_count
 
-			desc = None
-			for d in imp.get_suffixes():
-				if file.endswith(d[0]):
-					desc = d
-			if desc is None:
-				continue
+	try:
+		files = os.listdir(dir)
+	except OSError:
+		# Ignore directories that can't be read.
+		return
 
-			fn = os.path.join(dir, file)
-			config.log("Loading plugin ", fn)
-			f = open(fn, "r")
-			mod = imp.load_module("plugin%d" % (count,), f, fn, desc)
-			count += 1
-			f.close()
+	for file in files:
+		if file == "" or file[0] == ".":
+			continue
+
+		desc = None
+		for d in imp.get_suffixes():
+			if file.endswith(d[0]) and d[2] == imp.PY_SOURCE:
+				desc = d
+		if desc is None:
+			continue
+
+		fn = os.path.join(dir, file)
+		config.log("Loading plugin ", fn)
+		f = open(fn, "r")
+		mod = imp.load_module("plugin%d" % (plugin_count,), f, fn, desc)
+		plugin_count += 1
+		f.close()
 
 attached = {}
 

@@ -12,7 +12,8 @@
 
 # rawdog can be extended using plugin modules written in Python. This
 # option specifies the directories to search for plugins to load. If a
-# directory does not exist or cannot be read, it will be ignored.
+# directory does not exist or cannot be read, it will be ignored.  This
+# option must appear before any options that are implemented by plugins.
 plugindirs plugins
 
 # The maximum number of articles to show on the generated page.

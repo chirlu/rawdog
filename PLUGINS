@@ -39,3 +39,15 @@ been loaded, but before rawdog starts processing command-line arguments.
 
 Run just before rawdog saves the state file and exits.
 
+### config_option(config, name, value)
+
+Called when rawdog encounters a config file option that it doesn't
+recognise with the given name and value. The rawdoglib.rawdog.parse_*
+functions will probably be useful when dealing with config options. You
+can raise ValueError to have rawdog print an appropriate error message.
+You should return False from this hook if name is an option you
+recognise.
+
+Note that using config.log in this hook will probably not do what you
+want, because the verbose flag may not yet have been turned on.
+

@@ -481,7 +481,6 @@ class Config:
 			"feedslist" : [],
 			"feeddefaults" : {},
 			"defines" : {},
-			"plugindirs" : [],
 			"outputfile" : "output.html",
 			"maxarticles" : 200,
 			"maxage" : 0,
@@ -555,7 +554,8 @@ class Config:
 				raise ConfigError("Bad line in config: " + line)
 			self["defines"][l[0]] = l[1]
 		elif l[0] == "plugindirs":
-			self["plugindirs"] = parse_list(l[1])
+			for dir in parse_list(l[1]):
+				plugins.load_plugins(dir, self)
 		elif l[0] == "outputfile":
 			self["outputfile"] = l[1]
 		elif l[0] == "maxarticles":
@@ -602,7 +602,7 @@ class Config:
 			self["changeconfig"] = parse_bool(l[1])
 		elif l[0] == "include":
 			self.load(l[1], False)
-		else:
+		elif not plugins.call_hook("config_option", self, l[0], l[1]):
 			raise ConfigError("Unknown config command: " + l[0])
 
 	def log(self, *args):
@@ -1119,7 +1119,6 @@ def main(argv):
 
 	rawdog.sync_from_config(config)
 
-	plugins.load_plugins(config)
 	plugins.call_hook("startup", rawdog, config)
 	stats = Stats()
 

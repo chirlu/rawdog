@@ -95,6 +95,15 @@ def sanitise_html(html, baseurl, inline, config):
 		html = output[output.find("<body>") + 6
 		              : output.rfind("</body>")].strip()
 
+	if not inline:
+		# Wrap block-level text that don't start with an element in a
+		# paragraph. This isn't perfect (it gets it wrong when a bit of
+		# text starts with a link, for instance), but it's better than
+		# nothing.
+		s = html.strip()
+		if s != "" and s[0] != "<":
+			html = "<p>" + s + "</p>"
+
 	return encode_references(html)
 
 template_re = re.compile(r'__(.*?)__')
@@ -708,12 +717,7 @@ __description__
 			if feed.args.has_key("format") and feed.args["format"] == "text":
 				description = "<pre>" + cgi.escape(article.description) + "</pre>"
 			else:
-				description = article.description
-				if description is not None:
-					s = description.strip()
-					if s != "" and s[0] != "<":
-						description = "<p>" + description + "</p>"
-				description = sanitise_html(description, baseurl, 0, config)
+				description = sanitise_html(article.description, baseurl, 0, config)
 			if description == "":
 				description = None
 

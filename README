@@ -1,17 +1,17 @@
 rawdog: RSS Aggregator Without Delusions Of Grandeur
 Adam Sampson <azz@us-lot.org>
 
-rawdog is an RSS aggregator, based on Mark Pilgrim's flexible RSS parser. It's
-just an RSS aggregator; it's not a weblog authoring tool, nor is it an NNTP
-gateway, outliner, mailserver or anything else. rawdog probably only runs on
-Unix-like systems.
+rawdog is an RSS (and other) feed aggregator, based on Mark Pilgrim's flexible
+feed parser. It's just an aggregator; it's not a weblog authoring tool, nor is
+it an NNTP gateway, outliner, mailserver or anything else.  rawdog probably
+only runs on Unix-like systems.
 
-rawdog reads articles from a number of RSS feeds and writes out a single HTML
-file containing the latest articles it's seen. It uses the ETags and
-Last-Modified headers to avoid fetching a file that hasn't changed, and
-supports gzip compression to reduce bandwidth when it has. It is configured
-from a simple text file; the only state kept between invocations that can't be
-reconstructed from the RSS feeds is the ordering of articles.
+rawdog reads articles from a number of feeds and writes out a single HTML file
+containing the latest articles it's seen. It uses the ETags and Last-Modified
+headers to avoid fetching a file that hasn't changed, and supports gzip
+compression to reduce bandwidth when it has. It is configured from a simple
+text file; the only state kept between invocations that can't be reconstructed
+from the feeds is the ordering of articles.
 
 To install rawdog on your system, use distutils -- "python setup.py install".
 This will install the library modules that rawdog needs, and will install the
@@ -31,12 +31,12 @@ When you invoke rawdog from the command line, you give it a series of actions
 to perform -- for instance, "rawdog update write" tells it to do the "update"
 action, then the "write" action. The actions supported are as follows:
 
-"update": Fetch data from the RSS feeds and store it. This could take some time
+"update": Fetch data from the feeds and store it. This could take some time
 if you've got lots of feeds.
 
 "write": Write out the HTML output file.
 
-"list": List brief information about each of the RSS feeds that was known about
+"list": List brief information about each of the feeds that was known about
 when "update" was last done.
 
 Any other action will be assumed to be the URL of a known feed; that feed will

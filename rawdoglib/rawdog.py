@@ -253,7 +253,6 @@ class Config:
 			"showfeeds" : 1,
 			"timeout" : 30,
 			"template" : "default",
-			"statefile" : "state",
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -301,8 +300,6 @@ class Config:
 			self["timeout"] = int(l[1])
 		elif l[0] == "template":
 			self["template"] = l[1]
-		elif l[0] == "statefile":
-			self["statefile"] = l[1]
 		else:
 			raise ConfigError("Unknown config command: " + l[0])
 
@@ -554,22 +551,8 @@ def main(argv):
 		print >>sys.stderr, err
 		return 1
 
-	persister = None
-	rawdog = None
-
-	prev_statefile = None
-	def change_statefile(name):
-		if prev_statefile == name:
-			return
-		if persister is not None:
-			persister.save()
-		persister = None
-		if name is not None:
-			persister = Persister(name, Rawdog)
-			rawdog = persister.load()
-		prev_statefile = name
-
-	change_statefile(config["statefile"])
+	persister = Persister("state", Rawdog)
+	rawdog = persister.load()
 
 	for o, a in optlist:
 		if o in ("-u", "--update"):
@@ -587,11 +570,10 @@ def main(argv):
 				print >>sys.stderr, "In " + a + ":"
 				print >>sys.stderr, err
 				return 1
-			change_statefile(config["statefile"])
 		elif o in ("-t", "--show-template"):
 			rawdog.show_template(config)
 
-	change_statefile(None)
+	persister.save()
 
 	return 0
 

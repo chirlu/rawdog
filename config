@@ -14,11 +14,6 @@ dayformat %A, %d %B
 # a 12-hour clock.
 timeformat %H:%M
 
-# The file that rawdog will store its internal state in. Most users
-# won't need to change this; it's only useful if you want to have
-# multiple sets of feeds.
-statefile state
-
 # The template file to use, or "default" to use the built-in template
 # (which is probably sufficient for most users). Use "rawdog -t" to show
 # the template currently in use as a starting-point for customisation.

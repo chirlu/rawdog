@@ -1,4 +1,5 @@
 include README
+include NEWS
 include COPYING
 include config
 include style.css

@@ -1,0 +1,11 @@
+- rawdog 1.1
+
+rawdog now preserves the ordering of articles in the RSS when a group of
+articles are added at the same time.
+
+Updated rawdog URL in setup.py, since it now has a web page.
+
+- rawdog 1.0
+
+Initial stable release.
+

@@ -14,8 +14,6 @@ Option to choose whether full content or summary is preferred.
 
 Review expiry logic: is maxage=0 the same as currentonly?
 
-Escape characters in text/plain?
-
 Plugin that gets run on new articles.
 
 OPML listing -- needs feed type.
@@ -36,8 +34,6 @@ specifying a feed.
 
 Add a needs_update() method to Feed; make Rawdog call that on all the feeds
 (when not being forced) and then call update() on each of them that needs it.
-
-Make feedparser take a urllib2.Opener rather than proxies etc.
 
 Where articles can be shown to have been updated (by unique ID), only show the
 latest version.

@@ -5,6 +5,9 @@ Add "feeddefaults" statement to specify default feed options.
 Update feeds list from the config file whenever rawdog runs, rather than
 just when doing an update (reported by Decklin Foster).
 
+Reload the config files after -a, so that "rawdog -a URL -u" has the
+expected behaviour (reported by Decklin Foster).
+
 - rawdog 2.1
 
 Fix a character encoding problem with format=text feeds.

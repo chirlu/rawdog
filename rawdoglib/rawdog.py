@@ -471,6 +471,10 @@ class Config:
 	"""The aggregator's configuration."""
 
 	def __init__(self):
+		self.files_loaded = []
+		self.reset()
+
+	def reset(self):
 		self.config = {
 			"feedslist" : [],
 			"feeddefaults" : {},
@@ -501,8 +505,16 @@ class Config:
 	def __getitem__(self, key): return self.config[key]
 	def __setitem__(self, key, value): self.config[key] = value
 
-	def load(self, filename):
+	def reload(self):
+		self.log("Reloading config files")
+		self.reset()
+		for filename in self.files_loaded:
+			self.load(filename, False)
+
+	def load(self, filename, explicitly_loaded = True):
 		"""Load configuration from a config file."""
+		if explicitly_loaded:
+			self.files_loaded.append(filename)
 		try:
 			f = open(filename, "r")
 			lines = f.readlines()
@@ -578,7 +590,7 @@ class Config:
 		elif l[0] == "changeconfig":
 			self["changeconfig"] = parse_bool(l[1])
 		elif l[0] == "include":
-			self.load(l[1])
+			self.load(l[1], False)
 		else:
 			raise ConfigError("Unknown config command: " + l[0])
 
@@ -1093,6 +1105,8 @@ def main(argv):
 			rawdog.show_itemtemplate(config)
 		elif o in ("-a", "--add"):
 			add_feed("config", a, config)
+			config.reload()
+			rawdog.sync_from_config(config)
 
 	persister.save()
 

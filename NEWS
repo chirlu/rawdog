@@ -1,6 +1,11 @@
 - rawdog 2.0
 
-Update to feedparser 3.3. FIXME detail what I've done to it
+Update to feedparser 3.3. This meant reworking some of rawdog's
+internals; state files from old versions will no longer work with rawdog
+2.0 (and external programs that manipulate rawdog state files will also
+be broken).
+
+The old option syntax ("rawdog update write") is no longer supported.
 
 - rawdog 1.13
 

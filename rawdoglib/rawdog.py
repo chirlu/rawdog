@@ -854,6 +854,10 @@ def main(argv):
 		usage()
 		return 1
 
+	if len(args) != 0:
+		usage()
+		return 1
+
 	statedir = os.environ["HOME"] + "/.rawdog"
 	for o, a in optlist:
 		if o == "--help":
@@ -861,13 +865,6 @@ def main(argv):
 			return 0
 		elif o in ("-d", "--dir"):
 			statedir = a
-
-	# Support old option syntax.
-	for action in args:
-		if action in ("list", "update", "write"):
-			optlist.append(("--" + action, None))
-		else:
-			optlist.append(("--update-feed", action))
 
 	try:
 		os.chdir(statedir)

@@ -44,7 +44,6 @@ latest version.
 
 For next release:
 - generalise templating (so the show template option takes a name, etc.)
-- remove old option parsing
 - require Python 2.3; kill 2.2 urllib2 workaround
 - use unicode.encode('ascii','xmlcharrefreplace') if possible?
 

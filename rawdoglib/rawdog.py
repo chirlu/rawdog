@@ -78,7 +78,14 @@ class Feed:
 			return 0
 
 		try:
-			p = feedparser.parse(self.url, self.etag,
+			# Kludge for inadequate authentication support in
+			# urllib2.
+			u = self.url
+			if u.startswith("https:"):
+				import urllib
+				u = urllib.urlopen(u)
+
+			p = feedparser.parse(u, self.etag,
 				self.modified,	"rawdog/" + VERSION)
 			status = p.get("status")
 		except:

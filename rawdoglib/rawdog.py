@@ -17,7 +17,7 @@
 # MA 02111-1307 USA, or see http://www.gnu.org/.
 
 VERSION = "1.1"
-import rssparser
+import feedparser
 from persister import Persistable, Persister
 import os, time, sha
 
@@ -47,7 +47,7 @@ class Feed:
 		self.last_update = now
 
 		try:
-			p = rssparser.parse(self.url, self.etag,
+			p = feedparser.parse(self.url, self.etag,
 				self.modified,	"rawdog/" + VERSION)
 		except:
 			print "Error fetching " + self.url

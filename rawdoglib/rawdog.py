@@ -165,9 +165,9 @@ def author_to_html(entry, feedurl, config):
 	# We shouldn't need a base URL here anyway.
 	return sanitise_html(html, feedurl, True, config)
 
-def url_to_html(url):
-	"""Convert a URL string to HTML."""
-	return cgi.escape(url)
+def string_to_html(s, config):
+	"""Convert a string to HTML."""
+	return sanitise_html(cgi.escape(s), "", True, config)
 
 template_re = re.compile(r'(__.*?__)')
 def fill_template(template, bits):
@@ -370,9 +370,9 @@ class Feed:
 		if self.feed_info.has_key("title_detail"):
 			r = detail_to_html(self.feed_info["title_detail"], True, config)
 		elif self.feed_info.has_key("link"):
-			r = url_to_html(self.feed_info["link"])
+			r = string_to_html(self.feed_info["link"], config)
 		else:
-			r = url_to_html(self.url)
+			r = string_to_html(self.url, config)
 		if r is None:
 			r = ""
 		return r
@@ -380,7 +380,7 @@ class Feed:
 	def get_html_link(self, config):
 		s = self.get_html_name(config)
 		if self.feed_info.has_key("link"):
-			return '<a href="' + url_to_html(self.feed_info["link"]) + '">' + s + '</a>'
+			return '<a href="' + string_to_html(self.feed_info["link"], config) + '">' + s + '</a>'
 		else:
 			return s
 
@@ -686,6 +686,13 @@ class Config:
 		"""If running in verbose mode, print a status message."""
 		if self["verbose"]:
 			print >>sys.stderr, "".join(map(str, args))
+
+	def bug(self, *args):
+		"""Report detection of a bug in rawdog."""
+		print >>sys.stderr, "Internal error detected in rawdog:"
+		print >>sys.stderr, "".join(map(str, args))
+		print >>sys.stderr, "This could be caused by a bug in rawdog itself or in a plugin."
+		print >>sys.stderr, "Please send this error message and your config file to the rawdog author."
 
 def edit_file(filename, editfunc):
 	"""Edit a file in place: for each line in the input file, call
@@ -1038,21 +1045,21 @@ __description__
 
 			itembits["title_no_link"] = title
 			if link is not None:
-				itembits["url"] = link
+				itembits["url"] = string_to_html(link, config)
 			else:
 				itembits["url"] = ""
 			if guid is not None:
-				itembits["guid"] = guid
+				itembits["guid"] = string_to_html(guid, config)
 			else:
 				itembits["guid"] = ""
 			if link is None:
 				itembits["title"] = title
 			else:
-				itembits["title"] = '<a href="' + url_to_html(link) + '">' + title + '</a>'
+				itembits["title"] = '<a href="' + string_to_html(link, config) + '">' + title + '</a>'
 
 			itembits["feed_title_no_link"] = detail_to_html(feed_info.get("title_detail"), True, config)
 			itembits["feed_title"] = feed.get_html_link(config)
-			itembits["feed_url"] = feed.url
+			itembits["feed_url"] = string_to_html(feed.url, config)
 			itembits["feed_hash"] = short_hash(feed.url)
 			itembits["feed_id"] = feed.get_id(config)
 			itembits["hash"] = short_hash(article.hash)
@@ -1109,7 +1116,11 @@ __description__
 		else:
 			config.log("Writing output file: ", outputfile)
 			f = open(outputfile + ".new", "w")
-			print >>f, s
+			try:
+				print >>f, s
+			except UnicodeEncodeError, e:
+				config.bug("Error encoding output as ASCII; UTF-8 has been written instead.\n", e)
+				print >>f, s.encode("UTF-8")
 			f.close()
 			os.rename(outputfile + ".new", outputfile)
 

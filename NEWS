@@ -13,6 +13,10 @@ DayWriter (suggested by Ian Glover).
 
 Fix description of article_seen in PLUGINS (reported by Steve Atwell).
 
+Escape odd characters in links and guids, and add a sanity check that'll
+trip if non-ASCII somehow makes it to the output (reported by
+TheCrypto).
+
 - rawdog 2.3
 
 Make the id= parameter work correctly (patch from Jon Nelson).

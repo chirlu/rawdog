@@ -69,20 +69,33 @@ def encode_references(s):
 	r.close()
 	return v
 
-def sanitise_html(html, baseurl, inline = 0):
+def sanitise_html(html, baseurl, inline, config):
 	"""Attempt to turn arbitrary feed-provided HTML into something
 	suitable for safe inclusion into the rawdog output. The inline
 	parameter says whether to expect a fragment of inline text, or a
 	sequence of block-level elements."""
 	if html is None:
 		return None
+
 	# sgmllib handles "<br/>/" as a SHORTTAG; this workaround from
 	# feedparser.
 	html = re.sub(r'(\S)/>', r'\1 />', html)
 	html = feedparser.resolveRelativeURIs(html, baseurl)
 	p = feedparser.HTMLSanitizer()
 	p.feed(html)
-	return encode_references(p.output())
+	html = p.output()
+
+	if config["tidyhtml"]:
+		import mx.Tidy
+		# mx.Tidy won't accept Unicode strings, so we have to
+		# encode data as UTF-8 for it.
+		output = mx.Tidy.tidy(html.encode("UTF-8"), None, None,
+		                      wrap = 0)[2]
+		output = output.decode("UTF-8")
+		html = output[output.find("<body>") + 6
+		              : output.rfind("</body>")].strip()
+
+	return encode_references(html)
 
 template_re = re.compile(r'__(.*?)__')
 def fill_template(template, bits):
@@ -285,8 +298,8 @@ class Feed:
 		else:
 			return self.url
 
-	def get_html_link(self):
-		s = sanitise_html(self.get_html_name(), self.get_baseurl(), 1)
+	def get_html_link(self, config):
+		s = sanitise_html(self.get_html_name(), self.get_baseurl(), 1, config)
 		if self.link is not None:
 			return '<a href="' + self.link + '">' + s + '</a>'
 		else:
@@ -418,6 +431,7 @@ class Config:
 			"ignoretimeouts" : 0,
 			"daysections" : 1,
 			"timesections" : 1,
+			"tidyhtml" : 0,
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -491,6 +505,8 @@ class Config:
 			self["daysections"] = parse_bool(l[1])
 		elif l[0] == "timesections":
 			self["timesections"] = parse_bool(l[1])
+		elif l[0] == "tidyhtml":
+			self["tidyhtml"] = parse_bool(l[1])
 		elif l[0] == "include":
 			self.load(l[1])
 		else:
@@ -683,7 +699,7 @@ __if_description__<div class="itemdescription">
 
 			feed = self.feeds[article.feed]
 			baseurl = feed.get_baseurl()
-			title = sanitise_html(article.title, baseurl, 1)
+			title = sanitise_html(article.title, baseurl, 1, config)
 			if title == "":
 				title = None
 			link = article.link
@@ -692,7 +708,7 @@ __if_description__<div class="itemdescription">
 			if feed.args.has_key("format") and feed.args["format"] == "text":
 				description = "<pre>" + cgi.escape(article.description) + "</pre>"
 			else:
-				description = sanitise_html(article.description, baseurl, 0)
+				description = sanitise_html(article.description, baseurl, 0, config)
 			if description == "":
 				description = None
 
@@ -713,8 +729,8 @@ __if_description__<div class="itemdescription">
 			else:
 				itembits["title"] = '<a href="' + link + '">' + title + '</a>'
 
-			itembits["feed_title_no_link"] = sanitise_html(feed.title, baseurl, 1)
-			itembits["feed_title"] = feed.get_html_link()
+			itembits["feed_title_no_link"] = sanitise_html(feed.title, baseurl, 1, config)
+			itembits["feed_title"] = feed.get_html_link(config)
 			itembits["feed_url"] = feed.url
 			itembits["feed_hash"] = short_hash(feed.url)
 			itembits["hash"] = short_hash(article.hash)
@@ -746,7 +762,7 @@ __if_description__<div class="itemdescription">
 		feeds.sort(lambda a, b: cmp(a.get_html_name().lower(), b.get_html_name().lower()))
 		for feed in feeds:
 			print >>f, '<tr class="feedsrow">'
-			print >>f, '<td>' + feed.get_html_link() + '</td>'
+			print >>f, '<td>' + feed.get_html_link(config) + '</td>'
 			print >>f, '<td><a class="xmlbutton" href="' + feed.url + '">XML</a></td>'
 			print >>f, '<td>' + format_time(feed.last_update, config) + '</td>'
 			print >>f, '<td>' + format_time(feed.last_update + feed.period, config) + '</td>'

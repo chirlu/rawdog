@@ -6,6 +6,8 @@ the item template (patch from Chris Cutler).
 Add "daysections" and "timesections" options to control whether to split
 items up by day and time (based on patch from Chris Cutler).
 
+Add "tidyhtml" option to use mx.Tidy to clean feed-provided HTML.
+
 - rawdog 1.10
 
 Add "ignoretimeouts" option to silently ignore timeout errors.

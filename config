@@ -118,6 +118,13 @@ ignoretimeouts false
 # equivalent to saying "verbose true" here.
 verbose false
 
+# Whether to attempt to turn feed-provided HTML into valid HTML.
+# The most common problem that this solves is a non-closed element in an
+# article causing formatting problems for the rest of the page.
+# If this option is turned on, you must have the mx.Tidy Python module
+# installed.
+tidyhtml false
+
 # The feeds you want to watch, in the format "feed period url [args]".
 # The period is the minimum time between updates; if less than period
 # minutes have passed, "rawdog update" will skip that feed. Specifying

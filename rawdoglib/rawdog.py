@@ -859,6 +859,7 @@ __description__
 			else:
 				article_dates[a] = a.added
 		numarticles = len(articles)
+
 		def compare(a, b):
 			"""Compare two articles to decide how they
 			   should be sorted. Sort by added date, then
@@ -873,13 +874,19 @@ __description__
 			if i != 0:
 				return i
 			return cmp(a.hash, b.hash)
+		plugins.call_hook("output_filter", self, config, articles)
 		articles.sort(compare)
+		plugins.call_hook("output_sort", self, config, articles)
+
 		if config["maxarticles"] != 0:
 			articles = articles[:config["maxarticles"]]
+
+		plugins.call_hook("output_write", self, config, articles)
 
 		f = StringIO()
 		itemtemplate = self.get_itemtemplate(config)
 		dw = DayWriter(f, config)
+		plugins.call_hook("output_items_begin", self, config, f)
 
 		seen_links = {}
 		seen_guids = {}
@@ -922,6 +929,7 @@ __description__
 
 			count += 1
 			dw.time(article_dates[article])
+			plugins.call_hook("output_items_heading", self, config, f, article, article_dates[article])
 
 			itembits = {}
 			for name, value in feed.args.items():
@@ -978,6 +986,8 @@ __description__
 			f.write(fill_template(itemtemplate, itembits))
 
 		dw.close()
+		plugins.call_hook("output_items_end", self, config, f)
+
 		bits["items"] = f.getvalue()
 		bits["num_items"] = str(numarticles)
 		config.log("Selected ", count, " of ", numarticles, " articles to write; ignored ", dup_count, " duplicates")

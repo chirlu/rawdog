@@ -41,13 +41,59 @@ Run just before rawdog saves the state file and exits.
 
 ### config_option(config, name, value)
 
+* name: the option name
+* value: the option value
+
 Called when rawdog encounters a config file option that it doesn't
-recognise with the given name and value. The rawdoglib.rawdog.parse_*
-functions will probably be useful when dealing with config options. You
-can raise ValueError to have rawdog print an appropriate error message.
-You should return False from this hook if name is an option you
-recognise.
+recognise. The rawdoglib.rawdog.parse_* functions will probably be
+useful when dealing with config options. You can raise ValueError to
+have rawdog print an appropriate error message.  You should return False
+from this hook if name is an option you recognise.
 
 Note that using config.log in this hook will probably not do what you
 want, because the verbose flag may not yet have been turned on.
+
+### output_filter(rawdog, config, articles)
+
+* articles: the mutable list of Article objects
+
+Called before rawdog sorts the list of articles to write. This hook can
+be used to remove articles that shouldn't be written.
+
+### output_sort(rawdog, config, articles)
+
+* articles: the mutable list of Article objects
+
+Called after rawdog has sorted the list of articles to write. This hook
+can be used to reorder (or completely resort) the list of articles to
+write.
+
+### output_write(rawdog, config, articles)
+
+* articles: the mutable list of Article objects
+
+Called just before rawdog starts writing the HTML output. This hook can
+be used to implement alternative output methods.
+
+### output_items_begin(rawdog, config, f)
+
+* f: a writable file object (__items__)
+
+Called before rawdog starts expanding the items template. This set of
+hooks can be used to implement alternative date (or other section)
+headings.
+
+### output_items_heading(rawdog, config, f, article, date)
+
+* f: a writable file object (__items__)
+* article: the Article object about to be written
+* date: the Article's date for sorting purposes
+
+Called before each item is written.
+
+### output_items_end(rawdog, config, f)
+
+* f: a writable file object (__items__)
+
+Called after all items are written.
 

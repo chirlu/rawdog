@@ -681,26 +681,40 @@ class Rawdog(Persistable):
 			print "  Title:", feed_info.get("title")
 			print "  Link:", feed_info.get("link")
 
-	def update(self, config, feedurl = None):
-		config.log("Starting update")
-		now = time.time()
-
-		set_socket_timeout(config["timeout"])
-
+	def sync_from_config(self, config):
 		seenfeeds = {}
 		for (url, period, args) in config["feedslist"]:
 			seenfeeds[url] = 1
 			if not self.feeds.has_key(url):
 				config.log("Adding new feed: ", url)
 				self.feeds[url] = Feed(url)
-			self.feeds[url].period = period
-			self.feeds[url].args = {}
-			self.feeds[url].args.update(config["feeddefaults"])
-			self.feeds[url].args.update(args)
+				self.modified()
+			feed = self.feeds[url]
+			if feed.period != period:
+				config.log("Changed feed period: ", url)
+				feed.period = period
+				self.modified()
+			newargs = {}
+			newargs.update(config["feeddefaults"])
+			newargs.update(args)
+			if feed.args != newargs:
+				config.log("Changed feed options: ", url)
+				feed.args = newargs
+				self.modified()
 		for url in self.feeds.keys():
 			if not seenfeeds.has_key(url):
 				config.log("Removing feed: ", url)
 				del self.feeds[url]
+				for key, article in self.articles.items():
+					if article.feed == url:
+						del self.articles[key]
+				self.modified()
+
+	def update(self, config, feedurl = None):
+		config.log("Starting update")
+		now = time.time()
+
+		set_socket_timeout(config["timeout"])
 
 		if feedurl is None:
 			update_feeds = [url for url in self.feeds.keys()
@@ -725,11 +739,9 @@ class Rawdog(Persistable):
 				seen_some_items[url] = 1
 
 		count = 0
-		for key in self.articles.keys():
-			article = self.articles[key]
-			if ((not self.feeds.has_key(article.feed))
-			    or (seen_some_items.has_key(article.feed)
-			        and article.can_expire(now, config))):
+		for key, article in self.articles.items():
+			if (seen_some_items.has_key(article.feed)
+			    and article.can_expire(now, config)):
 				count += 1
 				del self.articles[key]
 		config.log("Expired ", count, " articles, leaving ", len(self.articles.keys()))
@@ -1056,6 +1068,8 @@ def main(argv):
 		print "version of rawdog, and cannot be read by this version."
 		print "Removing the state file will fix it."
 		return 1
+
+	rawdog.sync_from_config(config)
 
 	for o, a in optlist:
 		if o in ("-u", "--update"):

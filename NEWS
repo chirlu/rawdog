@@ -4,6 +4,11 @@ Add "ignoretimeouts" option to silently ignore timeout errors.
 
 Fix SSL and socket timeouts on Python 2.3.
 
+Fix entity encoding problem with HTML sanitisation that was causing
+rawdog to throw an exception upon writing with feeds containing
+non-US-ASCII characters in attribute values (reported by David Dorward,
+Dmitry Mark and Steve Pomeroy).
+
 - rawdog 1.9
 
 Add "clear: both;" to item, time and date styles, so that items with

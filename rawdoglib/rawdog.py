@@ -82,7 +82,7 @@ def sanitise_html(html, baseurl, inline = 0):
 	html = feedparser.resolveRelativeURIs(html, baseurl)
 	p = feedparser.HTMLSanitizer()
 	p.feed(html)
-	return p.output()
+	return encode_references(p.output())
 
 template_re = re.compile(r'__(.*?)__')
 def fill_template(template, bits):
@@ -275,7 +275,7 @@ class Feed:
 		except LookupError:
 			# Unknown encoding.
 			us = s
-		return encode_references(us).encode("iso-8859-1")
+		return encode_references(us)
 
 	def get_html_name(self):
 		if self.title is not None:

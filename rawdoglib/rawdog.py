@@ -301,7 +301,7 @@ class Feed:
 	def get_html_link(self, config):
 		s = sanitise_html(self.get_html_name(), self.get_baseurl(), 1, config)
 		if self.link is not None:
-			return '<a href="' + self.link + '">' + s + '</a>'
+			return '<a href="' + cgi.escape(self.link) + '">' + s + '</a>'
 		else:
 			return s
 
@@ -732,7 +732,7 @@ __description__
 			if link is None:
 				itembits["title"] = title
 			else:
-				itembits["title"] = '<a href="' + link + '">' + title + '</a>'
+				itembits["title"] = '<a href="' + cgi.escape(link) + '">' + title + '</a>'
 
 			itembits["feed_title_no_link"] = sanitise_html(feed.title, baseurl, 1, config)
 			itembits["feed_title"] = feed.get_html_link(config)
@@ -768,7 +768,7 @@ __description__
 		for feed in feeds:
 			print >>f, '<tr class="feedsrow">'
 			print >>f, '<td>' + feed.get_html_link(config) + '</td>'
-			print >>f, '<td><a class="xmlbutton" href="' + feed.url + '">XML</a></td>'
+			print >>f, '<td><a class="xmlbutton" href="' + cgi.escape(feed.url) + '">XML</a></td>'
 			print >>f, '<td>' + format_time(feed.last_update, config) + '</td>'
 			print >>f, '<td>' + format_time(feed.last_update + feed.period, config) + '</td>'
 			print >>f, '</tr>'

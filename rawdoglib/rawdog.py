@@ -297,12 +297,12 @@ class Config:
 		if line == "" or line[0] == "#":
 			return
 
-		l = line.split(" ", 1)
+		l = line.split(None, 1)
 		if len(l) != 2:
 			raise ConfigError("Bad line in config: " + line)
 
 		if l[0] == "feed":
-			l = l[1].split(" ")
+			l = l[1].split(None)
 			if len(l) < 2:
 				raise ConfigError("Bad line in config: " + line)
 			args = {}

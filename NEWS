@@ -3,6 +3,11 @@
 Reverted the "retry immediately" behaviour from 1.2, since it causes denied or
 broken feeds to get checked every time rawdog is run.
 
+Updated feedparser to 2.5.3, which now returns the XML encoding used.
+rawdog uses this information to convert all incoming items into UTF-8, so
+multiple encodings are now handled correctly (and the HTML output is now
+encoded in UTF-8 rather than ISO-8859-1 as before).
+
 - rawdog 1.2
 
 Updated feedparser to 2.5.2, which fixes a bug that was making rawdog

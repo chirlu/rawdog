@@ -112,25 +112,29 @@ class Feed:
 		# and feed will be empty. In this case we return 0 so that
 		# we know not to expire articles that came from this feed.
 
+		self.encoding = p.get("encoding")
+		if self.encoding is None:
+			self.encoding = "utf-8"
+
 		channel = p["channel"]
 		if channel.has_key("title"):
-			self.title = channel["title"]
+			self.title = self.decode(channel["title"])
 		if channel.has_key("link"):
-			self.link = channel["link"]
+			self.link = self.decode(channel["link"])
 
 		feed = self.url
 		seen_items = 0
 		sequence = 0
 		for item in p["items"]:
-			title = item.get("title")
-			link = item.get("link")
+			title = self.decode(item.get("title"))
+			link = self.decode(item.get("link"))
 			description = None
 			if description is None and item.has_key("content"):
-				description = select_content(item["content"])
+				description = select_content(self.decode(item["content"]))
 			if description is None and item.has_key("content_encoded"):
-				description = item["content_encoded"]
+				description = self.decode(item["content_encoded"])
 			if description is None:
-				description = item.get("description")
+				description = self.decode(item.get("description"))
 
 			article = Article(feed, title, link, description,
 				now, sequence)
@@ -143,6 +147,20 @@ class Feed:
 			seen_items = 1
 
 		return seen_items
+
+	def decode(self, s):
+		"""Convert a string retrieved from the feed to UTF-8."""
+		if s is None:
+			return None
+		try:
+			us = s.decode(self.encoding)
+			return us.encode("utf-8")
+		except ValueError:
+			# Badly-encoded string (or misguessed encoding).
+			return s
+		except LookupError:
+			# Unknown encoding.
+			return s
 
 	def get_html_name(self):
 		if self.title is not None:
@@ -347,7 +365,7 @@ class Rawdog(Persistable):
    "http://www.w3.org/TR/html4/strict.dtd">
 <html lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">"""
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">"""
 		if config["userefresh"]:
     			print >>f, """<meta http-equiv="Refresh" """ + 'content="' + str(refresh * 60) + '"' + """>"""
 		print >>f, """    <link rel="stylesheet" href="style.css" type="text/css">

@@ -279,14 +279,13 @@ class Feed:
 		self.etag = p.get("etag")
 		self.modified = p.get("modified")
 
-		self.feed_info = p["feed"]
-
 		# In the event that the feed hasn't changed, then both channel
 		# and feed will be empty. In this case we return 0 so that
 		# we know not to expire articles that came from this feed.
 		if len(p["entries"]) == 0:
 			return 0
 
+		self.feed_info = p["feed"]
 		feed = self.url
 
 		if config["currentonly"]:

@@ -19,7 +19,7 @@
 VERSION = "1.6"
 import feedparser
 from persister import Persistable, Persister
-import os, time, sha, getopt, sys
+import os, time, sha, getopt, sys, re, urlparse
 from StringIO import StringIO
 import timeoutsocket
 
@@ -57,6 +57,20 @@ def encode_references(s):
 	v = r.getvalue()
 	r.close()
 	return v
+
+link_dq_re = re.compile(r'(<[^>]*(?:href|src)=)"([^"]*)"', re.I)
+link_sq_re = re.compile(r'(<[^>]*(?:href|src)=)\'([^\']*)\'', re.I)
+link_nq_re = re.compile(r'(<[^>]*(?:href|src)=)([^"\'][^\s>]*)', re.I)
+def make_links_absolute(base, html):
+	"""Convert relative URIs in HTML href and src attributes to absolute
+	form from the given base URI."""
+	def fix(match):
+		(whole, a, url) = match.group(0, 1, 2)
+		return a + '"' + urlparse.urljoin(base, url) + '"'
+	html = link_dq_re.sub(fix, html)
+	html = link_sq_re.sub(fix, html)
+	html = link_nq_re.sub(fix, html)
+	return html
 
 class Feed:
 	"""An RSS feed."""
@@ -498,6 +512,7 @@ by <a href="mailto:azz@us-lot.org">Adam Sampson</a>.</p>
 			f.write('</p>\n')
 
 			if description is not None:
+				description = make_links_absolute(feed.url, description)
 				f.write('<div class="itemdescription"><p>' + description + '</p></div>\n')
 
 			f.write('</div>\n')

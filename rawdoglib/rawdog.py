@@ -237,9 +237,6 @@ class Feed:
 
 		self.etag = p.get("etag")
 		self.modified = p.get("modified")
-		# In the event that the feed hasn't changed, then both channel
-		# and feed will be empty. In this case we return 0 so that
-		# we know not to expire articles that came from this feed.
 
 		self.encoding = p.get("encoding")
 		if self.encoding is None:
@@ -257,8 +254,19 @@ class Feed:
 		if channel.has_key("link"):
 			self.link = self.decode(channel["link"])
 
+		# In the event that the feed hasn't changed, then both channel
+		# and feed will be empty. In this case we return 0 so that
+		# we know not to expire articles that came from this feed.
+		if len(p["items"]) == 0:
+			return 0
+
 		feed = self.url
-		seen_items = 0
+
+		if config["currentonly"]:
+			for (hash, a) in articles.items():
+				if a.feed == feed:
+					del articles[hash]
+
 		sequence = 0
 		for item in p["items"]:
 			title = self.decode(item.get("title"))
@@ -282,9 +290,8 @@ class Feed:
 				articles[article.hash].last_seen = now
 			else:
 				articles[article.hash] = article
-			seen_items = 1
 
-		return seen_items
+		return 1
 
 	def decode(self, s):
 		"""Convert a string or alternatives list retrieved from the
@@ -447,6 +454,7 @@ class Config:
 			"timesections" : 1,
 			"tidyhtml" : 0,
 			"sortbyfeeddate" : 0,
+			"currentonly" : 0,
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -524,6 +532,8 @@ class Config:
 			self["tidyhtml"] = parse_bool(l[1])
 		elif l[0] == "sortbyfeeddate":
 			self["sortbyfeeddate"] = parse_bool(l[1])
+		elif l[0] == "currentonly":
+			self["currentonly"] = parse_bool(l[1])
 		elif l[0] == "include":
 			self.load(l[1])
 		else:

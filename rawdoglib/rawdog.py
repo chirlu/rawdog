@@ -39,8 +39,11 @@ class Feed:
 		self.last_update = 0
 	
 	def update(self, articles, now, force = 0):
+		"""Fetch articles from a feed and add them to the collection.
+		Returns 1 if any articles were read, 0 otherwise."""
+
 		if not force and (now - self.last_update) < (self.period * 60):
-			return
+			return 0
 		self.last_update = now
 
 		try:
@@ -48,12 +51,13 @@ class Feed:
 				self.modified,	"rawdog/" + VERSION)
 		except:
 			print "Error fetching " + self.url
-			return
+			return 0
 
 		self.etag = p.get("etag")
 		self.modified = p.get("modified")
 		# In the event that the feed hasn't changed, then both channel
-		# and feed will be empty.
+		# and feed will be empty. In this case we return 0 so that
+		# we know not to expire articles that came from this feed.
 
 		channel = p["channel"]
 		if channel.has_key("title"):
@@ -62,6 +66,7 @@ class Feed:
 			self.link = channel["link"]
 
 		feed = self.url
+		seen_items = 0
 		for item in p["items"]:
 			title = item.get("title")
 			link = item.get("link")
@@ -76,6 +81,9 @@ class Feed:
 				articles[article.hash].last_seen = now
 			else:
 				articles[article.hash] = article
+			seen_items = 1
+
+		return seen_items
 
 	def get_html_name(self):
 		if self.title is not None:
@@ -233,18 +241,27 @@ class Rawdog(Persistable):
 		for url in self.feeds.keys():
 			if not seenfeeds.has_key(url):
 				del self.feeds[url]
-	
-		if feedurl is None:	
-			for url in self.feeds.keys():	
-				self.feeds[url].update(self.articles, now)
+
+		if feedurl is None:
+			update_feeds = self.feeds.keys()
+			force = 0
+		elif self.feeds.has_key(feedurl):
+			update_feeds = [feedurl]
+			force = 1
 		else:
-			if self.feeds.has_key(feedurl):
-				self.feeds[feedurl].update(self.articles, now, 1)
-			else:
-				print "No such feed: " + feedurl
+			print "No such feed: " + feedurl
+			update_feeds = []
+	
+		seen_some_items = {}
+		for url in update_feeds:
+			if self.feeds[url].update(self.articles, now, force):
+				seen_some_items[url] = 1
 
 		for key in self.articles.keys():
-			if self.articles[key].can_expire(now) or not self.feeds.has_key(self.articles[key].feed):
+			article = self.articles[key]
+			if ((not self.feeds.has_key(article.feed))
+			    or (seen_some_items.has_key(article.feed)
+			        and article.can_expire(now))):
 				del self.articles[key]
 
 		self.modified()

@@ -1039,6 +1039,10 @@ __description__
 				itembits["url"] = link
 			else:
 				itembits["url"] = ""
+			if guid is not None:
+				itembits["guid"] = guid
+			else:
+				itembits["guid"] = ""
 			if link is None:
 				itembits["title"] = title
 			else:

@@ -81,6 +81,8 @@ template default
 # __title_no_link__   The item title (as text)
 # __url__             The item's URL, or the empty string if it doesn't
 #                     have one
+# __guid__            The item's GUID, or the empty string if it doesn't
+#                     have one
 # __description__     The item's descriptive text, or the empty string
 #                     if it doesn't have a description
 # __date__            The item's date as provided by the feed

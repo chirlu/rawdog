@@ -16,7 +16,7 @@
 # write to the Free Software Foundation, Inc., 59 Temple Place, Suite
 # 330, Boston, MA 02111-1307 USA, or see http://www.gnu.org/.
 
-import fcntl
+import fcntl, os
 import cPickle as pickle
 
 class Persistable:
@@ -55,13 +55,15 @@ class Persister:
 	def save(self):
 		"""Save the persisted object back to the file if necessary."""
 		if self.object.is_modified():
-			self.file.seek(0)
-			self.file.truncate(0)
+			newname = "%s.new-%d" % (self.filename, os.getpid())
+			newfile = open(newname, "w")
 			try:
-				pickle.dump(self.object, self.file, pickle.HIGHEST_PROTOCOL)
+				pickle.dump(self.object, newfile, pickle.HIGHEST_PROTOCOL)
 			except AttributeError:
 				# Python 2.2 doesn't have the protocol
 				# argument.
-				pickle.dump(self.object, self.file, True)
+				pickle.dump(self.object, newfile, True)
+			newfile.close()
+			os.rename(newname, self.filename)
 		self.file.close()
 

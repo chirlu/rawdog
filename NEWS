@@ -31,6 +31,10 @@ duplicate articles (based on patch from Grant Edwards).
 
 Fix a bug when sorting feeds with no titles (found by Joseph Reagle).
 
+Write the updated state file more safely, to reduce the chance that
+it'll be damaged or truncated if something goes wrong while it's being
+written (requested by Tim Bishop).
+
 - rawdog 1.13
 
 Handle OverflowError with parsed dates (patch from Matthew Scott).

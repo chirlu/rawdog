@@ -13,7 +13,7 @@ dayformat %A, %d %B
 timeformat %H:%M
 
 # Where to write the output HTML to. You should place style.css in the same
-# directory.
+# directory. Specify this as "-" to write the HTML to stdout.
 outputfile /home/azz/public_html/rawdog.html
 
 # Whether to use (1) or not use (0) a <meta http-equiv="Refresh" ...> tag

@@ -471,13 +471,17 @@ by <a href="mailto:azz@us-lot.org">Adam Sampson</a>.</p>
 		print >>f, """</table>"""
 		bits["feeds"] = f.getvalue()
 
-		f = open(outputfile + ".new", "w")
 		s = template
 		for k in bits.keys():
 			s = s.replace("__" + k + "__", bits[k])
-		print >>f, s
-		f.close()
-		os.rename(outputfile + ".new", outputfile)
+
+		if outputfile == "-":
+			print s
+		else:
+			f = open(outputfile + ".new", "w")
+			print >>f, s
+			f.close()
+			os.rename(outputfile + ".new", outputfile)
 
 def usage():
 	"""Display usage information."""

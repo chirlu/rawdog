@@ -17,6 +17,12 @@ Update an article's modified date when a new version of it is seen
 Support nested ifs in templates (patch from David Durschlag), and add
 __else__.
 
+Make the README file list all the options that rawdog now supports
+(reported by David Durschlag).
+
+Make --verbose work even if it's specified after an action (reported by
+Dan Noe and David Durschlag).
+
 - rawdog 2.0
 
 Update to feedparser 3.3. This meant reworking some of rawdog's

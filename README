@@ -70,6 +70,9 @@ own template: do "rawdog -t >~/.rawdog/mytemplate" with "template
 default" in your config file, and you'll get a copy of the default
 template to edit.
 
+"--show-itemtemplate" (or "-T"): As for "--show-template", but for the
+item template.
+
 "--add URL" (or "-a URL"): Add a new feed to the config file. This uses
 Mark Pilgrim's "feedfinder" module to try to figure out a feed for any
 given URL, so you can usually just give it the URL of a blog's main
@@ -86,6 +89,14 @@ and exit.
 the $HOME/.rawdog directory. This is useful if you want to have two or
 more completely different rawdog setups with different sets of feeds;
 just create a directory for each.
+
+"--verbose" (or "-v"): Print more information about what rawdog's doing
+while it's working. This is useful for tracking down problems.
+
+"--upgrade OLDDIR NEWDIR": This option can be used to convert your state
+file when upgrading from rawdog 1.x to rawdog 2.x; see the NEWS file for
+more information. If you're not doing this, then it won't be of any use
+to you.
 
 You will want to run "rawdog -uw" periodically to fetch data and write
 the output file. The easiest way to do this is to add a crontab entry

@@ -16,7 +16,7 @@
 # Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 # MA 02111-1307 USA, or see http://www.gnu.org/.
 
-VERSION = "2.1rc1"
+VERSION = "2.1rc2"
 STATE_VERSION = 2
 import feedparser, feedfinder
 from persister import Persistable, Persister
@@ -1009,12 +1009,15 @@ def main(argv):
 		return 1
 
 	statedir = os.environ["HOME"] + "/.rawdog"
+	verbose = 0
 	for o, a in optlist:
 		if o == "--help":
 			usage()
 			return 0
 		elif o in ("-d", "--dir"):
 			statedir = a
+		elif o in ("-v", "--verbose"):
+			verbose = 1
 
 	try:
 		os.chdir(statedir)
@@ -1029,6 +1032,7 @@ def main(argv):
 		print >>sys.stderr, "In config:"
 		print >>sys.stderr, err
 		return 1
+	config["verbose"] = verbose
 
 	persister = Persister("state", Rawdog)
 	try:
@@ -1064,8 +1068,6 @@ def main(argv):
 			rawdog.show_template(config)
 		elif o in ("-T", "--show-itemtemplate"):
 			rawdog.show_itemtemplate(config)
-		elif o in ("-v", "--verbose"):
-			config["verbose"] = 1
 		elif o in ("-a", "--add"):
 			add_feed("config", a, config)
 

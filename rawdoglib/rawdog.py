@@ -58,6 +58,17 @@ def encode_references(s):
 	r.close()
 	return v
 
+def sanitise_html(html, inline = 0):
+	"""Attempt to turn arbitrary feed-provided HTML into something
+	suitable for safe inclusion into the rawdog output. The inline
+	parameter says whether to expect a fragment of inline text, or a
+	sequence of block-level elements."""
+	if html is None:
+		return None
+	p = feedparser.HTMLSanitizer()
+	p.feed(html)
+	return p.output()
+
 template_re = re.compile(r'__(.*?)__')
 def fill_template(template, bits):
 	"""Expand a template, replacing __x__ with bits["x"], and only
@@ -139,7 +150,6 @@ class Feed:
 			proxies = None
 
 		feedparser.FeedParser.can_contain_dangerous_markup = []
-		feedparser.mxtidy = None
 		try:
 			p = feedparser.parse(self.url, self.etag,
 				self.modified,	"rawdog/" + VERSION,
@@ -593,9 +603,12 @@ __if_description__<div class="itemdescription">
 			itembits = {}
 
 			feed = self.feeds[article.feed]
-			title = article.title
+			title = sanitise_html(article.title, 1)
 			link = article.link
-			description = article.description
+			if feed.args.has_key("format") and feed.args["format"] == "text":
+				description = "<pre>" + cgi.escape(article.description) + "</pre>"
+			else:
+				description = sanitise_html(article.description, 0)
 			date = article.get_date()
 			if title is None:
 				if link is None:
@@ -619,9 +632,6 @@ __if_description__<div class="itemdescription">
 				itembits["description"] = description
 			else:
 				itembits["description"] = ""
-
-			if feed.args.has_key("format") and feed.args["format"] == "text":
-				itembits["description"] = "<pre>" + cgi.escape(itembits["description"]) + "</pre>"
 
 			itembits["added"] = format_time(article.added, config)
 			if date is not None:

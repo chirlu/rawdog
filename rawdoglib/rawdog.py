@@ -144,6 +144,66 @@ class DayWriter:
 			print >>self.file, "</div>"
 			self.counter -= 1
 
+class ConfigError(Exception): pass
+
+class Config:
+	"""The aggregator's configuration."""
+
+	def __init__(self):
+		self.config = {
+			"feedslist" : [],
+			"outputfile" : "output.html",
+			"maxarticles" : 200,
+			"dayformat" : "%A, %d %B %Y",
+			"timeformat" : "%I:%M %p",
+			"userefresh" : 0,
+			"showfeeds" : 1,
+			}
+
+	def __getitem__(self, key): return self.config[key]
+	def __setitem__(self, key, value): self.config[key] = value
+
+	def load(self, filename):
+		"""Load configuration from a config file."""
+		try:
+			f = open(filename, "r")
+			lines = f.readlines()
+			f.close()
+		except IOError:
+			raise ConfigError("Can't read config file: " + filename)
+		for line in lines:
+			self.load_line(line.strip())
+
+	def load_line(self, line):
+		"""Process a configuration line."""
+
+		if line == "" or line[0] == "#":
+			return
+
+		l = line.split(" ", 1)
+		if len(l) != 2:
+			raise ConfigError("Bad line in config: " + line)
+
+		if l[0] == "feed":
+			l = l[1].split(" ", 1)
+			if len(l) != 2:
+				raise ConfigError("Bad line in config: " + line)
+			self["feedslist"].append((l[1], int(l[0])))
+		elif l[0] == "outputfile":
+			self["outputfile"] = l[1]
+		elif l[0] == "maxarticles":
+			self["maxarticles"] = int(l[1])
+		elif l[0] == "dayformat":
+			self["dayformat"] = l[1]
+		elif l[0] == "timeformat":
+			self["timeformat"] = l[1]
+		elif l[0] == "userefresh":
+			self["userefresh"] = int(l[1])
+		elif l[0] == "showfeeds":
+			self["showfeeds"] = int(l[1])
+		else:
+			raise ConfigError("Unknown config command: " + l[0])
+
 class Rawdog:
 	"""The aggregator itself."""
 
@@ -304,48 +364,12 @@ def main(argv):
 		print "No ~/.rawdog directory"
 		return 1
 
+	config = Config()
 	try:
-		f = open("config", "r")
-	except IOError:
-		print "No config file"
+		config.load("config")
+	except ConfigError, err:
+		print err
 		return 1
-	config = {
-		"feedslist" : [],
-		"outputfile" : "output.html",
-		"maxarticles" : 200,
-		"dayformat" : "%A, %d %B %Y",
-		"timeformat" : "%I:%M %p",
-		"userefresh" : 0,
-		"showfeeds" : 1,
-		}
-	for line in f.readlines():
-		line = line.strip()
-		if line == "" or line[0] == "#": continue
-		l = line.split(" ", 1)
-		if len(l) != 2:
-			print "Bad line in config file: " + line
-			return 1
-		if l[0] == "feed":
-			l = l[1].split(" ", 1)
-			if len(l) != 2:
-				print "Bad line in config file: "+ line
-			config["feedslist"].append((l[1], int(l[0])))
-		elif l[0] == "outputfile":
-			config["outputfile"] = l[1]
-		elif l[0] == "maxarticles":
-			config["maxarticles"] = int(l[1])
-		elif l[0] == "dayformat":
-			config["dayformat"] = l[1]
-		elif l[0] == "timeformat":
-			config["timeformat"] = l[1]
-		elif l[0] == "userefresh":
-			config["userefresh"] = int(l[1])
-		elif l[0] == "showfeeds":
-			config["showfeeds"] = int(l[1])
-		else:
-			print "Unknown config command: " + l[0]
-			return 1
-	f.close()
 	
 	try:
 		f = open("state", "r+")

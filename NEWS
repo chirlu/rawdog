@@ -1,3 +1,5 @@
+- rawdog 1.7
+
 - rawdog 1.6
 
 Config file lines are now split on arbitary strings of whitespace, not

@@ -39,6 +39,10 @@ if you've got lots of feeds.
 "list": List brief information about each of the RSS feeds that was known about
 when "update" was last done.
 
+Any other action will be assumed to be the URL of a known feed; that feed will
+be updated immediately (even if its period hasn't elapsed since it was last
+updated). This is useful if you're trying to debug your own feed.
+
 You will want to run "rawdog update write" periodically to fetch data and write
 the output file. The easiest way to do this is to add a crontab entry that
 looks something like this:

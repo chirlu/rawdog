@@ -1,3 +1,7 @@
+Option to disable flocking
+
+Fix rawdog -a https://www.fsf.org/blogs/rms/
+
 Somewhere safe for plugins to persist data...
 
 --change-feed-url option to change feed URL without losing articles

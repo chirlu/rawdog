@@ -217,6 +217,26 @@ def short_hash(s):
 	"""Return a human-manipulatable 'short hash' of a string."""
 	return sha.new(s).hexdigest()[-8:]
 
+def decode_structure(struct, encoding):
+	"""Walk through a structure returned by feedparser, decoding any
+	strings that haven't already been converted to Unicode."""
+	def is_dict(t):
+		return (t is dict) or (t is feedparser.FeedParserDict)
+	for (key, value) in struct.items():
+		if type(value) is str:
+			try:
+				struct[key] = value.decode(encoding)
+			except:
+				# If the encoding's invalid, at least preserve
+				# the byte stream.
+				struct[key] = value.decode("ISO-8859-1")
+		elif is_dict(type(value)):
+			decode_structure(value, encoding)
+		elif type(value) is list:
+			for item in value:
+				if is_dict(type(value)):
+					decode_structure(item, encoding)
+
 non_alphanumeric_re = re.compile(r'<[^>]*>|\&[^\;]*\;|[^a-z0-9]')
 class Feed:
 	"""An RSS feed."""
@@ -328,6 +348,8 @@ class Feed:
 			print >>sys.stderr
 			if not non_fatal:
 				return False
+
+		decode_structure(p, p.get("encoding") or "UTF-8")
 
 		self.etag = p.get("etag")
 		self.modified = p.get("modified")

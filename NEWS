@@ -1,3 +1,8 @@
+- rawdog 2.5
+
+Ensure that all the strings in entry_info are in Unicode form, to make
+it easier for plugins to deal with them.
+
 - rawdog 2.4
 
 Provide guid in item templates (suggested by Rick van Rein).

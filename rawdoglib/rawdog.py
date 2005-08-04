@@ -234,7 +234,7 @@ def decode_structure(struct, encoding):
 			decode_structure(value, encoding)
 		elif type(value) is list:
 			for item in value:
-				if is_dict(type(value)):
+				if is_dict(type(item)):
 					decode_structure(item, encoding)
 
 non_alphanumeric_re = re.compile(r'<[^>]*>|\&[^\;]*\;|[^a-z0-9]')

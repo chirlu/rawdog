@@ -1,3 +1,6 @@
+Daemon mode -- keep a pidfile, and check the mtime of the state file to avoid
+having to reread it.
+
 Option to disable flocking
 
 Fix rawdog -a https://www.fsf.org/blogs/rms/

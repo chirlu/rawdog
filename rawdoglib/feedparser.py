@@ -9,12 +9,13 @@ Required: Python 2.1 or later
 Recommended: Python 2.3 or later
 Recommended: CJKCodecs and iconv_codec <http://cjkpython.i18n.org/>
 
-Changes made by Adam Sampson <azz@us-lot.org> for rawdog:
+Changes made by Adam Sampson <ats@offog.org> for rawdog:
 - provide _raw versions of text content
 - handle file: URLs
+- fix startElementNS/endElementNS namespace mangling bug
 """
 
-#__version__ = "pre-3.3-" + "$Revision: 1.22 $"[11:15] + "-cvs"
+#__version__ = "pre-3.3-" + "$Revision: 1.23 $"[11:15] + "-cvs"
 __version__ = "3.3"
 __license__ = "Python"
 __copyright__ = "Copyright 2002-4, Mark Pilgrim"
@@ -1208,8 +1209,8 @@ if _XML_AVAILABLE:
         
         def startPrefixMapping(self, prefix, uri):
             self.trackNamespace(prefix, uri)
-        
-        def startElementNS(self, name, qname, attrs):
+
+        def make_localname(self, name):
             namespace, localname = name
             namespace = str(namespace or '')
             if namespace.find('backend.userland.com/rss') <> -1:
@@ -1218,7 +1219,10 @@ if _XML_AVAILABLE:
             prefix = self.namespaces.get(namespace, 'unknown')
             if prefix:
                 localname = prefix + ':' + localname
-            localname = str(localname).lower()
+            return str(localname).lower()
+
+        def startElementNS(self, name, qname, attrs):
+            localname = self.make_localname(name)
 
             # qname implementation is horribly broken in Python 2.1 (it
             # doesn't report any), and slightly broken in Python 2.2 (it
@@ -1244,12 +1248,7 @@ if _XML_AVAILABLE:
             self.handle_data(text)
 
         def endElementNS(self, name, qname):
-            namespace, localname = name
-            namespace = str(namespace)
-            prefix = self.namespaces.get(namespace, '')
-            if prefix:
-                localname = prefix + ':' + localname
-            localname = str(localname).lower()
+            localname = self.make_localname(name)
             self.unknown_endtag(localname)
 
         def error(self, exc):

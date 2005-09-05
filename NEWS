@@ -3,6 +3,9 @@
 Ensure that all the strings in entry_info are in Unicode form, to make
 it easier for plugins to deal with them.
 
+Fix a feedparser bug that was breaking feeds which includes itunes
+elements (reported by James Cameron).
+
 - rawdog 2.4
 
 Provide guid in item templates (suggested by Rick van Rein).

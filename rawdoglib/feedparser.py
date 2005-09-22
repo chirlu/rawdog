@@ -16,7 +16,7 @@ Changes made by Adam Sampson <ats@offog.org> for rawdog:
 - handle atom:content encoding and Atom proprietary content types
 """
 
-#__version__ = "pre-3.3-" + "$Revision: 1.24 $"[11:15] + "-cvs"
+#__version__ = "pre-3.3-" + "$Revision: 1.25 $"[11:15] + "-cvs"
 __version__ = "3.3"
 __license__ = "Python"
 __copyright__ = "Copyright 2002-4, Mark Pilgrim"
@@ -1176,6 +1176,7 @@ class _FeedParserMixin:
             cmode = 'xml'
         else:
             cmode = 'base64'
+        cmode = attrsD.get('mode', cmode)
         self.contentparams = FeedParserDict({'mode': cmode,
                               'type': ctype,
                               'language': self.lang,

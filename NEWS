@@ -6,6 +6,9 @@ it easier for plugins to deal with them.
 Fix a feedparser bug that was breaking feeds which includes itunes
 elements (reported by James Cameron).
 
+Make feedparser handle content types and modes in atom:content correctly
+(reported by David Dorward).
+
 - rawdog 2.4
 
 Provide guid in item templates (suggested by Rick van Rein).

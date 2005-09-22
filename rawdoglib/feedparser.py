@@ -13,9 +13,10 @@ Changes made by Adam Sampson <ats@offog.org> for rawdog:
 - provide _raw versions of text content
 - handle file: URLs
 - fix startElementNS/endElementNS namespace mangling bug
+- handle atom:content encoding and Atom proprietary content types
 """
 
-#__version__ = "pre-3.3-" + "$Revision: 1.23 $"[11:15] + "-cvs"
+#__version__ = "pre-3.3-" + "$Revision: 1.24 $"[11:15] + "-cvs"
 __version__ = "3.3"
 __license__ = "Python"
 __copyright__ = "Copyright 2002-4, Mark Pilgrim"
@@ -530,6 +531,14 @@ class _FeedParserMixin:
                 output_raw = unicode(output, "ISO-8859-1")
         else:
             output_raw = output
+
+        # fix non-standard content types used by Atom
+        ctype_map = {'text': 'text/plain',
+                     'html': 'text/html',
+                     'xhtml': 'application/xhtml+xml'}
+        ctype = self.contentparams.get('type')
+        if ctype_map.has_key(ctype):
+            self.contentparams['type'] = ctype_map[ctype]
         
         # decode base64 content
         if self.contentparams.get('mode') == 'base64' and base64:
@@ -1154,8 +1163,21 @@ class _FeedParserMixin:
 
     def _start_content(self, attrsD):
         self.incontent += 1
-        self.contentparams = FeedParserDict({'mode': attrsD.get('mode', 'xml'),
-                              'type': attrsD.get('type', 'text/plain'),
+        # implement encoding rules for atom:content element
+        ctype = attrsD.get('type', 'text').lower()
+        if ctype == 'html':
+            cmode = 'escaped'
+        elif (ctype in ('text', 'xhtml', 'application/xml',
+                       'application/xml-externally-parsed-entity',
+                       'application/xml-dtd')
+              or ctype.startswith('text/')
+              or ctype.endswith('+xml')
+              or ctype.endswith('/xml')):
+            cmode = 'xml'
+        else:
+            cmode = 'base64'
+        self.contentparams = FeedParserDict({'mode': cmode,
+                              'type': ctype,
                               'language': self.lang,
                               'base': self.baseuri})
         self.push('content', 1)

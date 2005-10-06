@@ -9,6 +9,9 @@ elements (reported by James Cameron).
 Make feedparser handle content types and modes in atom:content correctly
 (reported by David Dorward).
 
+Make feedparser handle the new elements in Atom 1.0 (patch from Decklin
+Foster).
+
 - rawdog 2.4
 
 Provide guid in item templates (suggested by Rick van Rein).

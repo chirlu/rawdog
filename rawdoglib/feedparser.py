@@ -14,9 +14,10 @@ Changes made by Adam Sampson <ats@offog.org> for rawdog:
 - handle file: URLs
 - fix startElementNS/endElementNS namespace mangling bug
 - handle atom:content encoding and Atom proprietary content types
+- handle new Atom 1.0 elements (patch by Decklin Foster)
 """
 
-#__version__ = "pre-3.3-" + "$Revision: 1.25 $"[11:15] + "-cvs"
+#__version__ = "pre-3.3-" + "$Revision: 1.26 $"[11:15] + "-cvs"
 __version__ = "3.3"
 __license__ = "Python"
 __copyright__ = "Copyright 2002-4, Mark Pilgrim"
@@ -143,6 +144,7 @@ SUPPORTED_VERSIONS = {'': 'unknown',
                       'atom01': 'Atom 0.1',
                       'atom02': 'Atom 0.2',
                       'atom03': 'Atom 0.3',
+                      'atom10': 'Atom 1.0',
                       'atom': 'Atom (unknown version)',
                       'cdf': 'CDF',
                       'hotrss': 'Hot RSS'
@@ -240,6 +242,7 @@ class _FeedParserMixin:
                   "http://purl.org/pie/": "",
                   "http://purl.org/atom/ns#": "",
                   "http://purl.org/rss/1.0/modules/rss091#": "",
+                  "http://www.w3.org/2005/Atom": "",
                   
                   "http://webns.net/mvcb/":                               "admin",
                   "http://purl.org/rss/1.0/modules/aggregation/":         "ag",
@@ -682,7 +685,11 @@ class _FeedParserMixin:
             if version:
                 self.version = version
             else:
-                self.version = 'atom'
+                attr_namespace = attrsD.get('xmlns')
+                if attr_namespace == 'http://www.w3.org/2005/Atom':
+                    self.version = 'atom10'
+                else:
+                    self.version = 'atom'
 
     def _end_channel(self):
         self.infeed = 0
@@ -934,15 +941,18 @@ class _FeedParserMixin:
     def _start_dcterms_created(self, attrsD):
         self.push('created', 1)
     _start_created = _start_dcterms_created
+    _start_published = _start_dcterms_created
 
     def _end_dcterms_created(self):
         value = self.pop('created')
         self._save('created_parsed', _parse_date(value))
     _end_created = _end_dcterms_created
+    _end_published = _end_dcterms_created
 
     def _start_dcterms_modified(self, attrsD):
         self.push('modified', 1)
     _start_modified = _start_dcterms_modified
+    _start_updated = _start_dcterms_modified
     _start_dc_date = _start_dcterms_modified
     _start_pubdate = _start_dcterms_modified
 
@@ -951,6 +961,7 @@ class _FeedParserMixin:
         parsed_value = _parse_date(value)
         self._save('modified_parsed', parsed_value)
     _end_modified = _end_dcterms_modified
+    _end_updated = _end_dcterms_modified
     _end_dc_date = _end_dcterms_modified
     _end_pubdate = _end_dcterms_modified
 

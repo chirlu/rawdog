@@ -31,9 +31,10 @@ class Persister:
 	"""Persist another class to a file, safely. The class being persisted
 	   must derive from Persistable (although this isn't enforced)."""
 
-	def __init__(self, filename, klass):
+	def __init__(self, filename, klass, use_locking = 1):
 		self.filename = filename
 		self.klass = klass
+		self.use_locking = use_locking
 		self.file = None
 		self.object = None
 
@@ -42,12 +43,14 @@ class Persister:
 		   if this isn't possible. Returns the loaded object."""
 		try:
 			self.file = open(self.filename, "r+")
-			fcntl.lockf(self.file.fileno(), fcntl.LOCK_EX)
+			if self.use_locking:
+				fcntl.lockf(self.file.fileno(), fcntl.LOCK_EX)
 			self.object = pickle.load(self.file)
 			self.object.modified(0)
 		except IOError:
 			self.file = open(self.filename, "w+")
-			fcntl.lockf(self.file.fileno(), fcntl.LOCK_EX)
+			if self.use_locking:
+				fcntl.lockf(self.file.fileno(), fcntl.LOCK_EX)
 			self.object = self.klass()
 			self.object.modified()
 		return self.object

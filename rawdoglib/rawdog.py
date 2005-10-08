@@ -1220,6 +1220,7 @@ Usage: rawdog [OPTION]...
 General options (use only once):
 -d|--dir DIR                 Use DIR instead of ~/.rawdog
 -v, --verbose                Print more detailed status information
+-N, --no-locking             Do not lock the state file
 --help                       Display this help and exit
 
 Actions (performed in order given):
@@ -1243,7 +1244,7 @@ def main(argv):
 	"""The command-line interface to the aggregator."""
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade", "add="])
+		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:N", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade", "add=", "no-locking"])
 	except getopt.GetoptError, s:
 		print s
 		usage()
@@ -1260,6 +1261,7 @@ def main(argv):
 
 	statedir = os.environ["HOME"] + "/.rawdog"
 	verbose = 0
+	locking = 1
 	for o, a in optlist:
 		if o == "--help":
 			usage()
@@ -1268,6 +1270,8 @@ def main(argv):
 			statedir = a
 		elif o in ("-v", "--verbose"):
 			verbose = 1
+		elif o in ("-N", "--no-locking"):
+			locking = 0
 
 	try:
 		os.chdir(statedir)
@@ -1285,7 +1289,7 @@ def main(argv):
 	if verbose:
 		config["verbose"] = True
 
-	persister = Persister("state", Rawdog)
+	persister = Persister("state", Rawdog, locking)
 	try:
 		rawdog = persister.load()
 	except KeyboardInterrupt:

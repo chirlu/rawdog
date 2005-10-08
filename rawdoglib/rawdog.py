@@ -288,10 +288,10 @@ class Feed:
 			handlers.append(urllib2.HTTPBasicAuthHandler(mgr))
 
 		proxies = {}
-		for key in self.args.keys():
+		for key, arg in self.args.items():
 			if key.endswith("_proxy"):
-				proxies[key[:-6]] = self.args[key]
-		if len(proxies.keys()) != 0:
+				proxies[key[:-6]] = arg
+		if len(proxies) != 0:
 			handlers.append(urllib2.ProxyHandler(proxies))
 
 		if self.args.has_key("proxyuser") and self.args.has_key("proxypassword"):
@@ -520,9 +520,9 @@ def parse_time(value, default = "m"):
 	the default argument to change this. Raises ValueError if the format
 	isn't recognised."""
 	units = { "s" : 1, "m" : 60, "h" : 3600, "d" : 86400, "w" : 604800 }
-	for unit in units.keys():
+	for unit, size in units.items():
 		if value.endswith(unit):
-			return int(value[:-len(unit)]) * units[unit]
+			return int(value[:-len(unit)]) * size
 	return int(value) * units[default]
 
 def parse_bool(value):
@@ -821,8 +821,7 @@ class Rawdog(Persistable):
 
 	def list(self, config):
 		"""List the configured feeds."""
-		for url in self.feeds.keys():
-			feed = self.feeds[url]
+		for url, feed in self.feeds.items():
 			feed_info = feed.feed_info
 			print url
 			print "  ID:", feed.get_id(config)
@@ -902,7 +901,7 @@ class Rawdog(Persistable):
 				plugins.call_hook("article_expired", self, config, article, now)
 				count += 1
 				del self.articles[key]
-		config.log("Expired ", count, " articles, leaving ", len(self.articles.keys()))
+		config.log("Expired ", count, " articles, leaving ", len(self.articles))
 
 		self.modified()
 		config.log("Finished update")
@@ -1149,7 +1148,7 @@ __description__
 
 		bits = self.get_main_template_bits(config)
 		bits["items"] = f.getvalue()
-		bits["num_items"] = str(len(self.articles.values()))
+		bits["num_items"] = str(len(self.articles))
 		plugins.call_hook("output_bits", self, config, bits)
 		s = fill_template(self.get_template(config), bits)
 		outputfile = config["outputfile"]

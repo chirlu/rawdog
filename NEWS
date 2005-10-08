@@ -38,6 +38,8 @@ Andy Dustman).
 If RAWDOG_PROFILE is set as an environment variable, rawdog will run
 under the Python profiler.
 
+Make some minor performance improvements.
+
 - rawdog 2.4
 
 Provide guid in item templates (suggested by Rick van Rein).

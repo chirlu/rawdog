@@ -1,5 +1,5 @@
 rawdog: RSS Aggregator Without Delusions Of Grandeur
-Adam Sampson <azz@us-lot.org>
+Adam Sampson <ats@offog.org>
 
 rawdog is an RSS (and other) feed aggregator, based on Mark Pilgrim's flexible
 feed parser. It's just an aggregator; it's not a weblog authoring tool, nor is

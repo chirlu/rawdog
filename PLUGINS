@@ -102,8 +102,29 @@ write.
 
 * articles: the mutable list of Article objects
 
-Called just before rawdog starts writing the HTML output. This hook can
-be used to implement alternative output methods.
+Called immediately before output_sorted_filter; this hook is here for
+backwards compatibility, and should not be used in new plugins.
+
+### output_sorted_filter(rawdog, config, articles)
+
+* articles: the mutable list of Article objects
+
+Called after rawdog sorts the list of articles to write, but before it
+removes duplicate and excessively old articles. This hook can be used to
+implement alternate duplicate-filtering methods. If you return False
+from this hook, then rawdog will not do its usual duplicate-removing
+filter pass.
+
+### output_write_files(rawdog, config, articles, article_dates)
+
+* articles: the mutable list of Article objects
+* article_dates: a dictionary mapping Article objects to the dates that
+  were used to sort them
+
+Called when rawdog is about to write its output to files. This hook can
+be used to implement alternative output methods. If you return False
+from this hook, then rawdog will not write any output itself (and the
+later output_ hooks will thus not be called).
 
 ### output_items_begin(rawdog, config, f)
 

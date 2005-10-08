@@ -14,6 +14,13 @@ Foster).
 
 Remove some unnecessary imports found by pyflakes.
 
+Add output_sorted_filter and output_write_files hooks, deprecating
+the output_write hook (which wasn't very useful originally, and isn't
+used by any of the plugins I've been sent). Restructure the "write" code
+so that it should be far easier to write custom output plugins: there
+are several new methods on Rawdog for doing different bits of the write
+process.
+
 - rawdog 2.4
 
 Provide guid in item templates (suggested by Rick van Rein).

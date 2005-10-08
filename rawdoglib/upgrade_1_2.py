@@ -1,5 +1,5 @@
 # upgrade_1_2: import state from rawdog 1.x state files to rawdog 2.x
-# Copyright 2003 Adam Sampson <azz@us-lot.org>
+# Copyright 2003, 2004, 2005 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software

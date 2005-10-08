@@ -1,5 +1,5 @@
 # plugins: handle add-on modules for rawdog.
-# Copyright 2004 Adam Sampson <azz@us-lot.org>
+# Copyright 2004, 2005 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software

@@ -1,5 +1,5 @@
 # persister: safe class persistance wrapper
-# Copyright 2003, 2004 Adam Sampson <azz@us-lot.org>
+# Copyright 2003, 2004, 2005 Adam Sampson <ats@offog.org>
 #
 # persister is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as

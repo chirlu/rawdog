@@ -180,12 +180,23 @@ be used to add extra template parameters.
 
 * feed: the Feed about to be updated
 
-Called before a feed is updated. This hook can be used to perform extra
-actions before fetching a feed.
+Called before a feed's content is fetched. This hook can be used to
+perform extra actions before fetching a feed. Note that if `usethreads`
+is set to a positive number in the config file, this hook may be called
+from a worker thread.
+
+### mid_update_feed(rawdog, config, feed, content)
+
+* feed: the Feed being updated
+* content: the feedparser output from the feed (may be None)
+
+Called after a feed's content has been fetched, but before rawdog's
+internal state has been updated. This hook can be used to modify
+feedparser's output.
 
 ### post_update_feed(rawdog, config, feed, seen_articles)
 
-* feed: the Feed about to be updated
+* feed: the Feed that has been updated
 * seen_articles: a boolean indicating whether any articles were read
   from the feed
 

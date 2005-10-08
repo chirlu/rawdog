@@ -21,7 +21,7 @@ STATE_VERSION = 2
 import feedparser, feedfinder, plugins
 from persister import Persistable, Persister
 import os, time, sha, getopt, sys, re, cgi, socket, urllib2, calendar
-import string
+import string, threading
 from StringIO import StringIO
 
 def set_socket_timeout(n):
@@ -267,13 +267,9 @@ class Feed:
 			return 0
 		else:
 			return 1
-	
-	def update(self, rawdog, now, config):
-		"""Fetch articles from a feed and add them to the collection.
-		Returns True if any articles were read, False otherwise."""
 
-		articles = rawdog.articles
-		handlers = []
+	def fetch(self, rawdog, config):
+		"""Fetch the current set of articles from the feed."""
 
 		class DummyPasswordMgr:
 			def __init__(self, creds):
@@ -282,6 +278,8 @@ class Feed:
 				pass
 			def find_user_password(self, realm, authuri):
 				return self.creds
+
+		handlers = []
 
 		if self.args.has_key("user") and self.args.has_key("password"):
 			mgr = DummyPasswordMgr((self.args["user"], self.args["password"]))
@@ -300,19 +298,24 @@ class Feed:
 
 		plugins.call_hook("add_urllib2_handlers", rawdog, config, self, handlers)
 
-		feedparser._FeedParserMixin.can_contain_relative_uris = ["url"]
-		feedparser._FeedParserMixin.can_contain_dangerous_markup = []
 		try:
-			p = feedparser.parse(self.url,
+			return feedparser.parse(self.url,
 				etag = self.etag,
 				modified = self.modified,
 				agent = "rawdog/" + VERSION,
 				handlers = handlers)
-			status = p.get("status")
 		except:
-			p = None
-			status = None
+			return None
 
+	def update(self, rawdog, now, config, p = None):
+		"""Fetch articles from a feed and add them to the collection.
+		Returns True if any articles were read, False otherwise."""
+
+		if p is None:
+			p = self.fetch(rawdog, config)
+		status = None
+		if p is not None:
+			status = p.get("status")
 		self.last_update = now
 
 		error = None
@@ -372,6 +375,7 @@ class Feed:
 
 		self.feed_info = p["feed"]
 		feed = self.url
+		articles = rawdog.articles
 
 		seen = {}
 		sequence = 0
@@ -562,6 +566,7 @@ class Config:
 
 	def __init__(self):
 		self.files_loaded = []
+		self.loglock = threading.Lock()
 		self.reset()
 
 	def reset(self):
@@ -592,6 +597,7 @@ class Config:
 			"hideduplicates" : "",
 			"newfeedperiod" : "3h",
 			"changeconfig": 0,
+			"numthreads": 0,
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -702,6 +708,8 @@ class Config:
 			self["newfeedperiod"] = l[1]
 		elif l[0] == "changeconfig":
 			self["changeconfig"] = parse_bool(l[1])
+		elif l[0] == "numthreads":
+			self["numthreads"] = int(l[1])
 		elif l[0] == "include":
 			self.load(l[1], False)
 		elif plugins.call_hook("config_option_arglines", self, l[0], l[1], arglines):
@@ -717,7 +725,9 @@ class Config:
 	def log(self, *args):
 		"""If running in verbose mode, print a status message."""
 		if self["verbose"]:
+			self.loglock.acquire()
 			print >>sys.stderr, "".join(map(str, args))
+			self.loglock.release()
 
 	def bug(self, *args):
 		"""Report detection of a bug in rawdog."""
@@ -769,6 +779,60 @@ class ChangeFeedEditor:
 			if len(ls) > 2 and ls[0] == "feed" and ls[2] == self.oldurl:
 				line = line.replace(self.oldurl, self.newurl, 1)
 			outputfile.write(line)
+
+class FeedFetcher:
+	"""Class that will handle fetching a set of feeds in parallel."""
+
+	def __init__(self, rawdog, feedlist, config):
+		self.rawdog = rawdog
+		self.config = config
+		self.lock = threading.Lock()
+		self.jobs = {}
+		for feed in feedlist:
+			self.jobs[feed] = 1
+		self.results = {}
+
+	def worker(self, num):
+		rawdog = self.rawdog
+		config = self.config
+
+		config.log("Thread ", num, " starting")
+		while 1:
+			self.lock.acquire()
+			if self.jobs == {}:
+				job = None
+			else:
+				job = self.jobs.keys()[0]
+				del self.jobs[job]
+			self.lock.release()
+			if job is None:
+				break
+
+			config.log("Thread ", num, " fetching feed: ", job)
+			feed = rawdog.feeds[job]
+			plugins.call_hook("pre_update_feed", rawdog, config, feed)
+			self.results[job] = feed.fetch(rawdog, config)
+		config.log("Thread ", num, " done")
+
+	def run(self, numworkers):
+		self.config.log("Thread farm starting with ", len(self.jobs), " jobs")
+		workers = []
+		for i in range(numworkers):
+			self.lock.acquire()
+			isempty = (self.jobs == {})
+			self.lock.release()
+			if isempty:
+				# No jobs left in the queue -- don't bother
+				# starting any more workers.
+				break
+
+			t = threading.Thread(target = self.worker, args = (i,))
+			t.start()
+			workers.append(t)
+		for worker in workers:
+			worker.join()
+		self.config.log("Thread farm finished with ", len(self.results), " results")
+		return self.results
 
 class Rawdog(Persistable):
 	"""The aggregator itself."""
@@ -866,6 +930,8 @@ class Rawdog(Persistable):
 		config.log("Starting update")
 		now = time.time()
 
+		feedparser._FeedParserMixin.can_contain_relative_uris = ["url"]
+		feedparser._FeedParserMixin.can_contain_dangerous_markup = []
 		set_socket_timeout(config["timeout"])
 
 		if feedurl is None:
@@ -882,14 +948,25 @@ class Rawdog(Persistable):
 		numfeeds = len(update_feeds)
 		config.log("Will update ", numfeeds, " feeds")
 
+		if config["numthreads"] > 0:
+			fetcher = FeedFetcher(self, update_feeds, config)
+			prefetched = fetcher.run(config["numthreads"])
+		else:
+			prefetched = {}
+
 		count = 0
 		seen_some_items = {}
 		for url in update_feeds:
 			count += 1
 			config.log("Updating feed ", count, " of " , numfeeds, ": ", url)
 			feed = self.feeds[url]
-			plugins.call_hook("pre_update_feed", self, config, feed)
-			rc = feed.update(self, now, config)
+			if url in prefetched:
+				content = prefetched[url]
+			else:
+				plugins.call_hook("pre_update_feed", self, config, feed)
+				content = feed.fetch(self, config)
+			plugins.call_hook("mid_update_feed", self, config, feed, content)
+			rc = feed.update(self, now, config, content)
 			plugins.call_hook("post_update_feed", self, config, feed, rc)
 			if rc:
 				seen_some_items[url] = 1

@@ -127,6 +127,13 @@ userefresh true
 # available.)
 showfeeds true
 
+# The number of concurrent threads that rawdog will use when fetching
+# feeds -- i.e. the number of feeds that rawdog will attempt to fetch at
+# the same time.  If you have a lot of feeds, setting this to be 20 or
+# so will significantly speed up updates. If this is set to 0, rawdog
+# will not use threads at all.
+numthreads 0
+
 # The time that rawdog will wait before considering a feed unreachable
 # when trying to connect. If you're getting lots of timeout errors and
 # are on a slow connection, increase this.

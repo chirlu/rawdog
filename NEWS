@@ -35,6 +35,9 @@ Add -N option to avoid locking the state file, which may be useful if
 you're on an OS or filesystem that doesn't support locks (suggested by
 Andy Dustman).
 
+If RAWDOG_PROFILE is set as an environment variable, rawdog will run
+under the Python profiler.
+
 - rawdog 2.4
 
 Provide guid in item templates (suggested by Rick van Rein).

@@ -776,7 +776,17 @@ class Rawdog(Persistable):
 	def __init__(self):
 		self.feeds = {}
 		self.articles = {}
+		self.plugin_storage = {}
 		self.state_version = STATE_VERSION
+
+	def get_plugin_storage(self, plugin):
+		try:
+			st = self.plugin_storage.setdefault(plugin, {})
+		except AttributeError:
+			# rawdog before 2.5 didn't have plugin storage.
+			st = {}
+			self.plugin_storage = {plugin: st}
+		return st
 
 	def check_state_version(self):
 		"""Check the version of the state file."""

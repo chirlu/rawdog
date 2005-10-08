@@ -39,6 +39,17 @@ The Box class is used to pass immutable types by reference to hook
 functions; this allows several plugins to modify a value. It contains a
 single `value` attribute for the value it is holding.
 
+## Plugin storage
+
+Since some plugins will need to keep state between runs, the Rawdog
+object that most hook functions are provided with has a
+`get_plugin_storage` method, which when called with a plugin identifier
+for your plugin as an argument will give you a reference to a dictionary
+which will be persisted in the rawdog state file. The dictionary is empty to
+start with; you may store any pickleable objects you like in it. Plugin
+identifiers should be strings based on your email address, in order to be
+globally unique -- for example, `org.offog.ats.archive`.
+
 ## Hooks
 
 Most hook functions are called with "rawdog" and "config" as their first

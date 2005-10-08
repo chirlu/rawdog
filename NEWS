@@ -28,6 +28,9 @@ Don't write an extra newline at the end of the output file (i.e. use
 f.write rather than print >>f), and be more careful about encoding when
 writing output to stdout.
 
+Provide arbitrary persistent storage for plugins via a
+get_plugin_storage method on Rawdog (suggested by BAM).
+
 - rawdog 2.4
 
 Provide guid in item templates (suggested by Rick van Rein).

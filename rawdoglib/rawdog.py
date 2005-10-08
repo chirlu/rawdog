@@ -1046,7 +1046,7 @@ __description__
 		for article in articles:
 			age = now - article.added
 			if config["maxage"] != 0 and age > config["maxage"]:
-				break
+				continue
 
 			feed = self.feeds[article.feed]
 			entry_info = article.entry_info

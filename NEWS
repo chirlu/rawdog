@@ -21,6 +21,9 @@ so that it should be far easier to write custom output plugins: there
 are several new methods on Rawdog for doing different bits of the write
 process.
 
+When selecting articles to display, don't assume they're sorted in date
+order (a plugin might have done something different).
+
 - rawdog 2.4
 
 Provide guid in item templates (suggested by Rick van Rein).

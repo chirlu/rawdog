@@ -319,7 +319,7 @@ class Feed:
 		non_fatal = False
 		old_url = self.url
 		if p is None:
-			error = "Error parsing feed."
+			error = "Error fetching or parsing feed."
 		elif status is None and len(p["feed"]) == 0:
 			if config["ignoretimeouts"]:
 				return False

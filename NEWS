@@ -40,6 +40,10 @@ under the Python profiler.
 
 Make some minor performance improvements.
 
+Change the "Error parsing feed" message to "Error fetching or parsing
+feed", since it really just indicates an error somewhere within
+feedparser (reported by Fred Barnes).
+
 - rawdog 2.4
 
 Provide guid in item templates (suggested by Rick van Rein).

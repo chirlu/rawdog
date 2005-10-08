@@ -213,6 +213,16 @@ def load_file(name):
 		f.close()
 	return file_cache[name]
 
+def write_ascii(f, s, config):
+	"""Write the string s, which should only contain ASCII characters, to
+	file f; if it isn't encodable in ASCII, then print a warning message
+	and write UTF-8."""
+	try:
+		f.write(s)
+	except UnicodeEncodeError, e:
+		config.bug("Error encoding output as ASCII; UTF-8 has been written instead.\n", e)
+		f.write(s.encode("UTF-8"))
+
 def short_hash(s):
 	"""Return a human-manipulatable 'short hash' of a string."""
 	return sha.new(s).hexdigest()[-8:]
@@ -926,7 +936,8 @@ version __version__
 by <a href="mailto:ats@offog.org">Adam Sampson</a>.</p>
 </div>
 </body>
-</html>"""
+</html>
+"""
 		return template
 
 	def get_itemtemplate(self, config):
@@ -1133,15 +1144,11 @@ __description__
 		s = fill_template(self.get_template(config), bits)
 		outputfile = config["outputfile"]
 		if outputfile == "-":
-			print s
+			write_ascii(sys.stdout, s, config)
 		else:
 			config.log("Writing output file: ", outputfile)
 			f = open(outputfile + ".new", "w")
-			try:
-				print >>f, s
-			except UnicodeEncodeError, e:
-				config.bug("Error encoding output as ASCII; UTF-8 has been written instead.\n", e)
-				print >>f, s.encode("UTF-8")
+			write_ascii(f, s, config)
 			f.close()
 			os.rename(outputfile + ".new", outputfile)
 

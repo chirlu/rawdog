@@ -24,6 +24,10 @@ process.
 When selecting articles to display, don't assume they're sorted in date
 order (a plugin might have done something different).
 
+Don't write an extra newline at the end of the output file (i.e. use
+f.write rather than print >>f), and be more careful about encoding when
+writing output to stdout.
+
 - rawdog 2.4
 
 Provide guid in item templates (suggested by Rick van Rein).

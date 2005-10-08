@@ -1,3 +1,5 @@
+gzip the state file.
+
 Optionally use a better backend: a real transactional database rather than a
 huge file and pickle.
 An alternative approach would be to keep a second lightweight cache of 
@@ -10,6 +12,8 @@ Daemon mode -- keep a pidfile, and check the mtime of the state file to avoid
 having to reread it.
 
 Option to disable flocking
+Option to quit if flocked
+Option to limit update runtime
 
 Fix rawdog -a https://www.fsf.org/blogs/rms/
 

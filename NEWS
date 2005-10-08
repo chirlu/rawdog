@@ -52,6 +52,8 @@ use this, set "numthreads" to be greater than 0 in your config file.
 Since it changes the semantics of one of the plugin hooks, it's off by
 default.
 
+Update the GPL and LGPL headers to include the FSF's new address.
+
 - rawdog 2.4
 
 Provide guid in item templates (suggested by Rick van Rein).

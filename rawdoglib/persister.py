@@ -13,8 +13,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public
 # License along with persister; see the file COPYING.LGPL. If not,
-# write to the Free Software Foundation, Inc., 59 Temple Place, Suite
-# 330, Boston, MA 02111-1307 USA, or see http://www.gnu.org/.
+# write to the Free Software Foundation, Inc., 51 Franklin Street,
+# Fifth Floor, Boston, MA 02110-1301, USA, or see http://www.gnu.org/.
 
 import fcntl, os
 import cPickle as pickle

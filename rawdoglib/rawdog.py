@@ -20,7 +20,7 @@ VERSION = "2.5rc1"
 STATE_VERSION = 2
 import feedparser, feedfinder, plugins
 from persister import Persistable, Persister
-import os, time, sha, getopt, sys, re, urlparse, cgi, socket, urllib2, calendar
+import os, time, sha, getopt, sys, re, cgi, socket, urllib2, calendar
 import string
 from StringIO import StringIO
 

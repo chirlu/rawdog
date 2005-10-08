@@ -16,10 +16,9 @@
 # Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 # MA 02111-1307 USA, or see http://www.gnu.org/.
 
-import sys, os, time, difflib
+import os, time, difflib
 import cPickle as pickle
-import feedparser
-from rawdog import Rawdog, Article
+from rawdog import Rawdog
 from persister import Persister
 
 def format_time(secs):

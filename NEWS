@@ -12,6 +12,8 @@ Make feedparser handle content types and modes in atom:content correctly
 Make feedparser handle the new elements in Atom 1.0 (patch from Decklin
 Foster).
 
+Remove some unnecessary imports found by pyflakes.
+
 - rawdog 2.4
 
 Provide guid in item templates (suggested by Rick van Rein).

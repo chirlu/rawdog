@@ -16,7 +16,7 @@
 # Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 # MA 02111-1307 USA, or see http://www.gnu.org/.
 
-import os, os.path, imp
+import os, imp
 
 class Box:
 	"""Utility class that holds a mutable value. Useful for passing

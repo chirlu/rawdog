@@ -307,12 +307,10 @@ class Feed:
 		except:
 			return None
 
-	def update(self, rawdog, now, config, p = None):
-		"""Fetch articles from a feed and add them to the collection.
+	def update(self, rawdog, now, config, p):
+		"""Add new articles from a feed to the collection.
 		Returns True if any articles were read, False otherwise."""
 
-		if p is None:
-			p = self.fetch(rawdog, config)
 		status = None
 		if p is not None:
 			status = p.get("status")

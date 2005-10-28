@@ -2,6 +2,9 @@
 
 Allow maxage to be set per feed (patch from Craig Allen).
 
+Support feeddefaults with no options on the same line, as used in the
+sample config file (reported by asher).
+
 - rawdog 2.5
 
 Ensure that all the strings in entry_info are in Unicode form, to make

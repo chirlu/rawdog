@@ -641,7 +641,9 @@ class Config:
 		"""Process a configuration directive."""
 
 		l = line.split(None, 1)
-		if len(l) != 2:
+		if len(l) == 1 and l[0] == "feeddefaults":
+			l.append("")
+		elif len(l) != 2:
 			raise ConfigError("Bad line in config: " + line)
 
 		handled_arglines = False

@@ -212,6 +212,7 @@ changeconfig true
 # proxyuser           User for proxy basic authentication
 # proxypassword       Password for proxy basic authentication
 # allowduplicates     "true" to disable duplicate detection for this feed
+# maxage              Override the global "maxage" value for this feed
 # define_X            Equivalent to "define X ..." for item templates
 #                     when displaying items from this feed
 # You can provide a default set of arguments for all feeds using

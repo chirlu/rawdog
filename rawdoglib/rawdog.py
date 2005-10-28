@@ -555,6 +555,8 @@ def parse_feed_args(argparams, arglines):
 		if len(as) != 2:
 			raise ConfigError("Bad argument line in config: " + a)
 		args[as[0]] = as[1]
+	if "maxage" in args:
+		args["maxage"] = parse_time(args["maxage"])
 	return args
 
 class ConfigError(Exception): pass
@@ -1139,11 +1141,15 @@ __description__
 		seen_guids = {}
 		dup_count = 0
 		for article in articles:
+			feed = self.feeds[article.feed]
 			age = now - article.added
-			if config["maxage"] != 0 and age > config["maxage"]:
+
+			maxage = config["maxage"]
+			if "maxage" in feed.args:
+				maxage = feed.args["maxage"]
+			if maxage != 0 and age > maxage:
 				continue
 
-			feed = self.feeds[article.feed]
 			entry_info = article.entry_info
 
 			link = entry_info.get("link")

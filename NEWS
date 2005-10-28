@@ -1,3 +1,5 @@
+- rawdog 2.6
+
 - rawdog 2.5
 
 Ensure that all the strings in entry_info are in Unicode form, to make

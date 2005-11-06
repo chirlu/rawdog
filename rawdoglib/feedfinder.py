@@ -27,6 +27,8 @@ How it works:
 6. <A> links to feeds on external servers containing "rss", "rdf", "xml", or "atom"
 7. As a last ditch effort, we search Syndic8 for feeds matching the URI
 
+Changes made by Adam Sampson <ats@offog.org> for rawdog:
+- include Decklin Foster's patch to return feeds in order of preference
 """
 
 __version__ = "1.2"
@@ -153,11 +155,14 @@ class BaseParser(sgmllib.SGMLParser):
         self.baseuri = attrsD['href']
         
 class LinkParser(BaseParser):
-    FEED_TYPES = ('application/rss+xml',
-                  'text/xml',
-                  'application/atom+xml',
+    FEED_TYPES = ('application/atom+xml',
+                  'application/x-atom+xml',
                   'application/x.atom+xml',
-                  'application/x-atom+xml')
+                  'application/rss+xml',
+                  'text/xml')
+    def __init__(self, baseuri):
+        BaseParser.__init__(self, baseuri)
+        self.lt = dict([(t, []) for t in self.FEED_TYPES])
     def do_link(self, attrs):
         attrsD = dict(self.normalize_attrs(attrs))
         if not attrsD.has_key('rel'): return
@@ -165,7 +170,11 @@ class LinkParser(BaseParser):
         if 'alternate' not in rels: return
         if attrsD.get('type') not in self.FEED_TYPES: return
         if not attrsD.has_key('href'): return
-        self.links.append(urlparse.urljoin(self.baseuri, attrsD['href']))
+        self.lt[attrsD.get('type')].append(urlparse.urljoin(self.baseuri, attrsD['href']))
+    def start_head(self, attrs): pass
+    def end_head(self):
+        for t in self.FEED_TYPES:
+            self.links += self.lt[t]
 
 class ALinkParser(BaseParser):
     def start_a(self, attrs):

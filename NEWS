@@ -1,3 +1,8 @@
+- rawdog 2.7
+
+Make feedfinder smarter about trying to find the preferred type of feed
+(patch from Decklin Foster).
+
 - rawdog 2.6
 
 Allow maxage to be set per feed (patch from Craig Allen).

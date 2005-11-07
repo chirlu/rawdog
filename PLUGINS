@@ -245,6 +245,18 @@ normal expansion process); you can thus use this hook either for
 manipulating template parameters, or for replacing the template system
 entirely.
 
+### mxtidy_args(config, args, baseurl, inline)
+
+* args: a dictionary of keyword arguments for mx.Tidy.tidy
+* baseurl: the URL at which the HTML was originally found
+* inline: a boolean indicating whether the output should be inline HTML
+  or a block element
+
+When HTML is being sanitised by rawdog and the "tidyhtml" option is
+enabled, this hook will be called just before mx.Tidy.tidy is run. It
+can be used to add or modify mx.Tidy options; for example, to make it
+produce XHTML output.
+
 ### clean_html(config, html, baseurl, inline)
 
 * html: a Boxed Unicode string containing the HTML being cleaned

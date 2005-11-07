@@ -87,8 +87,10 @@ def sanitise_html(html, baseurl, inline, config):
 		import mx.Tidy
 		# mx.Tidy won't accept Unicode strings, so we have to
 		# encode data as UTF-8 for it.
+		args = { "wrap": 0, "numeric_entities": 1 }
+		plugins.call_hook("mxtidy_args", config, args, baseurl, inline)
 		output = mx.Tidy.tidy(html.encode("UTF-8"), None, None,
-		                      wrap = 0, numeric_entities = 1)[2]
+		                      **args)[2]
 		output = output.decode("UTF-8")
 		html = output[output.find("<body>") + 6
 		              : output.rfind("</body>")].strip()

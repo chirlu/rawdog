@@ -6,6 +6,9 @@ Make feedfinder smarter about trying to find the preferred type of feed
 Add a plugin hook to let you modify mx.Tidy options (suggested by Jon
 Lasser).
 
+Work correctly if the threading module isn't available (patch from Jack
+Diederich).
+
 - rawdog 2.6
 
 Allow maxage to be set per feed (patch from Craig Allen).

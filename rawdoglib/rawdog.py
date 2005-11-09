@@ -21,8 +21,14 @@ STATE_VERSION = 2
 import feedparser, feedfinder, plugins
 from persister import Persistable, Persister
 import os, time, sha, getopt, sys, re, cgi, socket, urllib2, calendar
-import string, threading
+import string
 from StringIO import StringIO
+
+try:
+	import threading
+	have_threading = 1
+except:
+	have_threading = 0
 
 def set_socket_timeout(n):
 	"""Set the system socket timeout."""
@@ -568,7 +574,8 @@ class Config:
 
 	def __init__(self):
 		self.files_loaded = []
-		self.loglock = threading.Lock()
+		if have_threading:
+			self.loglock = threading.Lock()
 		self.reset()
 
 	def reset(self):
@@ -729,9 +736,11 @@ class Config:
 	def log(self, *args):
 		"""If running in verbose mode, print a status message."""
 		if self["verbose"]:
-			self.loglock.acquire()
+			if have_threading:
+				self.loglock.acquire()
 			print >>sys.stderr, "".join(map(str, args))
-			self.loglock.release()
+			if have_threading:
+				self.loglock.release()
 
 	def bug(self, *args):
 		"""Report detection of a bug in rawdog."""
@@ -952,7 +961,7 @@ class Rawdog(Persistable):
 		numfeeds = len(update_feeds)
 		config.log("Will update ", numfeeds, " feeds")
 
-		if config["numthreads"] > 0:
+		if have_threading and config["numthreads"] > 0:
 			fetcher = FeedFetcher(self, update_feeds, config)
 			prefetched = fetcher.run(config["numthreads"])
 		else:

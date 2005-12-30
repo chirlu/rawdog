@@ -75,8 +75,8 @@ def sanitise_html(html, baseurl, inline, config):
 	# sgmllib handles "<br/>/" as a SHORTTAG; this workaround from
 	# feedparser.
 	html = re.sub(r'(\S)/>', r'\1 />', html)
-	html = feedparser._resolveRelativeURIs(html, baseurl, None)
-	p = feedparser._HTMLSanitizer(None)
+	html = feedparser._resolveRelativeURIs(html, baseurl, "UTF-8")
+	p = feedparser._HTMLSanitizer("UTF-8")
 	p.feed(html)
 	html = p.output()
 
@@ -91,16 +91,14 @@ def sanitise_html(html, baseurl, inline, config):
 
 	if config["tidyhtml"]:
 		import mx.Tidy
-		# mx.Tidy won't accept Unicode strings, so we have to
-		# encode data as UTF-8 for it.
 		args = { "wrap": 0, "numeric_entities": 1 }
 		plugins.call_hook("mxtidy_args", config, args, baseurl, inline)
-		output = mx.Tidy.tidy(html.encode("UTF-8"), None, None,
+		output = mx.Tidy.tidy(html, None, None,
 		                      **args)[2]
-		output = output.decode("UTF-8")
 		html = output[output.find("<body>") + 6
 		              : output.rfind("</body>")].strip()
 
+	html = html.decode("UTF-8")
 	box = plugins.Box(html)
 	plugins.call_hook("clean_html", config, box, baseurl, inline)
 	return box.value

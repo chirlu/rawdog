@@ -9,6 +9,10 @@ Lasser).
 Work correctly if the threading module isn't available (patch from Jack
 Diederich).
 
+Update to feedparser 4.0.2, which includes some of our patches and fixes
+an unclear license notice (reported by Jason Diamond, Joe Wreschnig and
+Decklin Foster).
+
 - rawdog 2.6
 
 Allow maxage to be set per feed (patch from Craig Allen).

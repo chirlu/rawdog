@@ -16,7 +16,7 @@ Changes made by Adam Sampson <ats@offog.org> for rawdog:
 - save the traceback from parser exceptions
 """
 
-__version__ = "4.0.2"# + "$Revision: 1.27 $"[11:15] + "-cvs"
+__version__ = "4.0.2"# + "$Revision: 1.28 $"[11:15] + "-cvs"
 __license__ = """Copyright (c) 2002-2005, Mark Pilgrim, All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -1459,7 +1459,7 @@ class _BaseHTMLProcessor(sgmllib.SGMLParser):
         
     def feed(self, data):
         data = re.compile(r'<!((?!DOCTYPE|--|\[))', re.IGNORECASE).sub(r'&lt;!\1', data)
-        data = re.sub(r'<(\S+?)\s*?/>', self._shorttag_replace, data)
+        data = re.sub(r'<([^<\s]+?)\s*/>', self._shorttag_replace, data)
         data = data.replace('&#39;', "'")
         data = data.replace('&#34;', '"')
         if self.encoding and type(data) == type(u''):

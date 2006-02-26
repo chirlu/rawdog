@@ -21,7 +21,7 @@ STATE_VERSION = 2
 import feedparser, feedfinder, plugins
 from persister import Persistable, Persister
 import os, time, sha, getopt, sys, re, cgi, socket, urllib2, calendar
-import string
+import string, locale
 from StringIO import StringIO
 
 try:
@@ -1333,6 +1333,8 @@ Report bugs to <ats@offog.org>."""
 
 def main(argv):
 	"""The command-line interface to the aggregator."""
+
+	locale.setlocale(locale.LC_ALL, "")
 
 	try:
 		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:N", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade", "add=", "no-locking"])

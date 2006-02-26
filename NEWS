@@ -16,6 +16,8 @@ Decklin Foster).
 Fix a feedparser bug that caused things preceding shorttags to be
 duplicated when sanitising HTML.
 
+Set the locale correctly when rawdog starts up (patch from Samuel Hym).
+
 - rawdog 2.6
 
 Allow maxage to be set per feed (patch from Craig Allen).

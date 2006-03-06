@@ -16,7 +16,7 @@
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA, or see http://www.gnu.org/.
 
-VERSION = "2.7rc1"
+VERSION = "2.7"
 STATE_VERSION = 2
 import feedparser, feedfinder, plugins
 from persister import Persistable, Persister

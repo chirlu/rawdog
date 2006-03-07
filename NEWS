@@ -1,3 +1,9 @@
+- rawdog 2.8
+
+Fix authentication support -- feedparser now supports Basic and Digest
+authentication internally, but it needed tweaking to make it useful for
+rawdog (reported by Tim Bishop).
+
 - rawdog 2.7
 
 Make feedfinder smarter about trying to find the preferred type of feed

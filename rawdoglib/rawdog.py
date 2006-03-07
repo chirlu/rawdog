@@ -277,19 +277,7 @@ class Feed:
 	def fetch(self, rawdog, config):
 		"""Fetch the current set of articles from the feed."""
 
-		class DummyPasswordMgr:
-			def __init__(self, creds):
-				self.creds = creds
-			def add_password(self, realm, uri, user, passwd):
-				pass
-			def find_user_password(self, realm, authuri):
-				return self.creds
-
 		handlers = []
-
-		if self.args.has_key("user") and self.args.has_key("password"):
-			mgr = DummyPasswordMgr((self.args["user"], self.args["password"]))
-			handlers.append(urllib2.HTTPBasicAuthHandler(mgr))
 
 		proxies = {}
 		for key, arg in self.args.items():
@@ -304,12 +292,17 @@ class Feed:
 
 		plugins.call_hook("add_urllib2_handlers", rawdog, config, self, handlers)
 
+		auth_creds = None
+		if self.args.has_key("user") and self.args.has_key("password"):
+			auth_creds = (self.args["user"], self.args["password"])
+
 		try:
 			return feedparser.parse(self.url,
 				etag = self.etag,
 				modified = self.modified,
 				agent = "rawdog/" + VERSION,
-				handlers = handlers)
+				handlers = handlers,
+				auth_creds = auth_creds)
 		except:
 			return None
 

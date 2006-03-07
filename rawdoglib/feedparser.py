@@ -14,9 +14,10 @@ Changes made by Adam Sampson <ats@offog.org> for rawdog:
 - handle file: URLs
 - fix startElementNS/endElementNS namespace mangling bug
 - save the traceback from parser exceptions
+- allow auth credentials to be provided as an argument
 """
 
-__version__ = "4.0.2"# + "$Revision: 1.28 $"[11:15] + "-cvs"
+__version__ = "4.0.2"# + "$Revision: 1.29 $"[11:15] + "-cvs"
 __license__ = """Copyright (c) 2002-2005, Mark Pilgrim, All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -1766,7 +1767,7 @@ class _FeedURLHandler(urllib2.HTTPDigestAuthHandler, urllib2.HTTPRedirectHandler
         except:
             return self.http_error_default(req, fp, code, msg, headers)
 
-def _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, handlers):
+def _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, handlers, auth_creds):
     """URL, filename, or string --> stream
 
     This function lets you define parsers that take any input source
@@ -1791,6 +1792,9 @@ def _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, h
 
     If handlers is supplied, it is a list of handlers used to build a
     urllib2 opener.
+
+    If auth_creds is suppled, it is a tuple (username, password) to be used for
+    Basic or Digest authentication.
     """
 
     if hasattr(url_file_stream_or_string, 'read'):
@@ -1805,9 +1809,11 @@ def _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, h
     if urlparse.urlparse(url_file_stream_or_string)[0] in ('http', 'https', 'ftp'):
         if not agent:
             agent = USER_AGENT
-        # test for inline user:password for basic auth
+        # test for user:password for basic auth
         auth = None
-        if base64:
+        if auth_creds:
+            auth = base64.encodestring('%s:%s' % auth_creds).strip()
+        elif base64:
             urltype, rest = urllib.splittype(url_file_stream_or_string)
             realhost, rest = urllib.splithost(rest)
             if realhost:
@@ -2475,7 +2481,7 @@ def _stripDoctype(data):
     data = doctype_pattern.sub('', data)
     return version, data
     
-def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, referrer=None, handlers=[]):
+def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, referrer=None, handlers=[], auth_creds=None):
     '''Parse a feed from a URL, file, stream, or string'''
     result = FeedParserDict()
     result['feed'] = FeedParserDict()
@@ -2485,7 +2491,7 @@ def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, refer
     if type(handlers) == types.InstanceType:
         handlers = [handlers]
     try:
-        f = _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, handlers)
+        f = _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, handlers, auth_creds)
         data = f.read()
     except Exception, e:
         result['bozo'] = 1

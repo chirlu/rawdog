@@ -50,8 +50,8 @@ dayformat %A, %d %B
 timesections true
 
 # The format to write time headings in. For example:
-# %H:%M               06:07 (ISO 8601 format)
-# %I:%M %p            18:07 PM
+# %H:%M               18:07 (ISO 8601 format)
+# %I:%M %p            06:07 PM
 timeformat %H:%M
 
 # The format to display feed update and article times in. For example:

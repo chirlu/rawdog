@@ -23,6 +23,7 @@ from persister import Persistable, Persister
 import os, time, sha, getopt, sys, re, cgi, socket, urllib2, calendar
 import string, locale
 from StringIO import StringIO
+import types
 
 try:
 	import threading
@@ -204,7 +205,10 @@ def fill_template(template, bits):
 				if if_stack != []:
 					if_stack.append(not if_stack.pop())
 			elif bits.has_key(key):
-				write(bits[key])
+				if type(bits[key]) == types.UnicodeType:
+					write(bits[key].encode(locale.getpreferredencoding()))
+				else:
+					write(bits[key])
 		else:
 			write(part)
 	return f.getvalue()

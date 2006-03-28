@@ -2,6 +2,9 @@
 
 Fix a documentation bug about time formats (reported by Tim Bishop).
 
+Fix a text-handling problem related to the locale changes (patch from
+Samuel Hym).
+
 - rawdog 2.8
 
 Fix authentication support -- feedparser now supports Basic and Digest

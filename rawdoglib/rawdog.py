@@ -300,13 +300,18 @@ class Feed:
 		if self.args.has_key("user") and self.args.has_key("password"):
 			auth_creds = (self.args["user"], self.args["password"])
 
+		use_im = True
+		if self.get_keepmin(config) == 0 or config["currentonly"]:
+			use_im = False
+
 		try:
 			return feedparser.parse(self.url,
 				etag = self.etag,
 				modified = self.modified,
 				agent = "rawdog/" + VERSION,
 				handlers = handlers,
-				auth_creds = auth_creds)
+				auth_creds = auth_creds,
+				use_im = use_im)
 		except:
 			return None
 
@@ -427,6 +432,12 @@ class Feed:
 		else:
 			r = self.get_html_name(config).lower()
 			return non_alphanumeric_re.sub('', r)
+
+	def get_keepmin(self, config):
+		try:
+			return int(self.args["keepmin"])
+		except:
+			return config["keepmin"]
 
 class Article:
 	"""An article retrieved from an RSS feed."""
@@ -582,6 +593,7 @@ class Config:
 			"maxarticles" : 200,
 			"maxage" : 0,
 			"expireage" : 24 * 60 * 60,
+			"keepmin" : 0,
 			"dayformat" : "%A, %d %B %Y",
 			"timeformat" : "%I:%M %p",
 			"datetimeformat" : None,
@@ -676,6 +688,8 @@ class Config:
 			self["maxage"] = parse_time(l[1])
 		elif l[0] == "expireage":
 			self["expireage"] = parse_time(l[1])
+		elif l[0] == "keepmin":
+			self["keepmin"] = int(l[1])
 		elif l[0] == "dayformat":
 			self["dayformat"] = l[1]
 		elif l[0] == "timeformat":
@@ -979,12 +993,20 @@ class Rawdog(Persistable):
 			if rc:
 				seen_some_items[url] = 1
 
+		feedcounts = {}
+		for key, article in self.articles.items():
+			url = article.feed
+			feedcounts[url] = feedcounts.get(url, 0) + 1
+
 		count = 0
 		for key, article in self.articles.items():
-			if (seen_some_items.has_key(article.feed)
-			    and article.can_expire(now, config)):
+			url = article.feed
+			if (seen_some_items.has_key(url)
+			    and article.can_expire(now, config)
+			    and feedcounts[url] > self.feeds[url].get_keepmin(config)):
 				plugins.call_hook("article_expired", self, config, article, now)
 				count += 1
+				feedcounts[url] -= 1
 				del self.articles[key]
 		config.log("Expired ", count, " articles, leaving ", len(self.articles))
 

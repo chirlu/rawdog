@@ -29,6 +29,15 @@ maxage 0
 # to cover more than a day's worth of articles.
 expireage 1d
 
+# The minimum number of articles from each feed to keep around in the history.
+# Set this to 0 to only keep articles that were returned the last time the feed
+# was fetched. (If this is set to 0, or "currentonly" below is set to true,
+# then rawdog will not send the RFC3229+feed "A-IM: feed" header when making
+# HTTP requests, since it can't tell from the response to such a request
+# whether any articles have been removed from the feed; this makes rawdog
+# slightly less bandwidth-efficient.)
+keepmin 20
+
 # Whether to only display articles that are currently included in a feed
 # (useful for "planet" pages where you only want to display the current
 # articles from several feeds). If this is false, rawdog will keep a
@@ -213,6 +222,7 @@ changeconfig true
 # proxypassword       Password for proxy basic authentication
 # allowduplicates     "true" to disable duplicate detection for this feed
 # maxage              Override the global "maxage" value for this feed
+# keepmin             Override the global "keepmin" value for this feed
 # define_X            Equivalent to "define X ..." for item templates
 #                     when displaying items from this feed
 # You can provide a default set of arguments for all feeds using
@@ -221,7 +231,7 @@ feeddefaults
 	http_proxy http://proxy.example.com:3128/
 feed 1h http://www.advogato.org/rss/articles.xml
 feed 30m http://news.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss091.xml id=bbcfront
-feed 3h http://diveintomark.org/xml/rss.xml
+feed 3h http://diveintomark.org/xml/rss.xml keepmin=5
 feed 3h http://secretfeed.example.com/secret.rss user=bob password=secret
 feed 3h http://brokenfeeds.com/my.rss
 	format text

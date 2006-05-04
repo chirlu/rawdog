@@ -5,6 +5,20 @@ Fix a documentation bug about time formats (reported by Tim Bishop).
 Fix a text-handling problem related to the locale changes (patch from
 Samuel Hym).
 
+Fix use of the "A-IM: feed" header in HTTP requests. A previous upstream
+change to feedparser had modified it so that it always sent this header,
+which results in a subtle rawdog bug: if a feed returns a partial result
+(226) and then has no changes for a long time, rawdog can expire
+articles which should still be "current" in the feed. This version adds
+a "keepmin" option which make a minimum number of articles be kept for
+each feed; this should avoid expiring articles that are still current.
+If you want the old behaviour, you can set "keepmin" to 0, in which case
+rawdog won't send the "A-IM: feed" header in its requests. rawdog also
+won't send that header if "currentonly" is set to true, since in that
+case the current set of articles is all rawdog cares about. (See
+<http://www.intertwingly.net/blog/2006/04/29/Now-you-see-it> for Sam
+Ruby's discussion of the same problem in Planet.)
+
 - rawdog 2.8
 
 Fix authentication support -- feedparser now supports Basic and Digest

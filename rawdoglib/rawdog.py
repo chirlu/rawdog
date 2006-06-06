@@ -1233,7 +1233,7 @@ __description__
 		f = StringIO()
 		print >>f, """<table id="feeds">
 <tr id="feedsheader">
-<th>Feed</th><th>RSS</th><th>Last update</th><th>Next update</th>
+<th>Feed</th><th>RSS</th><th>Last fetched</th><th>Next fetched after</th>
 </tr>"""
 		feeds = self.feeds.values()
 		feeds.sort(lambda a, b: cmp(a.get_html_name(config).lower(), b.get_html_name(config).lower()))

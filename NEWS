@@ -22,6 +22,10 @@ Ruby's discussion of the same problem in Planet.)
 If the author's name is given as the empty string, fall back to the
 email address, URL or "author".
 
+Change the labels in the feed information table to "Last fetched" and
+"Next fetched after", to match what rawdog actually does with the times
+it stores (reported by D. Stussy).
+
 - rawdog 2.8
 
 Fix authentication support -- feedparser now supports Basic and Digest

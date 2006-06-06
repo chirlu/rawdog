@@ -19,6 +19,9 @@ case the current set of articles is all rawdog cares about. (See
 <http://www.intertwingly.net/blog/2006/04/29/Now-you-see-it> for Sam
 Ruby's discussion of the same problem in Planet.)
 
+If the author's name is given as the empty string, fall back to the
+email address, URL or "author".
+
 - rawdog 2.8
 
 Fix authentication support -- feedparser now supports Basic and Digest

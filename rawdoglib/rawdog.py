@@ -118,7 +118,9 @@ def select_detail(details):
 
 	ds = []
 	for detail in details:
-		ctype = detail["type"]
+		ctype = detail.get("type", None)
+		if ctype is None:
+			continue
 		if types.has_key(ctype):
 			score = types[ctype]
 		else:

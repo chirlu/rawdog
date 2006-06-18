@@ -18,8 +18,8 @@ Changes made by Adam Sampson <ats@offog.org> for rawdog:
 - make A-IM header in HTTP requests optional
 """
 
-__version__ = "4.0.2"# + "$Revision: 1.29 $"[11:15] + "-cvs"
-__license__ = """Copyright (c) 2002-2005, Mark Pilgrim, All rights reserved.
+__version__ = "4.1"# + "$Revision: 1.92 $"[11:15] + "-cvs"
+__license__ = """Copyright (c) 2002-2006, Mark Pilgrim, All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -140,6 +140,16 @@ try:
     import iconv_codec
 except:
     pass
+
+# chardet library auto-detects character encodings
+# Download from http://chardet.feedparser.org/
+try:
+    import chardet
+    if _debug:
+        import chardet.constants
+        chardet.constants._debug = 1
+except:
+    chardet = None
 
 # ---------- don't touch these ----------
 class ThingsNobodyCaresAboutButMe(Exception): pass
@@ -1461,7 +1471,8 @@ class _BaseHTMLProcessor(sgmllib.SGMLParser):
         
     def feed(self, data):
         data = re.compile(r'<!((?!DOCTYPE|--|\[))', re.IGNORECASE).sub(r'&lt;!\1', data)
-        data = re.sub(r'<([^<\s]+?)\s*/>', self._shorttag_replace, data)
+        #data = re.sub(r'<(\S+?)\s*?/>', self._shorttag_replace, data) # bug [ 1399464 ] Bad regexp for _shorttag_replace
+        data = re.sub(r'<([^<\s]+?)\s*/>', self._shorttag_replace, data) 
         data = data.replace('&#39;', "'")
         data = data.replace('&#34;', '"')
         if self.encoding and type(data) == type(u''):
@@ -2578,17 +2589,46 @@ def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, refer
     use_strict_parser = 0
     known_encoding = 0
     tried_encodings = []
-    for proposed_encoding in (result['encoding'], xml_encoding, sniffed_xml_encoding, 'utf-8', 'windows-1252'):
-        if proposed_encoding in tried_encodings: continue
+    # try: HTTP encoding, declared XML encoding, encoding sniffed from BOM
+    for proposed_encoding in (result['encoding'], xml_encoding, sniffed_xml_encoding):
         if not proposed_encoding: continue
+        if proposed_encoding in tried_encodings: continue
+        tried_encodings.append(proposed_encoding)
         try:
             data = _toUTF8(data, proposed_encoding)
-            known_encoding = 1
-            use_strict_parser = 1
+            known_encoding = use_strict_parser = 1
             break
         except:
             pass
-        tried_encodings.append(proposed_encoding)
+    # if no luck and we have auto-detection library, try that
+    if (not known_encoding) and chardet:
+        try:
+            proposed_encoding = chardet.detect(data)['encoding']
+            if proposed_encoding and (proposed_encoding not in tried_encodings):
+                tried_encodings.append(proposed_encoding)
+                data = _toUTF8(data, proposed_encoding)
+                known_encoding = use_strict_parser = 1
+        except:
+            pass
+    # if still no luck and we haven't tried utf-8 yet, try that
+    if (not known_encoding) and ('utf-8' not in tried_encodings):
+        try:
+            proposed_encoding = 'utf-8'
+            tried_encodings.append(proposed_encoding)
+            data = _toUTF8(data, proposed_encoding)
+            known_encoding = use_strict_parser = 1
+        except:
+            pass
+    # if still no luck and we haven't tried windows-1252 yet, try that
+    if (not known_encoding) and ('windows-1252' not in tried_encodings):
+        try:
+            proposed_encoding = 'windows-1252'
+            tried_encodings.append(proposed_encoding)
+            data = _toUTF8(data, proposed_encoding)
+            known_encoding = use_strict_parser = 1
+        except:
+            pass
+    # if still no luck, give up
     if not known_encoding:
         result['bozo'] = 1
         result['bozo_exception'] = CharacterEncodingUnknown( \
@@ -2873,3 +2913,4 @@ if __name__ == '__main__':
 #  {'term': term, 'scheme': scheme, 'label': label} to match Atom 1.0
 #  terminology; parse RFC 822-style dates with no time; lots of other
 #  bug fixes
+#4.1 - MAP - removed socket timeout; added support for chardet library

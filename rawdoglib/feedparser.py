@@ -1,5 +1,13 @@
 """Universal feed parser
 
+Changes made by Adam Sampson <ats@offog.org> for rawdog:
+- provide _raw versions of text content
+- handle file: URLs
+- fix startElementNS/endElementNS namespace mangling bug
+- save the traceback from parser exceptions
+- allow auth credentials to be provided as an argument
+- make A-IM header in HTTP requests optional
+
 Handles RSS 0.9x, RSS 1.0, RSS 2.0, CDF, Atom 0.3, and Atom 1.0 feeds
 
 Visit http://feedparser.org/ for the latest version
@@ -8,14 +16,6 @@ Visit http://feedparser.org/docs/ for the latest documentation
 Required: Python 2.1 or later
 Recommended: Python 2.3 or later
 Recommended: CJKCodecs and iconv_codec <http://cjkpython.i18n.org/>
-
-Changes made by Adam Sampson <ats@offog.org> for rawdog:
-- provide _raw versions of text content
-- handle file: URLs
-- fix startElementNS/endElementNS namespace mangling bug
-- save the traceback from parser exceptions
-- allow auth credentials to be provided as an argument
-- make A-IM header in HTTP requests optional
 """
 
 __version__ = "4.1"# + "$Revision: 1.92 $"[11:15] + "-cvs"

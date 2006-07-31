@@ -197,6 +197,14 @@ def fill_template(template, bits):
 	if result.value is not None:
 		return result.value
 
+	try:
+		# This doesn't exist on Python 2.2.
+		encoding = locale.getpreferredencoding()
+	except:
+		encoding = None
+	if encoding is None:
+		encoding = "UTF-8"
+
 	f = StringIO()
 	if_stack = []
 	def write(s):
@@ -216,7 +224,7 @@ def fill_template(template, bits):
 					if_stack.append(not if_stack.pop())
 			elif bits.has_key(key):
 				if type(bits[key]) == types.UnicodeType:
-					write(bits[key].encode(locale.getpreferredencoding()))
+					write(bits[key].encode(encoding))
 				else:
 					write(bits[key])
 		else:

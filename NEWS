@@ -5,6 +5,10 @@ for posts with embedded SVG).
 
 Pull in most of the changes from feedparser 4.1.
 
+Fix a bug that stopped rawdog from working properly when no locale
+information was present in the environment, or on versions of Python
+without locale.getpreferredencoding() (reported by Michael Watkins).
+
 - rawdog 2.9
 
 Fix a documentation bug about time formats (reported by Tim Bishop).

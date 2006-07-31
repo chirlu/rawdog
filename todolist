@@ -1,3 +1,10 @@
+Plugin hook to allow the articles list to be sorted again after filtering -- so
+you can filter out duplicates then sort by originally-published date.
+
+Option to do duplicate removal by more sensible article hashing: use a
+namespace for hashes where it could be hash:existing-hash or
+uid:uid-from-article (detecting articles that are already present).
+
 gzip the state file.
 
 Optionally use a better backend: a real transactional database rather than a

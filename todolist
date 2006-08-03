@@ -1,9 +1,20 @@
+An idea for reducing rawdog's memory usage:
+- have a separate state file for each feed
+- have the update process for each feed return a list of articles to include in
+  the output as (hash, time) pairs
+- the update process probably doesn't even need to read all the articles if
+  it's got guids (or something equivalent) available
+- the write process then only needs to pull the articles that should be
+  displayed from the database, rather than all of them
+
 Plugin hook to allow the articles list to be sorted again after filtering -- so
 you can filter out duplicates then sort by originally-published date.
 
 Option to do duplicate removal by more sensible article hashing: use a
 namespace for hashes where it could be hash:existing-hash or
 uid:uid-from-article (detecting articles that are already present).
+
+Duplicate removal by article title.
 
 gzip the state file.
 

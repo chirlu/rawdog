@@ -820,6 +820,36 @@ class ChangeFeedEditor:
 				line = line.replace(self.oldurl, self.newurl, 1)
 			outputfile.write(line)
 
+class RemoveFeedEditor:
+	def __init__(self, url):
+		self.url = url
+	def edit(self, inputfile, outputfile):
+		while 1:
+			l = inputfile.readline()
+			if l == "":
+				break
+			ls = l.strip().split(None)
+			if len(ls) > 2 and ls[0] == "feed" and ls[2] == self.url:
+				while 1:
+					l = inputfile.readline()
+					if l == "":
+						break
+					elif l[0] == "#":
+						outputfile.write(l)
+					elif l[0] not in string.whitespace:
+						outputfile.write(l)
+						break
+			else:
+				outputfile.write(l)
+
+def remove_feed(filename, url, config):
+	"""Try to remove a feed from the config file."""
+	if url not in [f[0] for f in config["feedslist"]]:
+		print >>sys.stderr, "Feed " + url + " is not in the config file"
+	else:
+		print >>sys.stderr, "Removing feed " + url
+		edit_file(filename, RemoveFeedEditor(url).edit)
+
 class FeedFetcher:
 	"""Class that will handle fetching a set of feeds in parallel."""
 
@@ -1361,6 +1391,7 @@ Actions (performed in order given):
 -T, --show-itemtemplate      Print the item template currently in use
 -a|--add URL                 Try to find a feed associated with URL and
                              add it to the config file
+-r|--remove URL              Remove feed URL from the config file
 
 Special actions (all other options are ignored if one of these is specified):
 --upgrade OLDDIR NEWDIR      Import feed state from rawdog 1.x directory
@@ -1374,7 +1405,7 @@ def main(argv):
 	locale.setlocale(locale.LC_ALL, "")
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:N", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade", "add=", "no-locking"])
+		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:r:N", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade", "add=", "remove=", "no-locking"])
 	except getopt.GetoptError, s:
 		print s
 		usage()
@@ -1461,6 +1492,10 @@ def main(argv):
 			rawdog.show_itemtemplate(config)
 		elif o in ("-a", "--add"):
 			add_feed("config", a, config)
+			config.reload()
+			rawdog.sync_from_config(config)
+		elif o in ("-r", "--remove"):
+			remove_feed("config", a, config)
 			config.reload()
 			rawdog.sync_from_config(config)
 

@@ -9,6 +9,9 @@ Fix a bug that stopped rawdog from working properly when no locale
 information was present in the environment, or on versions of Python
 without locale.getpreferredencoding() (reported by Michael Watkins).
 
+Add --remove option to remove a feed from the config file (suggested by
+Wolfram Sieber).
+
 - rawdog 2.9
 
 Fix a documentation bug about time formats (reported by Tim Bishop).

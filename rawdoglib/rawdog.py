@@ -1420,7 +1420,10 @@ def main(argv):
 		usage()
 		return 1
 
-	statedir = os.environ["HOME"] + "/.rawdog"
+	if "HOME" in os.environ:
+		statedir = os.environ["HOME"] + "/.rawdog"
+	else:
+		statedir = None
 	verbose = 0
 	locking = 1
 	for o, a in optlist:
@@ -1433,6 +1436,9 @@ def main(argv):
 			verbose = 1
 		elif o in ("-N", "--no-locking"):
 			locking = 0
+	if statedir is None:
+		print "$HOME not set and state dir not explicitly specified; please use -d/--dir"
+		return 1
 
 	try:
 		os.chdir(statedir)

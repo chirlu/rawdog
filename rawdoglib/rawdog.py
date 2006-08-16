@@ -238,7 +238,9 @@ def fill_template(template, bits):
 					write(bits[key])
 		else:
 			write(part)
-	return f.getvalue()
+	v = f.getvalue()
+	f.close()
+	return v
 
 file_cache = {}
 def load_file(name):
@@ -1302,6 +1304,7 @@ __description__
 			print >>f, '</tr>'
 		print >>f, """</table>"""
 		bits["feeds"] = f.getvalue()
+		f.close()
 		bits["num_feeds"] = str(len(feeds))
 
 		return bits
@@ -1323,6 +1326,7 @@ __description__
 
 		bits = self.get_main_template_bits(config)
 		bits["items"] = f.getvalue()
+		f.close()
 		bits["num_items"] = str(len(self.articles))
 		plugins.call_hook("output_bits", self, config, bits)
 		s = fill_template(self.get_template(config), bits)

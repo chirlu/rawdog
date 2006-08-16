@@ -1416,6 +1416,26 @@ Special actions (all other options are ignored if one of these is specified):
 
 Report bugs to <ats@offog.org>."""
 
+def load_persisted(fn, klass, locking, config):
+	"""Attempt to load a persisted object. Returns the persister and the
+	object."""
+	config.log("Loading state file: ", fn)
+	persister = Persister(fn, klass, locking)
+	try:
+		obj = persister.load()
+	except KeyboardInterrupt:
+		sys.exit(1)
+	except:
+		print "An error occurred while reading state from " + os.getcwd() + "/" + fn + "."
+		print "This usually means the file is corrupt, and removing it will fix the problem."
+		sys.exit(1)
+	return (persister, obj)
+
+def save_persisted(persister, config):
+	if persister.object.is_modified():
+		config.log("Saving state file: ", persister.filename)
+	persister.save()
+
 def main(argv):
 	"""The command-line interface to the aggregator."""
 
@@ -1480,9 +1500,7 @@ def main(argv):
 
 	persister = Persister("state", Rawdog, locking)
 	try:
-		rawdog = persister.load(no_block = no_lock_wait)
-		if rawdog is None:
-			return 0
+		rawdog = persister.load()
 	except KeyboardInterrupt:
 		return 1
 	except:
@@ -1531,7 +1549,7 @@ def main(argv):
 
 	plugins.call_hook("shutdown", rawdog, config)
 
-	persister.save()
+	save_persisted(persister, config)
 
 	return 0
 

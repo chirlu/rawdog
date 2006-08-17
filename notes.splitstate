@@ -10,7 +10,9 @@ default (for now, to be removed in rawdog 3).
 Feed stays as is -- i.e. persisted as part of Rawdog, containing the feed info,
 and so forth. (These may change in rawdog 3 -- there's a tradeoff, because if
 we store the update time/eTag/... in the feed state then we have to rewrite it
-every time we update, rather than just if the content's changed.)
+every time we update, rather than just if the content's changed. Actually, we
+don't want to do this, since we don't want to read the FeedState at all if it
+doesn't need updating.)
 
 There's a new FeedState class, persisted into STATEDIR/feeds/12345678.state
 (where 12345678 is the feed URL hash as currently used).
@@ -43,5 +45,6 @@ and retrieves only the appropriate set of articles from each feed state before
 writing them.
 (FIXME: optimisation: if we're updating all feeds, collect the list then to
 avoid having to read all the statefiles.)
+(FIXME: or alternately, just stash this in the Feed at update time.)
 (FIXME: the sort hook will need to be changed -- use a different hook when in
 split-state mode.)

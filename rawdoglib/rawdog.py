@@ -1065,9 +1065,16 @@ class Rawdog(Persistable):
 				url = article.feed
 				feedcounts[url] = feedcounts.get(url, 0) + 1
 
-			count = 0
-			# FIXME this algorithm is wrong -- when keeping N articles, it should keep the N latest
+			expiry_list = []
+			feedcounts = {}
 			for key, article in articles.items():
+				url = article.feed
+				feedcounts[url] = feedcounts.get(url, 0) + 1
+				expiry_list.append((article.added, article.sequence, key, article))
+			expiry_list.sort()
+
+			count = 0
+			for date, seq, key, article in expiry_list:
 				url = article.feed
 				if (seen_some_items.has_key(url)
 				    and article.can_expire(now, config)
@@ -1103,10 +1110,9 @@ class Rawdog(Persistable):
 				if config["splitstate"]:
 					feedstate.modified()
 
-		feedcounts = {}
-		for key, article in self.articles.items():
-			url = article.feed
-			feedcounts[url] = feedcounts.get(url, 0) + 1
+			if config["splitstate"]:
+				do_expiry(articles)
+				save_persisted(persister, config)
 
 		count = 0
 		for key, article in self.articles.items():

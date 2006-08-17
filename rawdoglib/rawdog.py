@@ -1041,13 +1041,16 @@ class Rawdog(Persistable):
 			if rc:
 				seen_some_items[url] = 1
 
+		expiry_list = []
 		feedcounts = {}
 		for key, article in self.articles.items():
 			url = article.feed
 			feedcounts[url] = feedcounts.get(url, 0) + 1
+			expiry_list.append((article.added, article.sequence, key, article))
+		expiry_list.sort()
 
 		count = 0
-		for key, article in self.articles.items():
+		for date, seq, key, article in expiry_list:
 			url = article.feed
 			if (seen_some_items.has_key(url)
 			    and article.can_expire(now, config)

@@ -944,6 +944,7 @@ class Rawdog(Persistable):
 		self.articles = {}
 		self.plugin_storage = {}
 		self.state_version = STATE_VERSION
+		self.using_splitstate = None
 
 	def get_plugin_storage(self, plugin):
 		try:
@@ -999,6 +1000,42 @@ class Rawdog(Persistable):
 	def sync_from_config(self, config):
 		"""Update rawdog's internal state to match the
 		configuration."""
+
+		try:
+			u = self.using_splitstate
+		except:
+			# We were last run with a version of rawdog that didn't
+			# have this variable -- so we must have a single state
+			# file.
+			u = False
+		if u is None:
+			self.using_splitstate = config["splitstate"]
+		elif u != config["splitstate"]:
+			if config["splitstate"]:
+				config.log("Converting to split state files")
+				for feed_hash, feed in self.feeds.items():
+					persister, feedstate = load_persisted(feed.get_state_filename(), FeedState, config)
+					feedstate.articles = {}
+					for article_hash, article in self.articles.items():
+						if article.feed == feed_hash:
+							feedstate.articles[article_hash] = article
+					feedstate.modified()
+					save_persisted(persister, config)
+				self.articles = {}
+			else:
+				config.log("Converting to single state file")
+				self.articles = {}
+				for feed_hash, feed in self.feeds.items():
+					persister, feedstate = load_persisted(feed.get_state_filename(), FeedState, config)
+					for article_hash, article in feedstate.articles.items():
+						self.articles[article_hash] = article
+					feedstate.articles = {}
+					feedstate.modified()
+					save_persisted(persister, config)
+					os.unlink(feed.get_state_filename())
+			self.modified()
+			self.using_splitstate = config["splitstate"]
+
 		seenfeeds = {}
 		for (url, period, args) in config["feedslist"]:
 			seenfeeds[url] = 1

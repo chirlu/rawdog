@@ -34,7 +34,8 @@ Article gets a new method to return the date that should be used for sorting
 (i.e. this logic gets moved out of the write code).
 
 Feed gets a new method which returns the list of articles eligable for output
--- as (feed-hash, article-hash, sort-date) tuples.
+-- as (sort-date, feed-hash, sequence-number, article-hash) tuples (for ease of
+sorting).
 
 Feed gets a new method which returns the Article objects for a list of article
 hashes. (This should be sufficiently abstract to let us do this over a database

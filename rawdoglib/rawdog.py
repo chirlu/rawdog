@@ -522,6 +522,12 @@ class Article:
 	def can_expire(self, now, config):
 		return ((now - self.last_seen) > config["expireage"])
 
+	def get_sort_date(self, config):
+		if config["sortbyfeeddate"]:
+			return self.date or self.added
+		else:
+			return self.added
+
 class DayWriter:
 	"""Utility class for writing day sections into a series of articles."""
 
@@ -1385,36 +1391,46 @@ __description__
 		config.log("Starting write")
 		now = time.time()
 
-		article_dates = {}
-		# FIXME in splitstate mode, build from state files
-		articles = self.articles.values()
-		for a in articles:
-			if config["sortbyfeeddate"]:
-				article_dates[a] = a.date or a.added
-			else:
-				article_dates[a] = a.added
-		numarticles = len(articles)
+		def list_articles(articles):
+			return [(-a.get_sort_date(config), a.feed, a.sequence, a.hash) for a in articles.values()]
+		if config["splitstate"]:
+			article_list = []
+			for feed in self.feeds.values():
+				persister, feedstate = load_persisted(feed.get_state_filename(), FeedState, config)
+				article_list += list_articles(feedstate.articles)
+				save_persisted(persister, config)
+		else:
+			article_list = list_articles(self.articles)
+		numarticles = len(article_list)
 
-		def compare(a, b):
-			"""Compare two articles to decide how they
-			   should be sorted. Sort by added date, then
-			   by feed, then by sequence, then by hash."""
-			i = cmp(article_dates[b], article_dates[a])
-			if i != 0:
-				return i
-			i = cmp(a.feed, b.feed)
-			if i != 0:
-				return i
-			i = cmp(a.sequence, b.sequence)
-			if i != 0:
-				return i
-			return cmp(a.hash, b.hash)
-		plugins.call_hook("output_filter", self, config, articles)
-		articles.sort(compare)
-		plugins.call_hook("output_sort", self, config, articles)
+		# FIXME call output_filter
+		article_list.sort()
+		# FIXME call output_sort
 
 		if config["maxarticles"] != 0:
-			articles = articles[:config["maxarticles"]]
+			article_list = article_list[:config["maxarticles"]]
+
+		if config["splitstate"]:
+			wanted = {}
+			for (date, feed, seq, hash) in article_list:
+				wanted.setdefault(feed, []).append(hash)
+
+			found = {}
+			for (feed_hash, article_hashes) in wanted.items():
+				feed = self.feeds[feed_hash]
+				persister, feedstate = load_persisted(feed.get_state_filename(), FeedState, config)
+				for hash in article_hashes:
+					found[hash] = feedstate.articles[hash]
+				save_persisted(persister, config)
+		else:
+			found = self.articles
+
+		articles = []
+		article_dates = {}
+		for (date, feed, seq, hash) in article_list:
+			a = found[hash]
+			articles.append(a)
+			article_dates[a] = -date
 
 		plugins.call_hook("output_write", self, config, articles)
 

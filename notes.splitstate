@@ -33,19 +33,25 @@ modified, not if it was updated but nothing changed.)
 Article gets a new method to return the date that should be used for sorting
 (i.e. this logic gets moved out of the write code).
 
-Feed gets a new method which returns the list of articles eligable for output
--- as (sort-date, feed-hash, sequence-number, article-hash) tuples (for ease of
-sorting).
-
-Feed gets a new method which returns the Article objects for a list of article
-hashes. (This should be sufficiently abstract to let us do this over a database
-at some point in the future...)
+Get the list of articles eligable for output -- as (sort-date, feed-hash,
+sequence-number, article-hash) tuples (for ease of sorting). Then fetch the
+articles for each feed.
+(FIXME: the implementation of this is rather messy; it should be done, perhaps,
+at the Feed level, then it would be sufficiently abstract to let us do this
+over a database at some point in the future...)
 
 Rawdog.write() then collects the list of articles from all the feeds, sorts it,
 and retrieves only the appropriate set of articles from each feed state before
 writing them.
-(FIXME: optimisation: if we're updating all feeds, collect the list then to
-avoid having to read all the statefiles.)
-(FIXME: or alternately, just stash this in the Feed at update time.)
+(FIXME: optimisation: have a dict available at update and write time into which
+the current article lists get stashed as the update progresses, to avoid
+opening the state file three times when we update a feed.)
 (FIXME: the sort hook will need to be changed -- use a different hook when in
 split-state mode.)
+
+-- Stage 3: making fetch memory usage O(biggest #articles * #threads) --
+
+Give the fetcher threads a "shared channel" to the main thread that's doing the
+updates, so that updates and fetches can proceed in parallel, and the only
+buffers used are by active threads.
+

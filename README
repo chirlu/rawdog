@@ -135,7 +135,8 @@ work for many other programs too.)
 In the event that rawdog gets horribly confused (for instance, if your system
 clock has a huge jump and it thinks it won't need to fetch anything for the
 next thirty years), you can forcibly clear its state by removing the
-~/.rawdog/state file.
+~/.rawdog/state file (and the ~/.rawdog/feeds/*.state files, if you've
+got the "splitstate" option turned on).
 
 If you don't like the appearance of rawdog, then customise the style.css file.
 If you come up with one that looks much better than the existing one, please

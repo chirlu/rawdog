@@ -16,6 +16,12 @@
 # option must appear before any options that are implemented by plugins.
 plugindirs plugins
 
+# Whether to split rawdog's state amongst multiple files.
+# If this is turned on, rawdog will use significantly less memory, but
+# will do more disk IO -- probably a good idea if you read a lot of
+# feeds.
+splitstate false
+
 # The maximum number of articles to show on the generated page.
 # Set this to 0 for no limit.
 maxarticles 200

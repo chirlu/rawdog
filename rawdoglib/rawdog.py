@@ -307,6 +307,9 @@ class Feed:
 		else:
 			return 1
 
+	def get_state_filename(self):
+		return "feeds/%s.state" % (short_hash(self.url),)
+
 	def fetch(self, rawdog, config):
 		"""Fetch the current set of articles from the feed."""
 
@@ -344,7 +347,7 @@ class Feed:
 		except:
 			return None
 
-	def update(self, rawdog, now, config, p):
+	def update(self, rawdog, now, config, articles, p):
 		"""Add new articles from a feed to the collection.
 		Returns True if any articles were read, False otherwise."""
 
@@ -410,7 +413,6 @@ class Feed:
 
 		self.feed_info = p["feed"]
 		feed = self.url
-		articles = rawdog.articles
 
 		seen = {}
 		sequence = 0
@@ -607,7 +609,8 @@ class ConfigError(Exception): pass
 class Config:
 	"""The aggregator's configuration."""
 
-	def __init__(self):
+	def __init__(self, locking):
+		self.locking = locking
 		self.files_loaded = []
 		if have_threading:
 			self.loglock = threading.Lock()
@@ -643,6 +646,7 @@ class Config:
 			"newfeedperiod" : "3h",
 			"changeconfig": 0,
 			"numthreads": 0,
+			"splitstate": 0,
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -759,6 +763,8 @@ class Config:
 			self["changeconfig"] = parse_bool(l[1])
 		elif l[0] == "numthreads":
 			self["numthreads"] = int(l[1])
+		elif l[0] == "splitstate":
+			self["splitstate"] = parse_bool(l[1])
 		elif l[0] == "include":
 			self.load(l[1], False)
 		elif plugins.call_hook("config_option_arglines", self, l[0], l[1], arglines):
@@ -918,6 +924,12 @@ class FeedFetcher:
 		self.config.log("Thread farm finished with ", len(self.results), " results")
 		return self.results
 
+class FeedState(Persistable):
+	"""The collection of articles in a feed."""
+
+	def __init__(self):
+		self.articles = {}
+
 class Rawdog(Persistable):
 	"""The aggregator itself."""
 
@@ -964,6 +976,7 @@ class Rawdog(Persistable):
 		for article in self.articles.values():
 			if article.feed == oldurl:
 				article.feed = newurl
+		# FIXME in splitstate mode, need to move state file here
 
 		print >>sys.stderr, "Feed URL automatically changed."
 
@@ -1006,6 +1019,7 @@ class Rawdog(Persistable):
 				for key, article in self.articles.items():
 					if article.feed == url:
 						del self.articles[key]
+				# FIXME in splitstate mode, need to junk state file
 				self.modified()
 
 	def update(self, config, feedurl = None):
@@ -1038,36 +1052,60 @@ class Rawdog(Persistable):
 		else:
 			prefetched = {}
 
-		count = 0
 		seen_some_items = {}
+		def do_expiry(articles):
+			feedcounts = {}
+			for key, article in articles.items():
+				url = article.feed
+				feedcounts[url] = feedcounts.get(url, 0) + 1
+
+			count = 0
+			# FIXME this algorithm is wrong -- when keeping N articles, it should keep the N latest
+			for key, article in articles.items():
+				url = article.feed
+				if (seen_some_items.has_key(url)
+				    and article.can_expire(now, config)
+				    and feedcounts[url] > self.feeds[url].get_keepmin(config)):
+					plugins.call_hook("article_expired", self, config, article, now)
+					count += 1
+					feedcounts[url] -= 1
+					del articles[key]
+			config.log("Expired ", count, " articles, leaving ", len(articles))
+
+		count = 0
 		for url in update_feeds:
 			count += 1
 			config.log("Updating feed ", count, " of " , numfeeds, ": ", url)
 			feed = self.feeds[url]
+
+			if config["splitstate"]:
+				persister, feedstate = load_persisted(feed.get_state_filename(), FeedState, config)
+				articles = feedstate.articles
+			else:
+				articles = self.articles
+
 			if url in prefetched:
 				content = prefetched[url]
 			else:
 				plugins.call_hook("pre_update_feed", self, config, feed)
 				content = feed.fetch(self, config)
 			plugins.call_hook("mid_update_feed", self, config, feed, content)
-			rc = feed.update(self, now, config, content)
+			rc = feed.update(self, now, config, articles, content)
 			plugins.call_hook("post_update_feed", self, config, feed, rc)
 			if rc:
 				seen_some_items[url] = 1
+				if config["splitstate"]:
+					feedstate.modified()
 
-		expiry_list = []
 		feedcounts = {}
 		for key, article in self.articles.items():
 			url = article.feed
 			feedcounts[url] = feedcounts.get(url, 0) + 1
-			expiry_list.append((article.added, article.sequence, key, article))
-		expiry_list.sort()
 
 		count = 0
-		for date, seq, key, article in expiry_list:
+		for key, article in self.articles.items():
 			url = article.feed
 			if (seen_some_items.has_key(url)
-			    and self.feeds.has_key(url)
 			    and article.can_expire(now, config)
 			    and feedcounts[url] > self.feeds[url].get_keepmin(config)):
 				plugins.call_hook("article_expired", self, config, article, now)
@@ -1327,6 +1365,7 @@ __description__
 		bits = self.get_main_template_bits(config)
 		bits["items"] = f.getvalue()
 		f.close()
+		# FIXME in splitstate mode, this will need an extra arg
 		bits["num_items"] = str(len(self.articles))
 		plugins.call_hook("output_bits", self, config, bits)
 		s = fill_template(self.get_template(config), bits)
@@ -1347,6 +1386,7 @@ __description__
 		now = time.time()
 
 		article_dates = {}
+		# FIXME in splitstate mode, build from state files
 		articles = self.articles.values()
 		for a in articles:
 			if config["sortbyfeeddate"]:
@@ -1420,11 +1460,11 @@ Special actions (all other options are ignored if one of these is specified):
 
 Report bugs to <ats@offog.org>."""
 
-def load_persisted(fn, klass, locking, config):
+def load_persisted(fn, klass, config):
 	"""Attempt to load a persisted object. Returns the persister and the
 	object."""
 	config.log("Loading state file: ", fn)
-	persister = Persister(fn, klass, locking)
+	persister = Persister(fn, klass, config.locking)
 	try:
 		obj = persister.load()
 	except KeyboardInterrupt:
@@ -1492,7 +1532,7 @@ def main(argv):
 
 	sys.path.append(".")
 
-	config = Config()
+	config = Config(locking)
 	try:
 		config.load("config")
 	except ConfigError, err:

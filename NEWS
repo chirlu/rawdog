@@ -18,6 +18,8 @@ Wolfram Sieber).
 Fix a bug in the expiry code: if you were using keepmin, it could expire
 articles that were no longer current but should be kept.
 
+Clean up the example config file a bit.
+
 - rawdog 2.9
 
 Fix a documentation bug about time formats (reported by Tim Bishop).

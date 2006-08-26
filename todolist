@@ -1,3 +1,7 @@
+Handle maxage working on article.date/added -- make this a config option? Merge with one of the existing options?
+
+Make maxarticles work as a per-feed option.
+
 An idea for reducing rawdog's memory usage:
 - have a separate state file for each feed
 - have the update process for each feed return a list of articles to include in

@@ -375,7 +375,7 @@ class Feed:
 			error = "New URL:     " + p["url"] + "\n"
 			error += "The feed has moved permanently to a new URL.\n"
 			if config["changeconfig"]:
-				rawdog.change_feed_url(self.url, p["url"])
+				rawdog.change_feed_url(self.url, p["url"], config)
 				error += "The config file has been updated automatically."
 			else:
 				error += "You should update its entry in your config file."
@@ -964,7 +964,7 @@ class Rawdog(Persistable):
 			version = 1
 		return version == STATE_VERSION
 
-	def change_feed_url(self, oldurl, newurl):
+	def change_feed_url(self, oldurl, newurl, config):
 		"""Change the URL of a feed."""
 
 		assert self.feeds.has_key(oldurl)
@@ -976,14 +976,17 @@ class Rawdog(Persistable):
 		edit_file("config", ChangeFeedEditor(oldurl, newurl).edit)
 
 		feed = self.feeds[oldurl]
+		old_state = feed.get_state_filename()
 		feed.url = newurl
 		del self.feeds[oldurl]
 		self.feeds[newurl] = feed
 
-		for article in self.articles.values():
-			if article.feed == oldurl:
-				article.feed = newurl
-		# FIXME in splitstate mode, need to move state file here
+		if config["splitstate"]:
+			os.rename(old_state, feed.get_state_filename())
+		else:
+			for article in self.articles.values():
+				if article.feed == oldurl:
+					article.feed = newurl
 
 		print >>sys.stderr, "Feed URL automatically changed."
 
@@ -1058,11 +1061,16 @@ class Rawdog(Persistable):
 		for url in self.feeds.keys():
 			if not seenfeeds.has_key(url):
 				config.log("Removing feed: ", url)
+				if config["splitstate"]:
+					try:
+						os.unlink(self.feeds[url].get_state_filename())
+					except OSError:
+						pass
+				else:
+					for key, article in self.articles.items():
+						if article.feed == url:
+							del self.articles[key]
 				del self.feeds[url]
-				for key, article in self.articles.items():
-					if article.feed == url:
-						del self.articles[key]
-				# FIXME in splitstate mode, need to junk state file
 				self.modified()
 
 	def update(self, config, feedurl = None):

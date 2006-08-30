@@ -1414,8 +1414,7 @@ __description__
 		bits = self.get_main_template_bits(config)
 		bits["items"] = f.getvalue()
 		f.close()
-		# FIXME in splitstate mode, this will need an extra arg
-		bits["num_items"] = str(len(self.articles))
+		bits["num_items"] = str(len(articles))
 		plugins.call_hook("output_bits", self, config, bits)
 		s = fill_template(self.get_template(config), bits)
 		outputfile = config["outputfile"]

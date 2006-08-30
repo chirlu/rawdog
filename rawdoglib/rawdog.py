@@ -1053,6 +1053,7 @@ class Rawdog(Persistable):
 		for date, seq, key, article in expiry_list:
 			url = article.feed
 			if (seen_some_items.has_key(url)
+			    and self.feeds.has_key(url)
 			    and article.can_expire(now, config)
 			    and feedcounts[url] > self.feeds[url].get_keepmin(config)):
 				plugins.call_hook("article_expired", self, config, article, now)

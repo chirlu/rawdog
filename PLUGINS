@@ -133,9 +133,13 @@ filter pass.
   were used to sort them
 
 Called when rawdog is about to write its output to files. This hook can
-be used to implement alternative output methods. If you return False
-from this hook, then rawdog will not write any output itself (and the
-later output_ hooks will thus not be called).
+be used to implement alternative output methods.
+
+If you return False from this hook, then rawdog will not write any
+output itself (and the later output_ hooks will thus not be called). I
+would suggest not returning False here unless you plan to call the
+rawdog.write_output_file method from your hook implementation; failure
+to do so will most likely break other plugins.
 
 ### output_items_begin(rawdog, config, f)
 

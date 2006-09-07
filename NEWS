@@ -6,6 +6,9 @@ same run.
 Encode dates correctly in non-ASCII locales (reported by Damjan
 Georgievski).
 
+Strengthen the warning in PLUGINS about the effects of overriding
+output_write_files (suggested by Virgil Bucoci).
+
 - rawdog 2.10
 
 Work around a feedparser bug (returning a detail without a type field

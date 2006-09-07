@@ -40,13 +40,27 @@ def set_socket_timeout(n):
 		import timeoutsocket
 		timeoutsocket.setDefaultSocketTimeout(n)
 
+def get_system_encoding():
+	"""Get the system encoding."""
+	try:
+		# This doesn't exist on Python 2.2.
+		return locale.getpreferredencoding()
+	except:
+		return "UTF-8"
+
+def safe_ftime(format, t):
+	"""Format a time value into a string in the current locale (as
+	time.strftime), but encode the result as ASCII HTML."""
+	u = unicode(time.strftime(format, t), get_system_encoding())
+	return encode_references(u)
+
 def format_time(secs, config):
 	"""Format a time and date nicely."""
 	t = time.localtime(secs)
 	format = config["datetimeformat"]
 	if format is None:
 		format = config["timeformat"] + ", " + config["dayformat"]
-	return time.strftime(format, t)
+	return safe_ftime(format, t)
 
 def encode_references(s):
 	"""Encode characters in a Unicode string using HTML references."""
@@ -197,13 +211,7 @@ def fill_template(template, bits):
 	if result.value is not None:
 		return result.value
 
-	try:
-		# This doesn't exist on Python 2.2.
-		encoding = locale.getpreferredencoding()
-	except:
-		encoding = None
-	if encoding is None:
-		encoding = "UTF-8"
+	encoding = get_system_encoding()
 
 	f = StringIO()
 	if_stack = []
@@ -520,13 +528,13 @@ class DayWriter:
 
 	def start_day(self, tm):
 		print >>self.file, '<div class="day">'
-		day = time.strftime(self.config["dayformat"], tm)
+		day = safe_ftime(self.config["dayformat"], tm)
 		print >>self.file, '<h2>' + day + '</h2>'
 		self.counter += 1
 
 	def start_time(self, tm):
 		print >>self.file, '<div class="time">'
-		clock = time.strftime(self.config["timeformat"], tm)
+		clock = safe_ftime(self.config["timeformat"], tm)
 		print >>self.file, '<h3>' + clock + '</h3>'
 		self.counter += 1
 

@@ -3,6 +3,9 @@
 Avoid a crash when a feed's URL is changed and expiry is done on the
 same run.
 
+Encode dates correctly in non-ASCII locales (reported by Damjan
+Georgievski).
+
 - rawdog 2.10
 
 Work around a feedparser bug (returning a detail without a type field

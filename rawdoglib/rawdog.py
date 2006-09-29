@@ -982,6 +982,11 @@ class Rawdog(Persistable):
 		self.feeds[newurl] = feed
 
 		if config["splitstate"]:
+			persister, feedstate = load_persisted(feed.get_state_filename(), FeedState, config)
+			for article in feedstate.articles.values():
+				article.feed = newurl
+			feedstate.modified()
+			save_persisted(persister, config)
 			os.rename(old_state, feed.get_state_filename())
 		else:
 			for article in self.articles.values():

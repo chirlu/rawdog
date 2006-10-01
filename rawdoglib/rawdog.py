@@ -1154,6 +1154,7 @@ class Rawdog(Persistable):
 				content = feed.fetch(self, config)
 			plugins.call_hook("mid_update_feed", self, config, feed, content)
 			rc = feed.update(self, now, config, articles, content)
+			url = feed.url
 			plugins.call_hook("post_update_feed", self, config, feed, rc)
 			if rc:
 				seen_some_items[url] = 1

@@ -1126,6 +1126,11 @@ class Rawdog(Persistable):
 			count = 0
 			for date, seq, key, article in expiry_list:
 				url = article.feed
+				if url not in self.feeds:
+					config.log("Expired article for nonexistent feed: ", url)
+					count += 1
+					del articles[key]
+					continue
 				if (seen_some_items.has_key(url)
 				    and article.can_expire(now, config)
 				    and feedcounts[url] > self.feeds[url].get_keepmin(config)):
@@ -1468,12 +1473,19 @@ __description__
 
 		if config["splitstate"]:
 			wanted = {}
-			for (date, feed, seq, hash) in article_list:
-				wanted.setdefault(feed, []).append(hash)
+			for (date, feed_url, seq, hash) in article_list:
+				if not feed_url in self.feeds:
+					# This can happen if you've managed to
+					# kill rawdog between it updating a
+					# split state file and the main state
+					# -- so just ignore the article and
+					# it'll expire eventually.
+					continue
+				wanted.setdefault(feed_url, []).append(hash)
 
 			found = {}
-			for (feed_hash, article_hashes) in wanted.items():
-				feed = self.feeds[feed_hash]
+			for (feed_url, article_hashes) in wanted.items():
+				feed = self.feeds[feed_url]
 				persister, feedstate = load_persisted(feed.get_state_filename(), FeedState, config)
 				for hash in article_hashes:
 					found[hash] = feedstate.articles[hash]
@@ -1484,9 +1496,10 @@ __description__
 		articles = []
 		article_dates = {}
 		for (date, feed, seq, hash) in article_list:
-			a = found[hash]
-			articles.append(a)
-			article_dates[a] = -date
+			a = found.get(hash)
+			if a is not None:
+				articles.append(a)
+				article_dates[a] = -date
 
 		plugins.call_hook("output_write", self, config, articles)
 

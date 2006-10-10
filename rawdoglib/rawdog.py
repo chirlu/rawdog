@@ -806,16 +806,19 @@ class AddFeedEditor:
 			outputfile.write("\n")
 		outputfile.write(self.feedline)
 
-def add_feed(filename, url, config):
+def add_feed(filename, url, rawdog, config):
 	"""Try to add a feed to the config file."""
 	feeds = feedfinder.getFeeds(url)
 	if feeds == []:
 		print >>sys.stderr, "Cannot find any feeds in " + url
 	else:
 		feed = feeds[0]
-		print >>sys.stderr, "Adding feed " + feed
-		feedline = "feed %s %s\n" % (config["newfeedperiod"], feed)
-		edit_file(filename, AddFeedEditor(feedline).edit)
+		if feed in rawdog.feeds:
+			print >>sys.stderr, "Feed " + feed + " is already in the config file"
+		else:
+			print >>sys.stderr, "Adding feed " + feed
+			feedline = "feed %s %s\n" % (config["newfeedperiod"], feed)
+			edit_file(filename, AddFeedEditor(feedline).edit)
 
 class ChangeFeedEditor:
 	def __init__(self, oldurl, newurl):
@@ -1511,7 +1514,7 @@ def main(argv):
 		elif o in ("-T", "--show-itemtemplate"):
 			rawdog.show_itemtemplate(config)
 		elif o in ("-a", "--add"):
-			add_feed("config", a, config)
+			add_feed("config", a, rawdog, config)
 			config.reload()
 			rawdog.sync_from_config(config)
 		elif o in ("-r", "--remove"):

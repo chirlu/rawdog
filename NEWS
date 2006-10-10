@@ -12,6 +12,9 @@ output_write_files (suggested by Virgil Bucoci).
 Add the state directory to sys.path, so you can put modules that plugins
 need in your ~/.rawdog (suggested by Stuart Langridge).
 
+When adding a feed, check that it isn't already present in the config
+file (suggested by Stuart Langridge).
+
 - rawdog 2.10
 
 Work around a feedparser bug (returning a detail without a type field

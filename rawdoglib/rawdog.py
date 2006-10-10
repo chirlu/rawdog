@@ -1132,6 +1132,7 @@ class Rawdog(Persistable):
 					del articles[key]
 					continue
 				if (seen_some_items.has_key(url)
+				    and self.feeds.has_key(url)
 				    and article.can_expire(now, config)
 				    and feedcounts[url] > self.feeds[url].get_keepmin(config)):
 					plugins.call_hook("article_expired", self, config, article, now)
@@ -1170,17 +1171,10 @@ class Rawdog(Persistable):
 				do_expiry(articles)
 				save_persisted(persister, config)
 
-		count = 0
-		for key, article in self.articles.items():
-			url = article.feed
-			if (seen_some_items.has_key(url)
-			    and article.can_expire(now, config)
-			    and feedcounts[url] > self.feeds[url].get_keepmin(config)):
-				plugins.call_hook("article_expired", self, config, article, now)
-				count += 1
-				feedcounts[url] -= 1
-				del self.articles[key]
-		config.log("Expired ", count, " articles, leaving ", len(self.articles))
+		if config["splitstate"]:
+			self.articles = {}
+		else:
+			do_expiry(self.articles)
 
 		self.modified()
 		config.log("Finished update")

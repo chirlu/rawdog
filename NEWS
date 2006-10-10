@@ -9,6 +9,9 @@ Georgievski).
 Strengthen the warning in PLUGINS about the effects of overriding
 output_write_files (suggested by Virgil Bucoci).
 
+Add the state directory to sys.path, so you can put modules that plugins
+need in your ~/.rawdog (suggested by Stuart Langridge).
+
 - rawdog 2.10
 
 Work around a feedparser bug (returning a detail without a type field

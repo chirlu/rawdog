@@ -1458,6 +1458,8 @@ def main(argv):
 		print "No " + statedir + " directory"
 		return 1
 
+	sys.path.append(".")
+
 	config = Config()
 	try:
 		config.load("config")

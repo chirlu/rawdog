@@ -1394,6 +1394,7 @@ General options (use only once):
 -d|--dir DIR                 Use DIR instead of ~/.rawdog
 -v, --verbose                Print more detailed status information
 -N, --no-locking             Do not lock the state file
+-W, --no-lock-wait           Exit silently if state file is locked
 --help                       Display this help and exit
 
 Actions (performed in order given):
@@ -1420,7 +1421,7 @@ def main(argv):
 	locale.setlocale(locale.LC_ALL, "")
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:r:N", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade", "add=", "remove=", "no-locking"])
+		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:r:NW", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade", "add=", "remove=", "no-locking", "no-lock-wait"])
 	except getopt.GetoptError, s:
 		print s
 		usage()
@@ -1441,6 +1442,7 @@ def main(argv):
 		statedir = None
 	verbose = 0
 	locking = 1
+	no_lock_wait = 0
 	for o, a in optlist:
 		if o == "--help":
 			usage()
@@ -1451,6 +1453,8 @@ def main(argv):
 			verbose = 1
 		elif o in ("-N", "--no-locking"):
 			locking = 0
+		elif o in ("-W", "--no-lock-wait"):
+			no_lock_wait = 1
 	if statedir is None:
 		print "$HOME not set and state dir not explicitly specified; please use -d/--dir"
 		return 1
@@ -1475,7 +1479,9 @@ def main(argv):
 
 	persister = Persister("state", Rawdog, locking)
 	try:
-		rawdog = persister.load()
+		rawdog = persister.load(no_block = no_lock_wait)
+		if rawdog is None:
+			return 0
 	except KeyboardInterrupt:
 		return 1
 	except:

@@ -15,6 +15,9 @@ need in your ~/.rawdog (suggested by Stuart Langridge).
 When adding a feed, check that it isn't already present in the config
 file (suggested by Stuart Langridge).
 
+Add --no-lock-wait option to make rawdog exit silently if it can't lock
+the state file (i.e. if there's already a rawdog running).
+
 - rawdog 2.10
 
 Work around a feedparser bug (returning a detail without a type field

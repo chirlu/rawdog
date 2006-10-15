@@ -94,6 +94,21 @@ just create a directory for each.
 "--verbose" (or "-v"): Print more information about what rawdog's doing
 while it's working. This is useful for tracking down problems.
 
+"--no-locking" (or "-N"): Don't attempt to lock the state file. rawdog
+usually claims a lock on the state file so that you can't have more than
+one instance of rawdog running at the same time. Unfortunately, some
+operating systems and filesystems don't support file locking; you can
+use this option to disable locking if you're in that situation.
+
+"--no-lock-wait" (or "-W"): If the state file lock can't be claimed
+immediately, exit silently. Normally, rawdog will wait until it can
+claim the lock, then run as usual; however, if you've got a very large
+number of feeds and a slow machine or network connection, and you run
+rawdog periodically from cron, then you may find you often have a number
+of rawdog processes competing for the lock. In that situation, use this
+option so that you've really only ever got one rawdog process running at
+once.
+
 "--upgrade OLDDIR NEWDIR": This option can be used to convert your state
 file when upgrading from rawdog 1.x to rawdog 2.x; see the NEWS file for
 more information. If you're not doing this, then it won't be of any use

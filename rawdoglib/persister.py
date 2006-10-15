@@ -16,41 +16,56 @@
 # write to the Free Software Foundation, Inc., 51 Franklin Street,
 # Fifth Floor, Boston, MA 02110-1301, USA, or see http://www.gnu.org/.
 
-import fcntl, os
+import fcntl, os, errno
 import cPickle as pickle
 
 class Persistable:
 	"""Something which can be persisted. When a subclass of this wants to
 	   indicate that it has been modified, it should call
 	   self.modified()."""
-	def __init__(self): self._modified = 0
-	def modified(self, state = 1): self._modified = state
+	def __init__(self): self._modified = False
+	def modified(self, state = True): self._modified = state
 	def is_modified(self): return self._modified
 
 class Persister:
 	"""Persist another class to a file, safely. The class being persisted
 	   must derive from Persistable (although this isn't enforced)."""
 
-	def __init__(self, filename, klass, use_locking = 1):
+	def __init__(self, filename, klass, use_locking = True):
 		self.filename = filename
 		self.klass = klass
 		self.use_locking = use_locking
 		self.file = None
 		self.object = None
 
-	def load(self):
+	def load(self, no_block = True):
 		"""Load the persisted object from the file, or create a new one
 		   if this isn't possible. Returns the loaded object."""
+
+		def get_lock():
+			if not self.use_locking:
+				return True
+			mode = fcntl.LOCK_EX
+			if no_block:
+				mode |= fcntl.LOCK_NB
+			try:
+				fcntl.lockf(self.file.fileno(), mode)
+			except IOError, e:
+				if no_block and e.errno in (errno.EACCES, errno.EAGAIN):
+					return False
+				raise e
+			return True
+
 		try:
 			self.file = open(self.filename, "r+")
-			if self.use_locking:
-				fcntl.lockf(self.file.fileno(), fcntl.LOCK_EX)
+			if not get_lock():
+				return None
 			self.object = pickle.load(self.file)
-			self.object.modified(0)
+			self.object.modified(False)
 		except IOError:
 			self.file = open(self.filename, "w+")
-			if self.use_locking:
-				fcntl.lockf(self.file.fileno(), fcntl.LOCK_EX)
+			if not get_lock():
+				return None
 			self.object = self.klass()
 			self.object.modified()
 		return self.object

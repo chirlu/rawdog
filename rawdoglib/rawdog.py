@@ -1539,13 +1539,13 @@ Special actions (all other options are ignored if one of these is specified):
 
 Report bugs to <ats@offog.org>."""
 
-def load_persisted(fn, klass, config):
+def load_persisted(fn, klass, config, no_block = False):
 	"""Attempt to load a persisted object. Returns the persister and the
 	object."""
 	config.log("Loading state file: ", fn)
 	persister = Persister(fn, klass, config.locking)
 	try:
-		obj = persister.load()
+		obj = persister.load(no_block = no_block)
 	except KeyboardInterrupt:
 		sys.exit(1)
 	except:
@@ -1621,16 +1621,9 @@ def main(argv):
 	if verbose:
 		config["verbose"] = True
 
-	persister = Persister("state", Rawdog, locking)
-	try:
-		rawdog = persister.load()
-	except KeyboardInterrupt:
-		return 1
-	except:
-		print "An error occurred while reading state from " + statedir + "/state."
-		print "This usually means the file is corrupt, and removing it will fix the problem."
-		return 1
-
+	persister, rawdog = load_persisted("state", Rawdog, config, no_lock_wait)
+	if rawdog is None:
+		return 0
 	if not rawdog.check_state_version():
 		print "The state file " + statedir + "/state was created by an older"
 		print "version of rawdog, and cannot be read by this version."

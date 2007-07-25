@@ -86,12 +86,13 @@ def sanitise_html(html, baseurl, inline, config):
 		return None
 
 	html = encode_references(html)
+	type = "text/html"
 
 	# sgmllib handles "<br/>/" as a SHORTTAG; this workaround from
 	# feedparser.
 	html = re.sub(r'(\S)/>', r'\1 />', html)
-	html = feedparser._resolveRelativeURIs(html, baseurl, "UTF-8")
-	p = feedparser._HTMLSanitizer("UTF-8")
+	html = feedparser._resolveRelativeURIs(html, baseurl, "UTF-8", type)
+	p = feedparser._HTMLSanitizer("UTF-8", type)
 	p.feed(html)
 	html = p.output()
 

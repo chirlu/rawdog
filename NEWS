@@ -22,6 +22,8 @@ Update to the latest feedparser, which fixes an encoding bug with Python
 2.5, among various other stuff (reported by Paul Tomblin, Tim Bishop and
 Joseph Reagle).
 
+Handle the author_detail fields being None.
+
 - rawdog 2.10
 
 Work around a feedparser bug (returning a detail without a type field

@@ -18,6 +18,10 @@ file (suggested by Stuart Langridge).
 Add --no-lock-wait option to make rawdog exit silently if it can't lock
 the state file (i.e. if there's already a rawdog running).
 
+Update to the latest feedparser, which fixes an encoding bug with Python
+2.5, among various other stuff (reported by Paul Tomblin, Tim Bishop and
+Joseph Reagle).
+
 - rawdog 2.10
 
 Work around a feedparser bug (returning a detail without a type field

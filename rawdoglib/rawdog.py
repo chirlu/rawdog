@@ -1,5 +1,5 @@
 # rawdog: RSS aggregator without delusions of grandeur.
-# Copyright 2003, 2004, 2005, 2006 Adam Sampson <ats@offog.org>
+# Copyright 2003, 2004, 2005, 2006, 2007 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software
@@ -414,6 +414,14 @@ class Feed:
 		self.feed_info = p["feed"]
 		feed = self.url
 
+		article_ids = {}
+		if config["useids"]:
+			# Find IDs for existing articles.
+			for (hash, a) in articles.items():
+				id = a.entry_info.get("id")
+				if a.feed == feed and id is not None:
+					article_ids[id] = a
+
 		seen = {}
 		sequence = 0
 		for entry_info in p["entries"]:
@@ -425,9 +433,17 @@ class Feed:
 			seen[article.hash] = True
 			sequence += 1
 
-			if articles.has_key(article.hash):
-				articles[article.hash].update_from(article, now)
-				plugins.call_hook("article_updated", rawdog, config, article, now)
+			id = entry_info.get("id")
+			if id in article_ids:
+				existing_article = article_ids[id]
+			elif article.hash in articles:
+				existing_article = articles[article.hash]
+			else:
+				existing_article = None
+
+			if existing_article is not None:
+				existing_article.update_from(article, now)
+				plugins.call_hook("article_updated", rawdog, config, existing_article, now)
 			else:
 				articles[article.hash] = article
 				plugins.call_hook("article_added", rawdog, config, article, now)
@@ -486,12 +502,17 @@ class Article:
 			except OverflowError:
 				pass
 
-		self.hash = self.compute_hash()
+		self.hash = self.compute_initial_hash()
 
 		self.last_seen = now
 		self.added = now
 
-	def compute_hash(self):
+	def compute_initial_hash(self):
+		"""Compute an initial unique hash for an article.
+		The generated hash must be unique amongst all articles in the
+		system (i.e. it can't just be the article ID, because that
+		would collide if more than one feed included the same
+		article)."""
 		h = sha.new()
 		def add_hash(s):
 			h.update(s.encode("UTF-8"))
@@ -512,8 +533,7 @@ class Article:
 
 	def update_from(self, new_article, now):
 		"""Update this article's contents from a newer article that's
-		been identified to be the same (i.e. has hashed the same, but
-		might have other changes that aren't part of the hash)."""
+		been identified to be the same."""
 		self.entry_info = new_article.entry_info
 		self.sequence = new_article.sequence
 		self.date = new_article.date
@@ -653,6 +673,7 @@ class Config:
 			"changeconfig": 0,
 			"numthreads": 0,
 			"splitstate": 0,
+			"useids": 0,
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -771,6 +792,8 @@ class Config:
 			self["numthreads"] = int(l[1])
 		elif l[0] == "splitstate":
 			self["splitstate"] = parse_bool(l[1])
+		elif l[0] == "useids":
+			self["useids"] = parse_bool(l[1])
 		elif l[0] == "include":
 			self.load(l[1], False)
 		elif plugins.call_hook("config_option_arglines", self, l[0], l[1], arglines):

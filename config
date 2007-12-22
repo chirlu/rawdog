@@ -188,6 +188,12 @@ tidyhtml false
 # sorted by the time that rawdog first saw them.
 sortbyfeeddate false
 
+# Whether to consider articles' unique IDs or GUIDs when updating rawdog's
+# database. If you turn this off, then rawdog will create a new article in its
+# database when it sees an updated version of an existing article in a feed.
+# You probably want this turned on.
+useids true
+
 # The fields to use when detecting duplicate articles: "id" is the article's
 # unique ID or GUID; "link" is the article's link. rawdog will find the first
 # one of these that's present in the article, and ignore the article if it's

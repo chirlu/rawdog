@@ -1,3 +1,24 @@
+FIXME: either fix or remove the sort/filter hooks, and document what
+their replacements are.
+
+- rawdog 2.12
+
+Add the "splitstate" option, which makes rawdog use a separate state
+file for each feed rather than one large one. This significantly reduces
+rawdog's memory usage at the cost of some more disk IO during --write.
+The old behaviour is still the default, but I would recommend turning
+splitstate on if you read a lot of feeds or if you're on a machine with
+limited memory.
+
+Add the "useids" option, which makes rawdog respect article GUIDs when
+updating feeds; if an article's GUID matches one we already know about,
+we just update the existing article's contents rather than treating it
+as a new article (like most aggregators do). This is turned on in the
+default configuration, since the behaviour it produces is generally more
+useful these days -- many feeds include random advertisements, or other
+dynamic content, and so the old approach resulted in lots of duplicated
+articles.
+
 - rawdog 2.11
 
 Avoid a crash when a feed's URL is changed and expiry is done on the

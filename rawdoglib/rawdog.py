@@ -402,14 +402,14 @@ class Feed:
 
 		decode_structure(p, p.get("encoding") or "UTF-8")
 
-		self.etag = p.get("etag")
-		self.modified = p.get("modified")
-
 		# In the event that the feed hasn't changed, then both channel
 		# and feed will be empty. In this case we return 0 so that
 		# we know not to expire articles that came from this feed.
 		if len(p["entries"]) == 0:
 			return False
+
+		self.etag = p.get("etag")
+		self.modified = p.get("modified")
 
 		self.feed_info = p["feed"]
 		feed = self.url

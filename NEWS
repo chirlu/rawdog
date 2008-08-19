@@ -3,6 +3,8 @@ their replacements are.
 
 - rawdog 2.12
 
+Only update the stored Etag and Last-Modified when a feed changes.
+
 Add the "splitstate" option, which makes rawdog use a separate state
 file for each feed rather than one large one. This significantly reduces
 rawdog's memory usage at the cost of some more disk IO during --write.

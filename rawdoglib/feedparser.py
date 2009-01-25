@@ -18,8 +18,8 @@ Recommended: Python 2.3 or later
 Recommended: CJKCodecs and iconv_codec <http://cjkpython.i18n.org/>
 """
 
-__version__ = "4.2-pre-" + "$Revision$"[11:14] + "-svn"
-__license__ = """Copyright (c) 2002-2007, Mark Pilgrim, All rights reserved.
+__version__ = "4.2-pre-" + "$Revision: 291 $"[11:14] + "-svn"
+__license__ = """Copyright (c) 2002-2008, Mark Pilgrim, All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -175,10 +175,14 @@ except:
     codepoint2name[ord(codepoint)]=name
 
 # BeautifulSoup parser used for parsing microformats from embedded HTML content
-# http://www.crummy.com/software/BeautifulSoup/.  At the moment, it appears
-# that there is a version incompatibility, so the import is replaced with
-# a 'None'.  Restoring the try/import/except/none will renable the MF tests.
-BeautifulSoup = None
+# http://www.crummy.com/software/BeautifulSoup/
+# feedparser is tested with BeautifulSoup 3.0.x, but it might work with the
+# older 2.x series.  If it doesn't, and you can figure out why, I'll accept a
+# patch and modify the compatibility statement accordingly.
+try:
+    import BeautifulSoup
+except:
+    BeautifulSoup = None
 
 # ---------- don't touch these ----------
 class ThingsNobodyCaresAboutButMe(Exception): pass
@@ -439,6 +443,7 @@ class _FeedParserMixin:
                   'http://hacks.benhammersley.com/rss/streaming/':        'str',
                   'http://purl.org/rss/1.0/modules/subscription/':        'sub',
                   'http://purl.org/rss/1.0/modules/syndication/':         'sy',
+                  'http://schemas.pocketsoap.com/rss/myDescModule/':      'szf',
                   'http://purl.org/rss/1.0/modules/taxonomy/':            'taxo',
                   'http://purl.org/rss/1.0/modules/threading/':           'thr',
                   'http://purl.org/rss/1.0/modules/textinput/':           'ti',
@@ -446,9 +451,8 @@ class _FeedParserMixin:
                   'http://wellformedweb.org/commentAPI/':                 'wfw',
                   'http://purl.org/rss/1.0/modules/wiki/':                'wiki',
                   'http://www.w3.org/1999/xhtml':                         'xhtml',
-                  'http://www.w3.org/XML/1998/namespace':                 'xml',
                   'http://www.w3.org/1999/xlink':                         'xlink',
-                  'http://schemas.pocketsoap.com/rss/myDescModule/':      'szf'
+                  'http://www.w3.org/XML/1998/namespace':                 'xml'
 }
     _matchnamespaces = {}
 
@@ -489,6 +493,7 @@ class _FeedParserMixin:
         self.baseuri = baseuri or ''
         self.lang = baselang or None
         self.svgOK = 0
+        self.hasTitle = 0
         if baselang:
             self.feeddata['language'] = baselang.replace('_','-')
 
@@ -501,6 +506,11 @@ class _FeedParserMixin:
         # track xml:base and xml:lang
         attrsD = dict(attrs)
         baseuri = attrsD.get('xml:base', attrsD.get('base')) or self.baseuri
+        if type(baseuri) != type(u''):
+            try:
+                baseuri = unicode(baseuri, self.encoding)
+            except:
+                baseuri = unicode(baseuri, 'iso-8859-1')
         self.baseuri = _urljoin(self.baseuri, baseuri)
         lang = attrsD.get('xml:lang', attrsD.get('lang'))
         if lang == '':
@@ -525,17 +535,10 @@ class _FeedParserMixin:
 
         # track inline content
         if self.incontent and self.contentparams.has_key('type') and not self.contentparams.get('type', 'xml').endswith('xml'):
+            if tag in ['xhtml:div', 'div']: return # typepad does this 10/2007
             # element declared itself as escaped markup, but it isn't really
             self.contentparams['type'] = 'application/xhtml+xml'
         if self.incontent and self.contentparams.get('type') == 'application/xhtml+xml':
-            # Note: probably shouldn't simply recreate localname here, but
-            # our namespace handling isn't actually 100% correct in cases where
-            # the feed redefines the default namespace (which is actually
-            # the usual case for inline content, thanks Sam), so here we
-            # cheat and just reconstruct the element based on localname
-            # because that compensates for the bugs in our namespace handling.
-            # This will horribly munge inline content with non-empty qnames,
-            # but nobody actually does that, so I'm not fixing it.
             if tag.find(':') <> -1:
                 prefix, tag = tag.split(':', 1)
                 namespace = self.namespacesInUse.get(prefix, '')
@@ -543,7 +546,7 @@ class _FeedParserMixin:
                     attrs.append(('xmlns',namespace))
                 if tag=='svg' and namespace=='http://www.w3.org/2000/svg':
                     attrs.append(('xmlns',namespace))
-            if tag == 'svg': self.svgOK = 1
+            if tag == 'svg': self.svgOK += 1
             return self.handle_data('<%s%s>' % (tag, self.strattrs(attrs)), escape=0)
 
         # match namespaces
@@ -579,11 +582,12 @@ class _FeedParserMixin:
         prefix = self.namespacemap.get(prefix, prefix)
         if prefix:
             prefix = prefix + '_'
-        if suffix == 'svg': self.svgOK = 0
+        if suffix == 'svg' and self.svgOK: self.svgOK -= 1
 
         # call special handler (if defined) or default handler
         methodname = '_end_' + prefix + suffix
         try:
+            if self.svgOK: raise AttributeError()
             method = getattr(self, methodname)
             method()
         except AttributeError:
@@ -592,6 +596,7 @@ class _FeedParserMixin:
         # track inline content
         if self.incontent and self.contentparams.has_key('type') and not self.contentparams.get('type', 'xml').endswith('xml'):
             # element declared itself as escaped markup, but it isn't really
+            if tag in ['xhtml:div', 'div']: return # typepad does this 10/2007
             self.contentparams['type'] = 'application/xhtml+xml'
         if self.incontent and self.contentparams.get('type') == 'application/xhtml+xml':
             tag = tag.split(':')[-1]
@@ -831,6 +836,9 @@ class _FeedParserMixin:
         # categories/tags/keywords/whatever are handled in _end_category
         if element == 'category':
             return output
+
+        if element == 'title' and self.hasTitle:
+            return output
         
         # store output in appropriate place(s)
         if self.inentry and not self.insource:
@@ -1004,6 +1012,7 @@ class _FeedParserMixin:
         context = self._getContext()
         context.setdefault('image', FeedParserDict())
         self.inimage = 1
+        self.hasTitle = 0
         self.push('image', 0)
             
     def _end_image(self):
@@ -1014,6 +1023,7 @@ class _FeedParserMixin:
         context = self._getContext()
         context.setdefault('textinput', FeedParserDict())
         self.intextinput = 1
+        self.hasTitle = 0
         self.push('textinput', 0)
     _start_textInput = _start_textinput
     
@@ -1226,6 +1236,7 @@ class _FeedParserMixin:
         self.push('item', 0)
         self.inentry = 1
         self.guidislink = 0
+        self.hasTitle = 0
         id = self._getAttribute(attrsD, 'rdf:about')
         if id:
             context = self._getContext()
@@ -1420,8 +1431,13 @@ class _FeedParserMixin:
         value = self.popContent('title')
         if not value: return
         context = self._getContext()
+        self.hasTitle = 1
     _end_dc_title = _end_title
-    _end_media_title = _end_title
+
+    def _end_media_title(self):
+        hasTitle = self.hasTitle
+        self._end_title()
+        self.hasTitle = hasTitle
 
     def _start_description(self, attrsD):
         context = self._getContext()
@@ -1510,6 +1526,7 @@ class _FeedParserMixin:
             
     def _start_source(self, attrsD):
         self.insource = 1
+        self.hasTitle = 0
 
     def _end_source(self):
         self.insource = 0
@@ -1893,7 +1910,7 @@ class _MicroformatsParser:
         sProperty = sProperty.lower()
         bFound = 0
         bNormalize = 1
-        propertyMatch = re.compile(r'\b%s\b' % sProperty)
+        propertyMatch = {'class': re.compile(r'\b%s\b' % sProperty)}
         if bAllowMultiple and (iPropertyType != self.NODE):
             snapResults = []
             containers = elmRoot(['ul', 'ol'], propertyMatch)
@@ -1924,13 +1941,13 @@ class _MicroformatsParser:
         if not bFound:
             if bAllowMultiple: return []
             elif iPropertyType == self.STRING: return ''
-            elif iPropertyType == self.DATE: return BeautifulSoup.Null
+            elif iPropertyType == self.DATE: return None
             elif iPropertyType == self.URI: return ''
-            elif iPropertyType == self.NODE: return BeautifulSoup.Null
-            else: return BeautifulSoup.Null
+            elif iPropertyType == self.NODE: return None
+            else: return None
         arValues = []
         for elmResult in arResults:
-            sValue = BeautifulSoup.Null
+            sValue = None
             if iPropertyType == self.NODE:
                 if bAllowMultiple:
                     arValues.append(elmResult)
@@ -2037,7 +2054,7 @@ class _MicroformatsParser:
                     if sAgentValue:
                         arLines.append(self.vcardFold('AGENT:' + sAgentValue))
                     elmAgent['class'] = ''
-                    elmAgent.contents = BeautifulSoup.Null
+                    elmAgent.contents = []
                 else:
                     sAgentValue = self.getPropertyValue(elmAgent, 'value', self.URI, bAutoEscape=1);
                     if sAgentValue:
@@ -2331,7 +2348,7 @@ class _HTMLSanitizer(_BaseHTMLProcessor):
       'value', 'variable', 'volume', 'vspace', 'vrml', 'width', 'wrap',
       'xml:lang']
 
-    unacceptable_elements_with_end_tag = ['script', 'applet']
+    unacceptable_elements_with_end_tag = ['script', 'applet', 'style']
 
     acceptable_css_properties = ['azimuth', 'background-color',
       'border-bottom-color', 'border-collapse', 'border-color',
@@ -2356,26 +2373,26 @@ class _HTMLSanitizer(_BaseHTMLProcessor):
     valid_css_values = re.compile('^(#[0-9a-f]+|rgb\(\d+%?,\d*%?,?\d*%?\)?|' +
       '\d{0,2}\.?\d{0,2}(cm|em|ex|in|mm|pc|pt|px|%|,|\))?)$')
 
-    mathml_elements = ['maction', 'math', 'merror', 'mfrac', 'mi',
-      'mmultiscripts', 'mn', 'mo', 'mover', 'mpadded', 'mphantom',
-      'mprescripts', 'mroot', 'mrow', 'mspace', 'msqrt', 'mstyle', 'msub',
-      'msubsup', 'msup', 'mtable', 'mtd', 'mtext', 'mtr', 'munder',
-      'munderover', 'none']
+    mathml_elements = ['annotation', 'annotation-xml', 'maction', 'math',
+      'merror', 'mfenced', 'mfrac', 'mi', 'mmultiscripts', 'mn', 'mo', 'mover', 'mpadded',
+      'mphantom', 'mprescripts', 'mroot', 'mrow', 'mspace', 'msqrt', 'mstyle',
+      'msub', 'msubsup', 'msup', 'mtable', 'mtd', 'mtext', 'mtr', 'munder',
+      'munderover', 'none', 'semantics']
 
     mathml_attributes = ['actiontype', 'align', 'columnalign', 'columnalign',
-      'columnalign', 'columnlines', 'columnspacing', 'columnspan', 'depth',
-      'display', 'displaystyle', 'equalcolumns', 'equalrows', 'fence',
-      'fontstyle', 'fontweight', 'frame', 'height', 'linethickness', 'lspace',
-      'mathbackground', 'mathcolor', 'mathvariant', 'mathvariant', 'maxsize',
-      'minsize', 'other', 'rowalign', 'rowalign', 'rowalign', 'rowlines',
-      'rowspacing', 'rowspan', 'rspace', 'scriptlevel', 'selection',
-      'separator', 'stretchy', 'width', 'width', 'xlink:href', 'xlink:show',
-      'xlink:type', 'xmlns', 'xmlns:xlink']
+      'columnalign', 'close', 'columnlines', 'columnspacing', 'columnspan', 'depth',
+      'display', 'displaystyle', 'encoding', 'equalcolumns', 'equalrows',
+      'fence', 'fontstyle', 'fontweight', 'frame', 'height', 'linethickness',
+      'lspace', 'mathbackground', 'mathcolor', 'mathvariant', 'mathvariant',
+      'maxsize', 'minsize', 'open', 'other', 'rowalign', 'rowalign', 'rowalign',
+      'rowlines', 'rowspacing', 'rowspan', 'rspace', 'scriptlevel', 'selection',
+      'separator', 'separators', 'stretchy', 'width', 'width', 'xlink:href',
+      'xlink:show', 'xlink:type', 'xmlns', 'xmlns:xlink']
 
     # svgtiny - foreignObject + linearGradient + radialGradient + stop
     svg_elements = ['a', 'animate', 'animateColor', 'animateMotion',
-      'animateTransform', 'circle', 'defs', 'desc', 'ellipse', 'font-face',
-      'font-face-name', 'font-face-src', 'g', 'glyph', 'hkern', 'image',
+      'animateTransform', 'circle', 'defs', 'desc', 'ellipse', 'foreignObject',
+      'font-face', 'font-face-name', 'font-face-src', 'g', 'glyph', 'hkern', 
       'linearGradient', 'line', 'marker', 'metadata', 'missing-glyph', 'mpath',
       'path', 'polygon', 'polyline', 'radialGradient', 'rect', 'set', 'stop',
       'svg', 'switch', 'text', 'title', 'tspan', 'use']
@@ -2385,29 +2402,29 @@ class _HTMLSanitizer(_BaseHTMLProcessor):
        'arabic-form', 'ascent', 'attributeName', 'attributeType',
        'baseProfile', 'bbox', 'begin', 'by', 'calcMode', 'cap-height',
        'class', 'color', 'color-rendering', 'content', 'cx', 'cy', 'd', 'dx',
-       'dy', 'descent', 'display', 'dur', 'end', 'fill', 'fill-rule',
-       'font-family', 'font-size', 'font-stretch', 'font-style', 'font-variant',
-       'font-weight', 'from', 'fx', 'fy', 'g1', 'g2', 'glyph-name', 
-       'gradientUnits', 'hanging', 'height', 'horiz-adv-x', 'horiz-origin-x',
-       'id', 'ideographic', 'k', 'keyPoints', 'keySplines', 'keyTimes',
-       'lang', 'mathematical', 'marker-end', 'marker-mid', 'marker-start',
-       'markerHeight', 'markerUnits', 'markerWidth', 'max', 'min', 'name',
-       'offset', 'opacity', 'orient', 'origin', 'overline-position',
-       'overline-thickness', 'panose-1', 'path', 'pathLength', 'points',
-       'preserveAspectRatio', 'r', 'refX', 'refY', 'repeatCount', 'repeatDur',
-       'requiredExtensions', 'requiredFeatures', 'restart', 'rotate', 'rx',
-       'ry', 'slope', 'stemh', 'stemv', 'stop-color', 'stop-opacity',
-       'strikethrough-position', 'strikethrough-thickness', 'stroke',
-       'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap',
-       'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity',
-       'stroke-width', 'systemLanguage', 'target', 'text-anchor', 'to',
-       'transform', 'type', 'u1', 'u2', 'underline-position',
-       'underline-thickness', 'unicode', 'unicode-range', 'units-per-em',
-       'values', 'version', 'viewBox', 'visibility', 'width', 'widths', 'x',
-       'x-height', 'x1', 'x2', 'xlink:actuate', 'xlink:arcrole', 'xlink:href',
-       'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base',
-       'xml:lang', 'xml:space', 'xmlns', 'xmlns:xlink', 'y', 'y1', 'y2',
-       'zoomAndPan']
+       'dy', 'descent', 'display', 'dur', 'end', 'fill', 'fill-opacity',
+       'fill-rule', 'font-family', 'font-size', 'font-stretch', 'font-style',
+       'font-variant', 'font-weight', 'from', 'fx', 'fy', 'g1', 'g2',
+       'glyph-name', 'gradientUnits', 'hanging', 'height', 'horiz-adv-x',
+       'horiz-origin-x', 'id', 'ideographic', 'k', 'keyPoints', 'keySplines',
+       'keyTimes', 'lang', 'mathematical', 'marker-end', 'marker-mid',
+       'marker-start', 'markerHeight', 'markerUnits', 'markerWidth', 'max',
+       'min', 'name', 'offset', 'opacity', 'orient', 'origin',
+       'overline-position', 'overline-thickness', 'panose-1', 'path',
+       'pathLength', 'points', 'preserveAspectRatio', 'r', 'refX', 'refY',
+       'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures',
+       'restart', 'rotate', 'rx', 'ry', 'slope', 'stemh', 'stemv',
+       'stop-color', 'stop-opacity', 'strikethrough-position',
+       'strikethrough-thickness', 'stroke', 'stroke-dasharray',
+       'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin',
+       'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'systemLanguage',
+       'target', 'text-anchor', 'to', 'transform', 'type', 'u1', 'u2',
+       'underline-position', 'underline-thickness', 'unicode', 'unicode-range',
+       'units-per-em', 'values', 'version', 'viewBox', 'visibility', 'width',
+       'widths', 'x', 'x-height', 'x1', 'x2', 'xlink:actuate', 'xlink:arcrole',
+       'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type',
+       'xml:base', 'xml:lang', 'xml:space', 'xmlns', 'xmlns:xlink', 'y', 'y1',
+       'y2', 'zoomAndPan']
 
     svg_attr_map = None
     svg_elem_map = None
@@ -2431,9 +2448,9 @@ class _HTMLSanitizer(_BaseHTMLProcessor):
 
             # not otherwise acceptable, perhaps it is MathML or SVG?
             if tag=='math' and ('xmlns','http://www.w3.org/1998/Math/MathML') in attrs:
-                self.mathmlOK = 1
+                self.mathmlOK += 1
             if tag=='svg' and ('xmlns','http://www.w3.org/2000/svg') in attrs:
-                self.svgOK = 1
+                self.svgOK += 1
 
             # chose acceptable attributes based on tag class, else bail
             if  self.mathmlOK and tag in self.mathml_elements:
@@ -2454,7 +2471,7 @@ class _HTMLSanitizer(_BaseHTMLProcessor):
                 acceptable_attributes = self.svg_attributes
                 tag = self.svg_elem_map.get(tag,tag)
                 keymap = self.svg_attr_map
-            else:
+            elif not tag in self.acceptable_elements:
                 return
 
         # declare xlink namespace, if needed
@@ -2478,10 +2495,10 @@ class _HTMLSanitizer(_BaseHTMLProcessor):
             if tag in self.unacceptable_elements_with_end_tag:
                 self.unacceptablestack -= 1
             if self.mathmlOK and tag in self.mathml_elements:
-                if tag == 'math': self.mathmlOK = 0
+                if tag == 'math' and self.mathmlOK: self.mathmlOK -= 1
             elif self.svgOK and tag in self.svg_elements:
                 tag = self.svg_elem_map.get(tag,tag)
-                if tag == 'svg': self.svgOK = 0
+                if tag == 'svg' and self.svgOK: self.svgOK -= 1
             else:
                 return
         _BaseHTMLProcessor.unknown_endtag(self, tag)
@@ -3282,6 +3299,10 @@ def _getCharacterEncoding(http_headers, xml_data):
         true_encoding = xml_encoding or 'iso-8859-1'
     else:
         true_encoding = xml_encoding or 'utf-8'
+    # some feeds claim to be gb2312 but are actually gb18030.
+    # apparently MSIE and Firefox both do the following switch:
+    if true_encoding.lower() == 'gb2312':
+        true_encoding = 'gb18030'
     return true_encoding, http_encoding, xml_encoding, sniffed_xml_encoding, acceptable_content_type
     
 def _toUTF8(data, encoding):
@@ -3343,11 +3364,15 @@ def _stripDoctype(data):
     rss_version may be 'rss091n' or None
     stripped_data is the same XML document, minus the DOCTYPE
     '''
-    entity_pattern = re.compile(r'<!ENTITY([^>]*?)>', re.MULTILINE)
-    entity_results=entity_pattern.findall(data)
-    data = entity_pattern.sub('', data)
-    doctype_pattern = re.compile(r'<!DOCTYPE([^>]*?)>', re.MULTILINE)
-    doctype_results = doctype_pattern.findall(data)
+    start = re.search('<\w',data)
+    start = start and start.start() or -1
+    head,data = data[:start+1], data[start+1:]
+    
+    entity_pattern = re.compile(r'^\s*<!ENTITY([^>]*?)>', re.MULTILINE)
+    entity_results=entity_pattern.findall(head)
+    head = entity_pattern.sub('', head)
+    doctype_pattern = re.compile(r'^\s*<!DOCTYPE([^>]*?)>', re.MULTILINE)
+    doctype_results = doctype_pattern.findall(head)
     doctype = doctype_results and doctype_results[0] or ''
     if doctype.lower().count('netscape'):
         version = 'rss091n'
@@ -3361,7 +3386,7 @@ def _stripDoctype(data):
        safe_entities=filter(lambda e: safe_pattern.match(e),entity_results)
        if safe_entities:
            replacement='<!DOCTYPE feed [\n  <!ENTITY %s>\n]>' % '>\n  <!ENTITY '.join(safe_entities)
-    data = doctype_pattern.sub(replacement, data)
+    data = doctype_pattern.sub(replacement, head) + data
 
     return version, data, dict(replacement and safe_pattern.findall(replacement))
     
@@ -3410,7 +3435,9 @@ def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, refer
     # save HTTP headers
     if hasattr(f, 'info'):
         info = f.info()
-        result['etag'] = info.getheader('ETag')
+        etag = info.getheader('ETag')
+        if etag:
+            result['etag'] = etag
         last_modified = info.getheader('Last-Modified')
         if last_modified:
             result['modified'] = _parse_date(last_modified)
@@ -3647,222 +3674,3 @@ if __name__ == '__main__':
             from traceback import print_tb
             print_tb(results['bozo_traceback'])
             print
-
-#REVISION HISTORY
-#1.0 - 9/27/2002 - MAP - fixed namespace processing on prefixed RSS 2.0 elements,
-#  added Simon Fell's test suite
-#1.1 - 9/29/2002 - MAP - fixed infinite loop on incomplete CDATA sections
-#2.0 - 10/19/2002
-#  JD - use inchannel to watch out for image and textinput elements which can
-#  also contain title, link, and description elements
-#  JD - check for isPermaLink='false' attribute on guid elements
-#  JD - replaced openAnything with open_resource supporting ETag and
-#  If-Modified-Since request headers
-#  JD - parse now accepts etag, modified, agent, and referrer optional
-#  arguments
-#  JD - modified parse to return a dictionary instead of a tuple so that any
-#  etag or modified information can be returned and cached by the caller
-#2.0.1 - 10/21/2002 - MAP - changed parse() so that if we don't get anything
-#  because of etag/modified, return the old etag/modified to the caller to
-#  indicate why nothing is being returned
-#2.0.2 - 10/21/2002 - JB - added the inchannel to the if statement, otherwise its
-#  useless.  Fixes the problem JD was addressing by adding it.
-#2.1 - 11/14/2002 - MAP - added gzip support
-#2.2 - 1/27/2003 - MAP - added attribute support, admin:generatorAgent.
-#  start_admingeneratoragent is an example of how to handle elements with
-#  only attributes, no content.
-#2.3 - 6/11/2003 - MAP - added USER_AGENT for default (if caller doesn't specify);
-#  also, make sure we send the User-Agent even if urllib2 isn't available.
-#  Match any variation of backend.userland.com/rss namespace.
-#2.3.1 - 6/12/2003 - MAP - if item has both link and guid, return both as-is.
-#2.4 - 7/9/2003 - MAP - added preliminary Pie/Atom/Echo support based on Sam Ruby's
-#  snapshot of July 1 <http://www.intertwingly.net/blog/1506.html>; changed
-#  project name
-#2.5 - 7/25/2003 - MAP - changed to Python license (all contributors agree);
-#  removed unnecessary urllib code -- urllib2 should always be available anyway;
-#  return actual url, status, and full HTTP headers (as result['url'],
-#  result['status'], and result['headers']) if parsing a remote feed over HTTP --
-#  this should pass all the HTTP tests at <http://diveintomark.org/tests/client/http/>;
-#  added the latest namespace-of-the-week for RSS 2.0
-#2.5.1 - 7/26/2003 - RMK - clear opener.addheaders so we only send our custom
-#  User-Agent (otherwise urllib2 sends two, which confuses some servers)
-#2.5.2 - 7/28/2003 - MAP - entity-decode inline xml properly; added support for
-#  inline <xhtml:body> and <xhtml:div> as used in some RSS 2.0 feeds
-#2.5.3 - 8/6/2003 - TvdV - patch to track whether we're inside an image or
-#  textInput, and also to return the character encoding (if specified)
-#2.6 - 1/1/2004 - MAP - dc:author support (MarekK); fixed bug tracking
-#  nested divs within content (JohnD); fixed missing sys import (JohanS);
-#  fixed regular expression to capture XML character encoding (Andrei);
-#  added support for Atom 0.3-style links; fixed bug with textInput tracking;
-#  added support for cloud (MartijnP); added support for multiple
-#  category/dc:subject (MartijnP); normalize content model: 'description' gets
-#  description (which can come from description, summary, or full content if no
-#  description), 'content' gets dict of base/language/type/value (which can come
-#  from content:encoded, xhtml:body, content, or fullitem);
-#  fixed bug matching arbitrary Userland namespaces; added xml:base and xml:lang
-#  tracking; fixed bug tracking unknown tags; fixed bug tracking content when
-#  <content> element is not in default namespace (like Pocketsoap feed);
-#  resolve relative URLs in link, guid, docs, url, comments, wfw:comment,
-#  wfw:commentRSS; resolve relative URLs within embedded HTML markup in
-#  description, xhtml:body, content, content:encoded, title, subtitle,
-#  summary, info, tagline, and copyright; added support for pingback and
-#  trackback namespaces
-#2.7 - 1/5/2004 - MAP - really added support for trackback and pingback
-#  namespaces, as opposed to 2.6 when I said I did but didn't really;
-#  sanitize HTML markup within some elements; added mxTidy support (if
-#  installed) to tidy HTML markup within some elements; fixed indentation
-#  bug in _parse_date (FazalM); use socket.setdefaulttimeout if available
-#  (FazalM); universal date parsing and normalization (FazalM): 'created', modified',
-#  'issued' are parsed into 9-tuple date format and stored in 'created_parsed',
-#  'modified_parsed', and 'issued_parsed'; 'date' is duplicated in 'modified'
-#  and vice-versa; 'date_parsed' is duplicated in 'modified_parsed' and vice-versa
-#2.7.1 - 1/9/2004 - MAP - fixed bug handling &quot; and &apos;.  fixed memory
-#  leak not closing url opener (JohnD); added dc:publisher support (MarekK);
-#  added admin:errorReportsTo support (MarekK); Python 2.1 dict support (MarekK)
-#2.7.4 - 1/14/2004 - MAP - added workaround for improperly formed <br/> tags in
-#  encoded HTML (skadz); fixed unicode handling in normalize_attrs (ChrisL);
-#  fixed relative URI processing for guid (skadz); added ICBM support; added
-#  base64 support
-#2.7.5 - 1/15/2004 - MAP - added workaround for malformed DOCTYPE (seen on many
-#  blogspot.com sites); added _debug variable
-#2.7.6 - 1/16/2004 - MAP - fixed bug with StringIO importing
-#3.0b3 - 1/23/2004 - MAP - parse entire feed with real XML parser (if available);
-#  added several new supported namespaces; fixed bug tracking naked markup in
-#  description; added support for enclosure; added support for source; re-added
-#  support for cloud which got dropped somehow; added support for expirationDate
-#3.0b4 - 1/26/2004 - MAP - fixed xml:lang inheritance; fixed multiple bugs tracking
-#  xml:base URI, one for documents that don't define one explicitly and one for
-#  documents that define an outer and an inner xml:base that goes out of scope
-#  before the end of the document
-#3.0b5 - 1/26/2004 - MAP - fixed bug parsing multiple links at feed level
-#3.0b6 - 1/27/2004 - MAP - added feed type and version detection, result['version']
-#  will be one of SUPPORTED_VERSIONS.keys() or empty string if unrecognized;
-#  added support for creativeCommons:license and cc:license; added support for
-#  full Atom content model in title, tagline, info, copyright, summary; fixed bug
-#  with gzip encoding (not always telling server we support it when we do)
-#3.0b7 - 1/28/2004 - MAP - support Atom-style author element in author_detail
-#  (dictionary of 'name', 'url', 'email'); map author to author_detail if author
-#  contains name + email address
-#3.0b8 - 1/28/2004 - MAP - added support for contributor
-#3.0b9 - 1/29/2004 - MAP - fixed check for presence of dict function; added
-#  support for summary
-#3.0b10 - 1/31/2004 - MAP - incorporated ISO-8601 date parsing routines from
-#  xml.util.iso8601
-#3.0b11 - 2/2/2004 - MAP - added 'rights' to list of elements that can contain
-#  dangerous markup; fiddled with decodeEntities (not right); liberalized
-#  date parsing even further
-#3.0b12 - 2/6/2004 - MAP - fiddled with decodeEntities (still not right);
-#  added support to Atom 0.2 subtitle; added support for Atom content model
-#  in copyright; better sanitizing of dangerous HTML elements with end tags
-#  (script, frameset)
-#3.0b13 - 2/8/2004 - MAP - better handling of empty HTML tags (br, hr, img,
-#  etc.) in embedded markup, in either HTML or XHTML form (<br>, <br/>, <br />)
-#3.0b14 - 2/8/2004 - MAP - fixed CDATA handling in non-wellformed feeds under
-#  Python 2.1
-#3.0b15 - 2/11/2004 - MAP - fixed bug resolving relative links in wfw:commentRSS;
-#  fixed bug capturing author and contributor URL; fixed bug resolving relative
-#  links in author and contributor URL; fixed bug resolvin relative links in
-#  generator URL; added support for recognizing RSS 1.0; passed Simon Fell's
-#  namespace tests, and included them permanently in the test suite with his
-#  permission; fixed namespace handling under Python 2.1
-#3.0b16 - 2/12/2004 - MAP - fixed support for RSS 0.90 (broken in b15)
-#3.0b17 - 2/13/2004 - MAP - determine character encoding as per RFC 3023
-#3.0b18 - 2/17/2004 - MAP - always map description to summary_detail (Andrei);
-#  use libxml2 (if available)
-#3.0b19 - 3/15/2004 - MAP - fixed bug exploding author information when author
-#  name was in parentheses; removed ultra-problematic mxTidy support; patch to
-#  workaround crash in PyXML/expat when encountering invalid entities
-#  (MarkMoraes); support for textinput/textInput
-#3.0b20 - 4/7/2004 - MAP - added CDF support
-#3.0b21 - 4/14/2004 - MAP - added Hot RSS support
-#3.0b22 - 4/19/2004 - MAP - changed 'channel' to 'feed', 'item' to 'entries' in
-#  results dict; changed results dict to allow getting values with results.key
-#  as well as results[key]; work around embedded illformed HTML with half
-#  a DOCTYPE; work around malformed Content-Type header; if character encoding
-#  is wrong, try several common ones before falling back to regexes (if this
-#  works, bozo_exception is set to CharacterEncodingOverride); fixed character
-#  encoding issues in BaseHTMLProcessor by tracking encoding and converting
-#  from Unicode to raw strings before feeding data to sgmllib.SGMLParser;
-#  convert each value in results to Unicode (if possible), even if using
-#  regex-based parsing
-#3.0b23 - 4/21/2004 - MAP - fixed UnicodeDecodeError for feeds that contain
-#  high-bit characters in attributes in embedded HTML in description (thanks
-#  Thijs van de Vossen); moved guid, date, and date_parsed to mapped keys in
-#  FeedParserDict; tweaked FeedParserDict.has_key to return True if asking
-#  about a mapped key
-#3.0fc1 - 4/23/2004 - MAP - made results.entries[0].links[0] and
-#  results.entries[0].enclosures[0] into FeedParserDict; fixed typo that could
-#  cause the same encoding to be tried twice (even if it failed the first time);
-#  fixed DOCTYPE stripping when DOCTYPE contained entity declarations;
-#  better textinput and image tracking in illformed RSS 1.0 feeds
-#3.0fc2 - 5/10/2004 - MAP - added and passed Sam's amp tests; added and passed
-#  my blink tag tests
-#3.0fc3 - 6/18/2004 - MAP - fixed bug in _changeEncodingDeclaration that
-#  failed to parse utf-16 encoded feeds; made source into a FeedParserDict;
-#  duplicate admin:generatorAgent/@rdf:resource in generator_detail.url;
-#  added support for image; refactored parse() fallback logic to try other
-#  encodings if SAX parsing fails (previously it would only try other encodings
-#  if re-encoding failed); remove unichr madness in normalize_attrs now that
-#  we're properly tracking encoding in and out of BaseHTMLProcessor; set
-#  feed.language from root-level xml:lang; set entry.id from rdf:about;
-#  send Accept header
-#3.0 - 6/21/2004 - MAP - don't try iso-8859-1 (can't distinguish between
-#  iso-8859-1 and windows-1252 anyway, and most incorrectly marked feeds are
-#  windows-1252); fixed regression that could cause the same encoding to be
-#  tried twice (even if it failed the first time)
-#3.0.1 - 6/22/2004 - MAP - default to us-ascii for all text/* content types;
-#  recover from malformed content-type header parameter with no equals sign
-#  ('text/xml; charset:iso-8859-1')
-#3.1 - 6/28/2004 - MAP - added and passed tests for converting HTML entities
-#  to Unicode equivalents in illformed feeds (aaronsw); added and
-#  passed tests for converting character entities to Unicode equivalents
-#  in illformed feeds (aaronsw); test for valid parsers when setting
-#  XML_AVAILABLE; make version and encoding available when server returns
-#  a 304; add handlers parameter to pass arbitrary urllib2 handlers (like
-#  digest auth or proxy support); add code to parse username/password
-#  out of url and send as basic authentication; expose downloading-related
-#  exceptions in bozo_exception (aaronsw); added __contains__ method to
-#  FeedParserDict (aaronsw); added publisher_detail (aaronsw)
-#3.2 - 7/3/2004 - MAP - use cjkcodecs and iconv_codec if available; always
-#  convert feed to UTF-8 before passing to XML parser; completely revamped
-#  logic for determining character encoding and attempting XML parsing
-#  (much faster); increased default timeout to 20 seconds; test for presence
-#  of Location header on redirects; added tests for many alternate character
-#  encodings; support various EBCDIC encodings; support UTF-16BE and
-#  UTF16-LE with or without a BOM; support UTF-8 with a BOM; support
-#  UTF-32BE and UTF-32LE with or without a BOM; fixed crashing bug if no
-#  XML parsers are available; added support for 'Content-encoding: deflate';
-#  send blank 'Accept-encoding: ' header if neither gzip nor zlib modules
-#  are available
-#3.3 - 7/15/2004 - MAP - optimize EBCDIC to ASCII conversion; fix obscure
-#  problem tracking xml:base and xml:lang if element declares it, child
-#  doesn't, first grandchild redeclares it, and second grandchild doesn't;
-#  refactored date parsing; defined public registerDateHandler so callers
-#  can add support for additional date formats at runtime; added support
-#  for OnBlog, Nate, MSSQL, Greek, and Hungarian dates (ytrewq1); added
-#  zopeCompatibilityHack() which turns FeedParserDict into a regular
-#  dictionary, required for Zope compatibility, and also makes command-
-#  line debugging easier because pprint module formats real dictionaries
-#  better than dictionary-like objects; added NonXMLContentType exception,
-#  which is stored in bozo_exception when a feed is served with a non-XML
-#  media type such as 'text/plain'; respect Content-Language as default
-#  language if not xml:lang is present; cloud dict is now FeedParserDict;
-#  generator dict is now FeedParserDict; better tracking of xml:lang,
-#  including support for xml:lang='' to unset the current language;
-#  recognize RSS 1.0 feeds even when RSS 1.0 namespace is not the default
-#  namespace; don't overwrite final status on redirects (scenarios:
-#  redirecting to a URL that returns 304, redirecting to a URL that
-#  redirects to another URL with a different type of redirect); add
-#  support for HTTP 303 redirects
-#4.0 - MAP - support for relative URIs in xml:base attribute; fixed
-#  encoding issue with mxTidy (phopkins); preliminary support for RFC 3229;
-#  support for Atom 1.0; support for iTunes extensions; new 'tags' for
-#  categories/keywords/etc. as array of dict
-#  {'term': term, 'scheme': scheme, 'label': label} to match Atom 1.0
-#  terminology; parse RFC 822-style dates with no time; lots of other
-#  bug fixes
-#4.1 - MAP - removed socket timeout; added support for chardet library
-#4.2 - MAP - added support for parsing microformats within content elements:
-#  currently supports rel-tag (maps to 'tags'), rel-enclosure (maps to
-#  'enclosures'), XFN links within content elements (maps to 'xfn'),
-#  and hCard (parses as vCard); bug [ 1481975 ] Misencoded utf-8/win-1252

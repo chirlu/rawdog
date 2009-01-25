@@ -3,6 +3,9 @@ their replacements are.
 
 - rawdog 2.12
 
+Update feedparser to revision 291, which fixes the handling of
+<media:title> elements (reported by Darren Griffith).
+
 Only update the stored Etag and Last-Modified when a feed changes.
 
 Add the "splitstate" option, which makes rawdog use a separate state

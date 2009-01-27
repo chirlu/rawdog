@@ -1,5 +1,5 @@
 # rawdog: RSS aggregator without delusions of grandeur.
-# Copyright 2003, 2004, 2005, 2006, 2007, 2008 Adam Sampson <ats@offog.org>
+# Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software
@@ -1481,9 +1481,8 @@ __description__
 			article_list = list_articles(self.articles)
 		numarticles = len(article_list)
 
-		# FIXME call output_filter
-		article_list.sort()
-		# FIXME call output_sort
+		if not plugins.call_hook("output_sort_articles", self, config, article_list):
+			article_list.sort()
 
 		if config["maxarticles"] != 0:
 			article_list = article_list[:config["maxarticles"]]

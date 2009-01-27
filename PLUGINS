@@ -94,20 +94,18 @@ As config_option for options that can handle extra argument lines.
 If the options you are implementing should not have extra arguments,
 then use the config_option hook instead.
 
-### output_filter(rawdog, config, articles)
+### output_sort_articles(rawdog, config, articles)
 
-* articles: the mutable list of Article objects
+* articles: the mutable list of (date, feed_url, sequence_number,
+  article_hash) tuples
 
-Called before rawdog sorts the list of articles to write. This hook can
-be used to remove articles that shouldn't be written.
+Called to sort the list of articles to write. The default action here is
+to just call the list's sort method; if you sort the list in a different
+way, you should return False from this hook to prevent rawdog from
+resorting it afterwards.
 
-### output_sort(rawdog, config, articles)
-
-* articles: the mutable list of Article objects
-
-Called after rawdog has sorted the list of articles to write. This hook
-can be used to reorder (or completely resort) the list of articles to
-write.
+Later versions of rawdog may add more items at the end of the tuple;
+bear this in mind when you're manipulating the items.
 
 ### output_write(rawdog, config, articles)
 
@@ -296,6 +294,14 @@ Called after feedparser has been called to fetch the feed. This hook can
 be used to manipulate the received feed data or implement custom error
 handling.
 
+## Obsolete hooks
+
+The following hooks existed in previous versions of rawdog, but are no
+longer supported:
+
+* output_filter (since rawdog 2.12); use output_sorted_filter instead
+* output_sort (since rawdog 2.12); use output_sort_articles instead
+
 ## Examples
 
 ### backwards.py
@@ -306,10 +312,11 @@ sort order of the output.
 	import rawdoglib.plugins
 	
 	def backwards(rawdog, config, articles):
+		articles.sort()
 		articles.reverse()
 		return False
 	
-	rawdoglib.plugins.attach_hook("output_sort", backwards)
+	rawdoglib.plugins.attach_hook("output_sort_articles", backwards)
 
 ### option.py
 

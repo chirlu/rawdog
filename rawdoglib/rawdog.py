@@ -59,18 +59,12 @@ def format_time(secs, config):
 		format = config["timeformat"] + ", " + config["dayformat"]
 	return safe_ftime(format, t)
 
+high_char_re = re.compile(r'[^\000-\177]')
 def encode_references(s):
 	"""Encode characters in a Unicode string using HTML references."""
-	r = StringIO()
-	for c in s:
-		n = ord(c)
-		if n >= 128:
-			r.write("&#" + str(n) + ";")
-		else:
-			r.write(c)
-	v = r.getvalue()
-	r.close()
-	return v
+	def encode(m):
+		return "&#" + str(ord(m.group(0))) + ";"
+	return high_char_re.sub(encode, s)
 
 # This list of block-level elements came from the HTML 4.01 specification.
 block_level_re = re.compile(r'^\s*<(p|h1|h2|h3|h4|h5|h6|ul|ol|pre|dl|div|noscript|blockquote|form|hr|table|fieldset|address)[^a-z]', re.I)

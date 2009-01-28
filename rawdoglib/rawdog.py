@@ -1407,9 +1407,10 @@ __description__
 <tr id="feedsheader">
 <th>Feed</th><th>RSS</th><th>Last fetched</th><th>Next fetched after</th>
 </tr>"""
-		feeds = self.feeds.values()
-		feeds.sort(lambda a, b: cmp(a.get_html_name(config).lower(), b.get_html_name(config).lower()))
-		for feed in feeds:
+		feeds = [(feed.get_html_name(config).lower(), feed)
+		         for feed in self.feeds.values()]
+		feeds.sort()
+		for (key, feed) in feeds:
 			print >>f, '<tr class="feedsrow">'
 			print >>f, '<td>' + feed.get_html_link(config) + '</td>'
 			print >>f, '<td><a class="xmlbutton" href="' + cgi.escape(feed.url) + '">XML</a></td>'

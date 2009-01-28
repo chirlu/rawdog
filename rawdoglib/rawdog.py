@@ -40,13 +40,10 @@ def set_socket_timeout(n):
 		import timeoutsocket
 		timeoutsocket.setDefaultSocketTimeout(n)
 
+system_encoding = None
 def get_system_encoding():
 	"""Get the system encoding."""
-	try:
-		# This doesn't exist on Python 2.2.
-		return locale.getpreferredencoding()
-	except:
-		return "UTF-8"
+	return system_encoding
 
 def safe_ftime(format, t):
 	"""Format a time value into a string in the current locale (as
@@ -1585,6 +1582,15 @@ def main(argv):
 	"""The command-line interface to the aggregator."""
 
 	locale.setlocale(locale.LC_ALL, "")
+
+	global system_encoding
+	try:
+		# This doesn't exist on Python 2.2.
+		# It's also quite expensive, which is why we do it on startup
+		# and cache the result.
+		system_encoding = locale.getpreferredencoding()
+	except:
+		system_encoding = "UTF-8"
 
 	try:
 		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:r:NW", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade", "add=", "remove=", "no-locking", "no-lock-wait"])

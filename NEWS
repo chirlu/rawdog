@@ -1,5 +1,8 @@
 - rawdog 2.12
 
+Cache the result of locale.getpreferredencoding(). This significantly
+speeds up writing output files.
+
 Update feedparser to revision 291, which fixes the handling of
 <media:title> elements (reported by Darren Griffith).
 

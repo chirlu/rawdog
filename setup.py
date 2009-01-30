@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name = "rawdog",
-	version = "2.12rc2",
+	version = "2.12rc3",
 	description = "RSS Aggregator Without Delusions Of Grandeur",
 	author = "Adam Sampson",
 	author_email = "ats@offog.org",
@@ -12,5 +12,3 @@ setup(name = "rawdog",
 	scripts = ['rawdog'],
 	data_files = [('share/man/man1', ['rawdog.1'])],
 	packages = ['rawdoglib'])
-
-

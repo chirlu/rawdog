@@ -20,7 +20,7 @@ VERSION = "2.12rc3"
 STATE_VERSION = 2
 import feedparser, feedfinder, plugins
 from persister import Persistable, Persister
-import os, time, sha, getopt, sys, re, cgi, socket, urllib2, calendar
+import os, time, getopt, sys, re, cgi, socket, urllib2, calendar
 import string, locale
 from StringIO import StringIO
 import types
@@ -30,6 +30,19 @@ try:
 	have_threading = 1
 except:
 	have_threading = 0
+
+try:
+	import hashlib
+except:
+	hashlib = None
+	import sha
+
+def new_sha1(s = ""):
+	"""Return a new SHA1 hash object."""
+	if hashlib is None:
+		return sha.new(s)
+	else:
+		return hashlib.sha1(s)
 
 def set_socket_timeout(n):
 	"""Set the system socket timeout."""
@@ -255,7 +268,7 @@ def write_ascii(f, s, config):
 
 def short_hash(s):
 	"""Return a human-manipulatable 'short hash' of a string."""
-	return sha.new(s).hexdigest()[-8:]
+	return new_sha1(s).hexdigest()[-8:]
 
 def decode_structure(struct, encoding):
 	"""Walk through a structure returned by feedparser, decoding any
@@ -504,7 +517,7 @@ class Article:
 		system (i.e. it can't just be the article ID, because that
 		would collide if more than one feed included the same
 		article)."""
-		h = sha.new()
+		h = new_sha1()
 		def add_hash(s):
 			h.update(s.encode("UTF-8"))
 

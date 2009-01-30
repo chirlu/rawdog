@@ -626,12 +626,12 @@ def parse_feed_args(argparams, arglines):
 	"""Parse a list of feed arguments. Raise ConfigError if the syntax is invalid."""
 	args = {}
 	for p in argparams:
-		ps = a.split("=", 1)
+		ps = p.split("=", 1)
 		if len(ps) != 2:
 			raise ConfigError("Bad feed argument in config: " + p)
 		args[ps[0]] = ps[1]
 	for p in arglines:
-		ps = a.split(None, 1)
+		ps = p.split(None, 1)
 		if len(ps) != 2:
 			raise ConfigError("Bad argument line in config: " + p)
 		args[ps[0]] = ps[1]

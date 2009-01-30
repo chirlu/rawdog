@@ -18,7 +18,7 @@
 
 VERSION = "2.12rc3"
 STATE_VERSION = 2
-import feedparser, feedfinder, plugins
+import feedparser, plugins
 from persister import Persistable, Persister
 import os, time, getopt, sys, re, cgi, socket, urllib2, calendar
 import string, locale
@@ -36,6 +36,11 @@ try:
 except:
 	hashlib = None
 	import sha
+
+try:
+	import feedfinder
+except:
+	feedfinder = None
 
 def new_sha1(s = ""):
 	"""Return a new SHA1 hash object."""
@@ -850,7 +855,10 @@ class AddFeedEditor:
 
 def add_feed(filename, url, rawdog, config):
 	"""Try to add a feed to the config file."""
-	feeds = feedfinder.feeds(url)
+	if feedfinder is None:
+		feeds = [url]
+	else:
+		feeds = feedfinder.feeds(url)
 	if feeds == []:
 		print >>sys.stderr, "Cannot find any feeds in " + url
 	else:

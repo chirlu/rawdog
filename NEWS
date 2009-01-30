@@ -2,6 +2,9 @@
 
 Make rawdog work with Python 2.6 (reported by Roy Lanek).
 
+If feedfinder (which now needs Python 2.4 or later) can't be imported,
+just disable it.
+
 Several changes as a result of profiling that significantly speed up
 writing output files:
 

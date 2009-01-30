@@ -607,16 +607,16 @@ def parse_list(value):
 def parse_feed_args(argparams, arglines):
 	"""Parse a list of feed arguments. Raise ConfigError if the syntax is invalid."""
 	args = {}
-	for a in argparams:
-		as = a.split("=", 1)
-		if len(as) != 2:
-			raise ConfigError("Bad feed argument in config: " + a)
-		args[as[0]] = as[1]
-	for a in arglines:
-		as = a.split(None, 1)
-		if len(as) != 2:
-			raise ConfigError("Bad argument line in config: " + a)
-		args[as[0]] = as[1]
+	for p in argparams:
+		ps = a.split("=", 1)
+		if len(ps) != 2:
+			raise ConfigError("Bad feed argument in config: " + p)
+		args[ps[0]] = ps[1]
+	for p in arglines:
+		ps = a.split(None, 1)
+		if len(ps) != 2:
+			raise ConfigError("Bad argument line in config: " + p)
+		args[ps[0]] = ps[1]
 	if "maxage" in args:
 		args["maxage"] = parse_time(args["maxage"])
 	return args

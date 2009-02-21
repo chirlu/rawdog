@@ -290,7 +290,7 @@ def ensure_unicode(value, encoding):
 		# This is a subclass of unicode (e.g.  BeautifulSoup's
 		# NavigableString, which is unpickleable in some versions of
 		# the library), so force it to be a real unicode object.
-		return value.encode("UTF-8").decode("UTF-8")
+		return unicode(value)
 	elif isinstance(value, dict):
 		d = {}
 		for (k, v) in value.items():

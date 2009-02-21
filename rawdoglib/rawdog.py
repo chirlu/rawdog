@@ -1127,6 +1127,7 @@ class Rawdog(Persistable):
 
 		feedparser._FeedParserMixin.can_contain_relative_uris = ["url"]
 		feedparser._FeedParserMixin.can_contain_dangerous_markup = []
+		feedparser.BeautifulSoup = None
 		set_socket_timeout(config["timeout"])
 
 		if feedurl is None:

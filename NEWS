@@ -1,9 +1,11 @@
 - rawdog 2.13
 
+Forcibly disable BeautifulSoup support in feedparser, since it returns
+unpickleable pseudo-string objects, and it crashes when trying to parse
+twenty or so of my feeds (reported by Joseph Reagle).
+
 Make the code that cleans up feedparser's return value more thorough --
-in particular, turn subclasses of "unicode" into real unicode objects,
-which makes rawdog work with broken versions of BeautifulSoup where
-their unicode subclass isn't pickleable (reported by Joseph Reagle).
+in particular, turn subclasses of "unicode" into real unicode objects.
 
 - rawdog 2.12
 

@@ -275,25 +275,31 @@ def short_hash(s):
 	"""Return a human-manipulatable 'short hash' of a string."""
 	return new_sha1(s).hexdigest()[-8:]
 
-def decode_structure(struct, encoding):
-	"""Walk through a structure returned by feedparser, decoding any
-	strings that haven't already been converted to Unicode."""
-	def is_dict(t):
-		return (t is dict) or (t is feedparser.FeedParserDict)
-	for (key, value) in struct.items():
-		if type(value) is str:
-			try:
-				struct[key] = value.decode(encoding)
-			except:
-				# If the encoding's invalid, at least preserve
-				# the byte stream.
-				struct[key] = value.decode("ISO-8859-1")
-		elif is_dict(type(value)):
-			decode_structure(value, encoding)
-		elif type(value) is list:
-			for item in value:
-				if is_dict(type(item)):
-					decode_structure(item, encoding)
+def ensure_unicode(value, encoding):
+	"""Convert a structure returned by feedparser into an equivalent where
+	all strings are represented as fully-decoded unicode objects."""
+
+	if isinstance(value, str):
+		try:
+			return value.decode(encoding)
+		except:
+			# If the encoding's invalid, at least preserve
+			# the byte stream.
+			return value.decode("ISO-8859-1")
+	elif isinstance(value, unicode) and type(value) is not unicode:
+		# This is a subclass of unicode (e.g.  BeautifulSoup's
+		# NavigableString, which is unpickleable in some versions of
+		# the library), so force it to be a real unicode object.
+		return value.encode("UTF-8").decode("UTF-8")
+	elif isinstance(value, dict):
+		d = {}
+		for (k, v) in value.items():
+			d[k] = ensure_unicode(v, encoding)
+		return d
+	elif isinstance(value, list):
+		return [ensure_unicode(v, encoding) for v in value]
+	else:
+		return value
 
 non_alphanumeric_re = re.compile(r'<[^>]*>|\&[^\;]*\;|[^a-z0-9]')
 class Feed:
@@ -409,7 +415,7 @@ class Feed:
 			if not non_fatal:
 				return False
 
-		decode_structure(p, p.get("encoding") or "UTF-8")
+		p = ensure_unicode(p, p.get("encoding") or "UTF-8")
 
 		# In the event that the feed hasn't changed, then both channel
 		# and feed will be empty. In this case we return 0 so that

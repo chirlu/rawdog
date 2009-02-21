@@ -1,5 +1,10 @@
 - rawdog 2.13
 
+Make the code that cleans up feedparser's return value more thorough --
+in particular, turn subclasses of "unicode" into real unicode objects,
+which makes rawdog work with broken versions of BeautifulSoup where
+their unicode subclass isn't pickleable (reported by Joseph Reagle).
+
 - rawdog 2.12
 
 Make rawdog work with Python 2.6 (reported by Roy Lanek).

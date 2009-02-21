@@ -1,3 +1,5 @@
+- rawdog 2.13
+
 - rawdog 2.12
 
 Make rawdog work with Python 2.6 (reported by Roy Lanek).

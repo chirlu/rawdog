@@ -7,6 +7,10 @@ twenty or so of my feeds (reported by Joseph Reagle).
 Make the code that cleans up feedparser's return value more thorough --
 in particular, turn subclasses of "unicode" into real unicode objects.
 
+Decode the config file from the system encoding, and escape "define_"d
+strings when they're written to the output file (reported by Cristian
+Rigamonti).
+
 - rawdog 2.12
 
 Make rawdog work with Python 2.6 (reported by Roy Lanek).

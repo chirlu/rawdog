@@ -709,7 +709,7 @@ class Config:
 		try:
 			f = open(filename, "r")
 			for line in f.xreadlines():
-				stripped = line.strip()
+				stripped = line.decode(get_system_encoding()).strip()
 				if stripped == "" or stripped[0] == "#":
 					continue
 				if line[0] in string.whitespace:
@@ -1307,7 +1307,7 @@ __description__
 		itembits = {}
 		for name, value in feed.args.items():
 			if name.startswith("define_"):
-				itembits[name[7:]] = value
+				itembits[name[7:]] = sanitise_html(value, "", True, config)
 
 		title = detail_to_html(entry_info.get("title_detail"), True, config)
 

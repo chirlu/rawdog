@@ -164,6 +164,11 @@ timeout 30s
 # errors; if this is true, rawdog will silently ignore them.
 ignoretimeouts false
 
+# Whether to show Python traceback messages. If this is true, rawdog will show
+# a traceback message if an exception is thrown while fetching a feed; this is
+# mostly useful for debugging rawdog or feedparser.
+showtracebacks false
+
 # Whether to display verbose status messages saying what rawdog's doing
 # while it runs. Specifying -v or --verbose on the command line is
 # equivalent to saying "verbose true" here.

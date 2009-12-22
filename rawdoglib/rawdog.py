@@ -359,23 +359,27 @@ class Feed:
 				handlers = handlers,
 				auth_creds = auth_creds,
 				use_im = use_im)
-		except:
-			return None
+		except Exception, e:
+			return {
+				"rawdog_exception": e,
+				"rawdog_traceback": sys.exc_info()[2],
+				}
 
 	def update(self, rawdog, now, config, articles, p):
 		"""Add new articles from a feed to the collection.
 		Returns True if any articles were read, False otherwise."""
 
-		status = None
-		if p is not None:
-			status = p.get("status")
+		status = p.get("status")
 		self.last_update = now
 
 		error = None
 		non_fatal = False
 		old_url = self.url
-		if p is None:
-			error = "Error fetching or parsing feed."
+		if "rawdog_exception" in p:
+			error = "Error fetching or parsing feed: %s" % str(p["rawdog_exception"])
+			if config["showtracebacks"]:
+				from traceback import format_tb
+				error += "\n" + "".join(format_tb(p["rawdog_traceback"]))
 		elif status is None and len(p["feed"]) == 0:
 			if config["ignoretimeouts"]:
 				return False
@@ -677,6 +681,7 @@ class Config:
 			"itemtemplate" : "default",
 			"verbose" : 0,
 			"ignoretimeouts" : 0,
+			"showtracebacks" : 0,
 			"daysections" : 1,
 			"timesections" : 1,
 			"blocklevelhtml" : 1,
@@ -785,6 +790,8 @@ class Config:
 			self["verbose"] = parse_bool(l[1])
 		elif l[0] == "ignoretimeouts":
 			self["ignoretimeouts"] = parse_bool(l[1])
+		elif l[0] == "showtracebacks":
+			self["showtracebacks"] = parse_bool(l[1])
 		elif l[0] == "daysections":
 			self["daysections"] = parse_bool(l[1])
 		elif l[0] == "timesections":

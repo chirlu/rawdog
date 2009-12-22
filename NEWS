@@ -11,6 +11,10 @@ Decode the config file from the system encoding, and escape "define_"d
 strings when they're written to the output file (reported by Cristian
 Rigamonti).
 
+Add the "showtracebacks" option, which causes exceptions that occur
+while a feed is being fetched to be reported with a traceback in the
+resulting error message.
+
 - rawdog 2.12
 
 Make rawdog work with Python 2.6 (reported by Roy Lanek).

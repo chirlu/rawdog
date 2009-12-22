@@ -38,6 +38,16 @@ except:
 	import sha
 
 try:
+	import tidylib
+except:
+	tidylib = None
+
+try:
+	import mx.Tidy as mxtidy
+except:
+	mxtidy = None
+
+try:
 	import feedfinder
 except:
 	feedfinder = None
@@ -115,11 +125,22 @@ def sanitise_html(html, baseurl, inline, config):
 			html = "<p>" + html
 
 	if config["tidyhtml"]:
-		import mx.Tidy
-		args = { "wrap": 0, "numeric_entities": 1 }
+		args = {"numeric_entities": 1,
+		        "output_html": 1,
+		        "output_xhtml": 0,
+		        "output_xml": 0,
+		        "wrap": 0}
 		plugins.call_hook("mxtidy_args", config, args, baseurl, inline)
-		output = mx.Tidy.tidy(html, None, None,
-		                      **args)[2]
+		plugins.call_hook("tidy_args", config, args, baseurl, inline)
+		if tidylib is not None:
+			# Disable PyTidyLib's somewhat unhelpful defaults.
+			tidylib.BASE_OPTIONS = {}
+			output = tidylib.tidy_document(html, args)[0]
+		elif mxtidy is not None:
+			output = mxtidy.tidy(html, None, None, **args)[2]
+		else:
+			# No Tidy bindings installed -- do nothing.
+			output = "<body>" + html + "</body>"
 		html = output[output.find("<body>") + 6
 		              : output.rfind("</body>")].strip()
 

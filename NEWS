@@ -15,6 +15,11 @@ Add the "showtracebacks" option, which causes exceptions that occur
 while a feed is being fetched to be reported with a traceback in the
 resulting error message.
 
+Use PyTidyLib in preference to mx.Tidy when available (suggested by
+Joseph Reagle). If neither is available, "tidyhtml true" just does
+nothing, so it's now turned on in the provided config file. The
+mxtidy_args hook is now called tidy_args.
+
 - rawdog 2.12
 
 Make rawdog work with Python 2.6 (reported by Roy Lanek).

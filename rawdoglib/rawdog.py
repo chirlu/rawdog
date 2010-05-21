@@ -231,7 +231,7 @@ def string_to_html(s, config):
 	"""Convert a string to HTML."""
 	return sanitise_html(cgi.escape(s), "", True, config)
 
-template_re = re.compile(r'(__.*?__)')
+template_re = re.compile(r'(__[^_].*?__)')
 def fill_template(template, bits):
 	"""Expand a template, replacing __x__ with bits["x"], and only
 	including sections bracketed by __if_x__ .. [__else__ ..]

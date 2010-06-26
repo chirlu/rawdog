@@ -1696,14 +1696,16 @@ def main(argv):
 	sys.path.append(".")
 
 	config = Config(locking)
-	try:
-		config.load("config")
-	except ConfigError, err:
-		print >>sys.stderr, "In config:"
-		print >>sys.stderr, err
-		return 1
-	if verbose:
-		config["verbose"] = True
+	def load_config(fn):
+		try:
+			config.load(fn)
+		except ConfigError, err:
+			print >>sys.stderr, "In " + fn + ":"
+			print >>sys.stderr, err
+			return 1
+		if verbose:
+			config["verbose"] = True
+	load_config("config")
 
 	persister, rawdog = load_persisted("state", Rawdog, config, no_lock_wait)
 	if rawdog is None:
@@ -1728,12 +1730,7 @@ def main(argv):
 		elif o in ("-w", "--write"):
 			rawdog.write(config)
 		elif o in ("-c", "--config"):
-			try:
-				config.load(a)
-			except ConfigError, err:
-				print >>sys.stderr, "In " + a + ":"
-				print >>sys.stderr, err
-				return 1
+			load_config(a)
 		elif o in ("-t", "--show-template"):
 			rawdog.show_template(config)
 		elif o in ("-T", "--show-itemtemplate"):

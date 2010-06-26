@@ -25,6 +25,9 @@ Faelord).
 
 Work around broken DOCTYPEs that confuse sgmllib.
 
+If -v is specified, force verbose on again after reading a secondary
+config file (reported by Jonathan Phillips).
+
 - rawdog 2.12
 
 Make rawdog work with Python 2.6 (reported by Roy Lanek).

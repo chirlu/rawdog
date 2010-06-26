@@ -23,6 +23,8 @@ mxtidy_args hook is now called tidy_args.
 Allow template variables to start with an underscore (patch from Oberon
 Faelord).
 
+Work around broken DOCTYPEs that confuse sgmllib.
+
 - rawdog 2.12
 
 Make rawdog work with Python 2.6 (reported by Roy Lanek).

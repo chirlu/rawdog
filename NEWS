@@ -28,6 +28,10 @@ Work around broken DOCTYPEs that confuse sgmllib.
 If -v is specified, force verbose on again after reading a secondary
 config file (reported by Jonathan Phillips).
 
+Resynchronise the feed list after loading a secondary config file;
+previously feeds in secondary config files were ignored (reported by
+Jonathan Philips).
+
 - rawdog 2.12
 
 Make rawdog work with Python 2.6 (reported by Roy Lanek).

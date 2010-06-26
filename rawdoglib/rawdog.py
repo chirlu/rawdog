@@ -1731,6 +1731,7 @@ def main(argv):
 			rawdog.write(config)
 		elif o in ("-c", "--config"):
 			load_config(a)
+			rawdog.sync_from_config(config)
 		elif o in ("-t", "--show-template"):
 			rawdog.show_template(config)
 		elif o in ("-T", "--show-itemtemplate"):

@@ -1,3 +1,5 @@
+- rawdog 2.14
+
 - rawdog 2.13
 
 Forcibly disable BeautifulSoup support in feedparser, since it returns

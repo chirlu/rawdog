@@ -902,7 +902,20 @@ def add_feed(filename, url, rawdog, config):
 		print >>sys.stderr, "Cannot find any feeds in " + url
 		return
 
-	feed = feeds[0]
+	# Sort feeds into preference order: some sites provide feeds for
+	# content and comments, or both Atom and RSS.
+	part_scores = {"comment": -10,
+	               "atom": 2}
+	scored = []
+	for feed in feeds:
+		score = 0
+		for p, s in part_scores.items():
+			if feed.find(p) != -1:
+				score += s
+		scored.append((-score, feed))
+	scored.sort()
+
+	feed = scored[0][1]
 	if feed in rawdog.feeds:
 		print >>sys.stderr, "Feed " + feed + " is already in the config file"
 		return

@@ -1,5 +1,10 @@
 - rawdog 2.14
 
+When adding a new feed from a page that provides several feeds, make a
+more informed choice rather than just taking the first one: many blogs
+provide both content and comments feeds, and we usually want the first
+one.
+
 - rawdog 2.13
 
 Forcibly disable BeautifulSoup support in feedparser, since it returns

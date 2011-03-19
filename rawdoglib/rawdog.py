@@ -900,14 +900,16 @@ def add_feed(filename, url, rawdog, config):
 		feeds = feedfinder.feeds(url)
 	if feeds == []:
 		print >>sys.stderr, "Cannot find any feeds in " + url
-	else:
-		feed = feeds[0]
-		if feed in rawdog.feeds:
-			print >>sys.stderr, "Feed " + feed + " is already in the config file"
-		else:
-			print >>sys.stderr, "Adding feed " + feed
-			feedline = "feed %s %s\n" % (config["newfeedperiod"], feed)
-			edit_file(filename, AddFeedEditor(feedline).edit)
+		return
+
+	feed = feeds[0]
+	if feed in rawdog.feeds:
+		print >>sys.stderr, "Feed " + feed + " is already in the config file"
+		return
+
+	print >>sys.stderr, "Adding feed " + feed
+	feedline = "feed %s %s\n" % (config["newfeedperiod"], feed)
+	edit_file(filename, AddFeedEditor(feedline).edit)
 
 class ChangeFeedEditor:
 	def __init__(self, oldurl, newurl):

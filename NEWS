@@ -5,6 +5,8 @@ more informed choice rather than just taking the first one: many blogs
 provide both content and comments feeds, and we usually want the first
 one.
 
+Add a note to PLUGINS about making sure plugin storage gets saved.
+
 - rawdog 2.13
 
 Forcibly disable BeautifulSoup support in feedparser, since it returns

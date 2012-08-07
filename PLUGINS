@@ -50,6 +50,9 @@ start with; you may store any pickleable objects you like in it. Plugin
 identifiers should be strings based on your email address, in order to be
 globally unique -- for example, `org.offog.ats.archive`.
 
+After changing a plugin storage dictionary, you must call "rawdog.modified()"
+to ensure that rawdog will write out its state file.
+
 ## Hooks
 
 Most hook functions are called with "rawdog" and "config" as their first

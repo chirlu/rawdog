@@ -1,5 +1,5 @@
 # rawdog: RSS aggregator without delusions of grandeur.
-# Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Adam Sampson <ats@offog.org>
+# Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software
@@ -539,11 +539,15 @@ class Article:
 		self.entry_info = entry_info
 		self.sequence = sequence
 
-		modified = entry_info.get("modified_parsed")
 		self.date = None
-		if modified is not None:
+		parsed = entry_info.get("updated_parsed")
+		if parsed is None:
+			parsed = entry_info.get("published_parsed")
+		if parsed is None:
+			parsed = entry_info.get("created_parsed")
+		if parsed is not None:
 			try:
-				self.date = calendar.timegm(modified)
+				self.date = calendar.timegm(parsed)
 			except OverflowError:
 				pass
 

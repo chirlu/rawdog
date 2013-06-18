@@ -315,12 +315,9 @@ class Feed:
 		self.feed_info = {}
 
 	def needs_update(self, now):
-		"""Return 1 if it's time to update this feed, or 0 if its
-		update period has not yet elapsed."""
-		if (now - self.last_update) < self.period:
-			return 0
-		else:
-			return 1
+		"""Return True if it's time to update this feed, or False if
+		its update period has not yet elapsed."""
+		return ((now - self.last_update) >= self.period)
 
 	def get_state_filename(self):
 		return "feeds/%s.state" % (short_hash(self.url),)
@@ -422,7 +419,7 @@ class Feed:
 		p = ensure_unicode(p, p.get("encoding") or "UTF-8")
 
 		# In the event that the feed hasn't changed, then both channel
-		# and feed will be empty. In this case we return 0 so that
+		# and feed will be empty. In this case we return False so that
 		# we know not to expire articles that came from this feed.
 		if len(p["entries"]) == 0:
 			return False
@@ -626,9 +623,9 @@ def parse_bool(value):
 	the value isn't recognised."""
 	value = value.strip().lower()
 	if value == "0" or value == "false":
-		return 0
+		return False
 	elif value == "1" or value == "true":
-		return 1
+		return True
 	else:
 		raise ValueError("Bad boolean value: " + value)
 
@@ -677,26 +674,26 @@ class Config:
 			"dayformat" : "%A, %d %B %Y",
 			"timeformat" : "%I:%M %p",
 			"datetimeformat" : None,
-			"userefresh" : 0,
-			"showfeeds" : 1,
+			"userefresh" : False,
+			"showfeeds" : True,
 			"timeout" : 30,
 			"template" : "default",
 			"itemtemplate" : "default",
-			"verbose" : 0,
-			"ignoretimeouts" : 0,
-			"showtracebacks" : 0,
-			"daysections" : 1,
-			"timesections" : 1,
-			"blocklevelhtml" : 1,
-			"tidyhtml" : 0,
-			"sortbyfeeddate" : 0,
-			"currentonly" : 0,
+			"verbose" : False,
+			"ignoretimeouts" : False,
+			"showtracebacks" : False,
+			"daysections" : True,
+			"timesections" : True,
+			"blocklevelhtml" : True,
+			"tidyhtml" : False,
+			"sortbyfeeddate" : False,
+			"currentonly" : False,
 			"hideduplicates" : "",
 			"newfeedperiod" : "3h",
-			"changeconfig": 0,
+			"changeconfig": False,
 			"numthreads": 0,
-			"splitstate": 0,
-			"useids": 0,
+			"splitstate": False,
+			"useids": False,
 			}
 
 	def __getitem__(self, key): return self.config[key]
@@ -1654,9 +1651,9 @@ def main(argv):
 		statedir = os.environ["HOME"] + "/.rawdog"
 	else:
 		statedir = None
-	verbose = 0
-	locking = 1
-	no_lock_wait = 0
+	verbose = False
+	locking = True
+	no_lock_wait = False
 	for o, a in optlist:
 		if o == "--help":
 			usage()
@@ -1664,11 +1661,11 @@ def main(argv):
 		elif o in ("-d", "--dir"):
 			statedir = a
 		elif o in ("-v", "--verbose"):
-			verbose = 1
+			verbose = True
 		elif o in ("-N", "--no-locking"):
-			locking = 0
+			locking = False
 		elif o in ("-W", "--no-lock-wait"):
-			no_lock_wait = 1
+			no_lock_wait = True
 	if statedir is None:
 		print "$HOME not set and state dir not explicitly specified; please use -d/--dir"
 		return 1

@@ -26,6 +26,7 @@ from StringIO import StringIO
 import types
 import threading
 import hashlib
+import base64
 
 try:
 	import tidylib
@@ -301,6 +302,25 @@ def ensure_unicode(value, encoding):
 	else:
 		return value
 
+class BasicAuthProcessor(urllib2.BaseHandler):
+	"""urllib2 handler that does HTTP basic authentication
+	or proxy authentication with a fixed username and password.
+	(Unlike the classes to do this in urllib2, this doesn't wait
+	for a 401/407 response first.)"""
+
+	def __init__(self, user, password, proxy=False):
+		self.auth = base64.b64encode(user + ":" + password)
+		if proxy:
+			self.header = "Proxy-Authorization"
+		else:
+			self.header = "Authorization"
+
+	def http_request(self, req):
+		req.add_header(self.header, "Basic " + self.auth)
+		return req
+
+	https_request = http_request
+
 non_alphanumeric_re = re.compile(r'<[^>]*>|\&[^\;]*\;|[^a-z0-9]')
 class Feed:
 	"""An RSS feed."""
@@ -335,15 +355,12 @@ class Feed:
 			handlers.append(urllib2.ProxyHandler(proxies))
 
 		if self.args.has_key("proxyuser") and self.args.has_key("proxypassword"):
-			mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
-			mgr.add_password(None, self.url, self.args["proxyuser"], self.args["proxypassword"])
-			handlers.append(urllib2.ProxyBasicAuthHandler(mgr))
+			handlers.append(BasicAuthProcessor(self.args["proxyuser"], self.args["proxypassword"], proxy=True))
+
+		if self.args.has_key("user") and self.args.has_key("password"):
+			handlers.append(BasicAuthProcessor(self.args["user"], self.args["password"]))
 
 		plugins.call_hook("add_urllib2_handlers", rawdog, config, self, handlers)
-
-		auth_creds = None
-		if self.args.has_key("user") and self.args.has_key("password"):
-			auth_creds = (self.args["user"], self.args["password"])
 
 		use_im = True
 		if self.get_keepmin(config) == 0 or config["currentonly"]:
@@ -355,7 +372,6 @@ class Feed:
 				modified = self.modified,
 				agent = "rawdog/" + VERSION,
 				handlers = handlers,
-				auth_creds = auth_creds,
 				use_im = use_im)
 		except Exception, e:
 			return {

@@ -5,7 +5,6 @@ Changes made by Adam Sampson <ats@offog.org> for rawdog:
 - handle file: URLs
 - fix startElementNS/endElementNS namespace mangling bug
 - save the traceback from parser exceptions
-- allow auth credentials to be provided as an argument
 - make A-IM header in HTTP requests optional
 
 Handles RSS 0.9x, RSS 1.0, RSS 2.0, CDF, Atom 0.3, and Atom 1.0 feeds
@@ -2632,7 +2631,7 @@ class _FeedURLHandler(urllib2.HTTPDigestAuthHandler, urllib2.HTTPRedirectHandler
         except:
             return self.http_error_default(req, fp, code, msg, headers)
 
-def _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, handlers, auth_creds, use_im):
+def _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, handlers, use_im):
     """URL, filename, or string --> stream
 
     This function lets you define parsers that take any input source
@@ -2659,9 +2658,6 @@ def _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, h
 
     If handlers is supplied, it is a list of handlers used to build a
     urllib2 opener.
-
-    If auth_creds is suppled, it is a tuple (username, password) to be used for
-    Basic or Digest authentication.
     """
 
     if hasattr(url_file_stream_or_string, 'read'):
@@ -2676,11 +2672,9 @@ def _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, h
     if urlparse.urlparse(url_file_stream_or_string)[0] in ('http', 'https', 'ftp'):
         if not agent:
             agent = USER_AGENT
-        # test for user:password for basic auth
+        # test for inline user:password for basic auth
         auth = None
-        if auth_creds:
-            auth = base64.encodestring('%s:%s' % auth_creds).strip()
-        elif base64:
+        if base64:
             urltype, rest = urllib.splittype(url_file_stream_or_string)
             realhost, rest = urllib.splithost(rest)
             if realhost:
@@ -3390,7 +3384,7 @@ def _stripDoctype(data):
 
     return version, data, dict(replacement and safe_pattern.findall(replacement))
     
-def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, referrer=None, handlers=[], auth_creds=None, use_im=False):
+def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, referrer=None, handlers=[], use_im=False):
     '''Parse a feed from a URL, file, stream, or string'''
     result = FeedParserDict()
     result['feed'] = FeedParserDict()
@@ -3400,7 +3394,7 @@ def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, refer
     if type(handlers) == types.InstanceType:
         handlers = [handlers]
     try:
-        f = _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, handlers, auth_creds, use_im)
+        f = _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, handlers, use_im)
         data = f.read()
     except Exception, e:
         result['bozo'] = 1

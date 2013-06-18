@@ -15,6 +15,9 @@ some other minor improvements to the documentation and help.
 
 Tidy up the code formatting in a few places to make it closer to PEP 8.
 
+Remove the --upgrade option; I think it's highly unlikely that anybody
+still has any rawdog 1 state files around.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

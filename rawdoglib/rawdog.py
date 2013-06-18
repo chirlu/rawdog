@@ -1595,8 +1595,6 @@ Actions (performed in order given):
 -r|--remove URL              Remove feed URL from the config file
 
 Special actions (all other options are ignored if one of these is specified):
---upgrade OLDDIR NEWDIR      Import feed state from rawdog 1.x directory
-                             OLDDIR into rawdog 2.x directory NEWDIR
 --help                       Display this help and exit
 
 Report bugs to <ats@offog.org>."""
@@ -1632,16 +1630,11 @@ def main(argv):
 	system_encoding = locale.getpreferredencoding()
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:r:NW", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade", "add=", "remove=", "no-locking", "no-lock-wait"])
+		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:r:NW", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "add=", "remove=", "no-locking", "no-lock-wait"])
 	except getopt.GetoptError, s:
 		print s
 		usage()
 		return 1
-
-	for o, a in optlist:
-		if o == "--upgrade" and len(args) == 2:
-			import upgrade_1_2
-			return upgrade_1_2.upgrade(args[0], args[1])
 
 	if len(args) != 0:
 		usage()

@@ -3,7 +3,8 @@
 rawdog now requires Python 2.6 (rather than Python 2.2). This is the
 version in Debian and Red Hat's previous stable releases, so it should
 be safe to assume on current systems, and means we can clean up some
-older compatibility cruft.
+older compatibility cruft. setup.py will now complain if you have an
+inappropriate Python version.
 
 Make the rawdog(1) man page describe all of rawdog's options, and make
 some other minor improvements to the documentation and help.

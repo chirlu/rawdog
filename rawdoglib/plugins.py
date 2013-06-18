@@ -1,5 +1,5 @@
 # plugins: handle add-on modules for rawdog.
-# Copyright 2004, 2005 Adam Sampson <ats@offog.org>
+# Copyright 2004, 2005, 2013 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software
@@ -21,7 +21,7 @@ import os, imp
 class Box:
 	"""Utility class that holds a mutable value. Useful for passing
 	immutable types by reference."""
-	def __init__(self, value = None):
+	def __init__(self, value=None):
 		self.value = value
 
 plugin_count = 0

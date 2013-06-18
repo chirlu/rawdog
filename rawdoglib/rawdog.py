@@ -158,7 +158,7 @@ def select_detail(details):
 	else:
 		return ds[-1][1]
 
-def detail_to_html(details, inline, config, force_preformatted = False):
+def detail_to_html(details, inline, config, force_preformatted=False):
 	"""Convert a detail hash or list of detail hashes as returned by
 	feedparser into HTML."""
 	detail = select_detail(details)
@@ -605,12 +605,12 @@ class DayWriter:
 			self.start_time(tm)
 		self.lasttime = tm
 
-	def close(self, n = 0):
+	def close(self, n=0):
 		while self.counter > n:
 			print >>self.file, "</div>"
 			self.counter -= 1
 
-def parse_time(value, default = "m"):
+def parse_time(value, default="m"):
 	"""Parse a time period with optional units (s, m, h, d, w) into a time
 	in seconds. If no unit is specified, use minutes by default; specify
 	the default argument to change this. Raises ValueError if the format
@@ -708,7 +708,7 @@ class Config:
 		for filename in self.files_loaded:
 			self.load(filename, False)
 
-	def load(self, filename, explicitly_loaded = True):
+	def load(self, filename, explicitly_loaded=True):
 		"""Load configuration from a config file."""
 		if explicitly_loaded:
 			self.files_loaded.append(filename)
@@ -986,7 +986,7 @@ class FeedFetcher:
 				# starting any more workers.
 				break
 
-			t = threading.Thread(target = self.worker, args = (i,))
+			t = threading.Thread(target=self.worker, args=(i,))
 			t.start()
 			workers.append(t)
 		for worker in workers:
@@ -1142,7 +1142,7 @@ class Rawdog(Persistable):
 				del self.feeds[url]
 				self.modified()
 
-	def update(self, config, feedurl = None):
+	def update(self, config, feedurl=None):
 		"""Perform the update action: check feeds for new articles, and
 		expire old ones."""
 		config.log("Starting update")
@@ -1604,13 +1604,13 @@ Special actions (all other options are ignored if one of these is specified):
 
 Report bugs to <ats@offog.org>."""
 
-def load_persisted(fn, klass, config, no_block = False):
+def load_persisted(fn, klass, config, no_block=False):
 	"""Attempt to load a persisted object. Returns the persister and the
 	object."""
 	config.log("Loading state file: ", fn)
 	persister = Persister(fn, klass, config.locking)
 	try:
-		obj = persister.load(no_block = no_block)
+		obj = persister.load(no_block=no_block)
 	except KeyboardInterrupt:
 		sys.exit(1)
 	except:

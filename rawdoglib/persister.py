@@ -37,7 +37,7 @@ class Persister:
 	"""Persist another class to a file, safely. The class being persisted
 	   must derive from Persistable (although this isn't enforced)."""
 
-	def __init__(self, filename, klass, use_locking = True):
+	def __init__(self, filename, klass, use_locking=True):
 		self.filename = filename
 		self.klass = klass
 		self.use_locking = use_locking

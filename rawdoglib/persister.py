@@ -1,5 +1,5 @@
 # persister: safe class persistance wrapper
-# Copyright 2003, 2004, 2005 Adam Sampson <ats@offog.org>
+# Copyright 2003, 2004, 2005, 2013 Adam Sampson <ats@offog.org>
 #
 # persister is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as
@@ -75,12 +75,7 @@ class Persister:
 		if self.object.is_modified():
 			newname = "%s.new-%d" % (self.filename, os.getpid())
 			newfile = open(newname, "w")
-			try:
-				pickle.dump(self.object, newfile, pickle.HIGHEST_PROTOCOL)
-			except AttributeError:
-				# Python 2.2 doesn't have the protocol
-				# argument.
-				pickle.dump(self.object, newfile, True)
+			pickle.dump(self.object, newfile, pickle.HIGHEST_PROTOCOL)
 			newfile.close()
 			os.rename(newname, self.filename)
 		self.file.close()

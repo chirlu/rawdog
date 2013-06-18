@@ -23,9 +23,15 @@ class Persistable:
 	"""Something which can be persisted. When a subclass of this wants to
 	   indicate that it has been modified, it should call
 	   self.modified()."""
-	def __init__(self): self._modified = False
-	def modified(self, state = True): self._modified = state
-	def is_modified(self): return self._modified
+
+	def __init__(self):
+		self._modified = False
+
+	def modified(self, state = True):
+		self._modified = state
+
+	def is_modified(self):
+		return self._modified
 
 class Persister:
 	"""Persist another class to a file, safely. The class being persisted

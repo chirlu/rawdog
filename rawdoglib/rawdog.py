@@ -335,7 +335,8 @@ class Feed:
 			handlers.append(urllib2.ProxyHandler(proxies))
 
 		if self.args.has_key("proxyuser") and self.args.has_key("proxypassword"):
-			mgr = DummyPasswordMgr((self.args["proxyuser"], self.args["proxypassword"]))
+			mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+			mgr.add_password(None, self.url, self.args["proxyuser"], self.args["proxypassword"])
 			handlers.append(urllib2.ProxyBasicAuthHandler(mgr))
 
 		plugins.call_hook("add_urllib2_handlers", rawdog, config, self, handlers)

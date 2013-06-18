@@ -9,7 +9,7 @@ only runs on Unix-like systems.
 (Important: If you're upgrading from rawdog 1.x to rawdog 2.x, please
 read the NEWS file to find out how to convert your rawdog state file.)
 
-rawdog requires Python 2.2 or later. rawdog itself doesn't need any
+rawdog requires Python 2.6 or later. rawdog itself doesn't need any
 additional modules to be installed, but it uses distutils for
 installation, so if you're on a Debian system you'll need to install the
 "python-dev" package first.

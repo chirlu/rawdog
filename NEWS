@@ -1,5 +1,10 @@
 - rawdog 2.15
 
+rawdog now requires Python 2.6 (rather than Python 2.2). This is the
+version in Debian and Red Hat's previous stable releases, so it should
+be safe to assume on current systems, and means we can clean up some
+older compatibility cruft.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

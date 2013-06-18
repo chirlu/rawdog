@@ -328,9 +328,9 @@ class Feed:
 		handlers = []
 
 		proxies = {}
-		for key, arg in self.args.items():
-			if key.endswith("_proxy"):
-				proxies[key[:-6]] = arg
+		for name, value in self.args.items():
+			if name.endswith("_proxy"):
+				proxies[name[:-6]] = value
 		if len(proxies) != 0:
 			handlers.append(urllib2.ProxyHandler(proxies))
 
@@ -497,10 +497,7 @@ class Feed:
 			return non_alphanumeric_re.sub('', r)
 
 	def get_keepmin(self, config):
-		try:
-			return int(self.args["keepmin"])
-		except:
-			return config["keepmin"]
+		return self.args.get("keepmin", config["keepmin"])
 
 class Article:
 	"""An article retrieved from an RSS feed."""
@@ -634,7 +631,8 @@ def parse_list(value):
 	return value.strip().split(None)
 
 def parse_feed_args(argparams, arglines):
-	"""Parse a list of feed arguments. Raise ConfigError if the syntax is invalid."""
+	"""Parse a list of feed arguments. Raise ConfigError if the syntax is
+	invalid, or ValueError if an argument value can't be parsed."""
 	args = {}
 	for p in argparams:
 		ps = p.split("=", 1)
@@ -646,8 +644,13 @@ def parse_feed_args(argparams, arglines):
 		if len(ps) != 2:
 			raise ConfigError("Bad argument line in config: " + p)
 		args[ps[0]] = ps[1]
-	if "maxage" in args:
-		args["maxage"] = parse_time(args["maxage"])
+	for name, value in args.items():
+		if name == "allowduplicates":
+			args[name] = parse_bool(value)
+		elif name == "keepmin":
+			args[name] = int(value)
+		elif name == "maxage":
+			args[name] = parse_time(value)
 	return args
 
 class ConfigError(Exception): pass
@@ -1336,7 +1339,7 @@ __description__
 		if key is None:
 			description = None
 		else:
-			force_preformatted = feed.args.has_key("format") and (feed.args["format"] == "text")
+			force_preformatted = (feed.args.get("format", "default") == "text")
 			description = detail_to_html(entry_info[key], False, config, force_preformatted)
 
 		date = article.date
@@ -1399,9 +1402,7 @@ __description__
 			feed = self.feeds[article.feed]
 			age = now - article.added
 
-			maxage = config["maxage"]
-			if "maxage" in feed.args:
-				maxage = feed.args["maxage"]
+			maxage = feed.args.get("maxage", config["maxage"])
 			if maxage != 0 and age > maxage:
 				continue
 
@@ -1415,7 +1416,7 @@ __description__
 			if guid == "":
 				guid = None
 
-			if feed.args.get("allowduplicates") != "true":
+			if feed.args.get("allowduplicates", False):
 				is_dup = False
 				for key in config["hideduplicates"]:
 					if key == "id" and guid is not None:

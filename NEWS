@@ -5,6 +5,8 @@ version in Debian and Red Hat's previous stable releases, so it should
 be safe to assume on current systems, and means we can clean up some
 older compatibility cruft.
 
+Make some minor improvements to the documentation.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

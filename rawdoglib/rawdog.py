@@ -25,12 +25,7 @@ import string, locale
 from StringIO import StringIO
 import types
 import threading
-
-try:
-	import hashlib
-except:
-	hashlib = None
-	import sha
+import hashlib
 
 try:
 	import tidylib
@@ -46,13 +41,6 @@ try:
 	import feedfinder
 except:
 	feedfinder = None
-
-def new_sha1(s = ""):
-	"""Return a new SHA1 hash object."""
-	if hashlib is None:
-		return sha.new(s)
-	else:
-		return hashlib.sha1(s)
 
 system_encoding = None
 def get_system_encoding():
@@ -285,7 +273,7 @@ def write_ascii(f, s, config):
 
 def short_hash(s):
 	"""Return a human-manipulatable 'short hash' of a string."""
-	return new_sha1(s).hexdigest()[-8:]
+	return hashlib.sha1(s).hexdigest()[-8:]
 
 def ensure_unicode(value, encoding):
 	"""Convert a structure returned by feedparser into an equivalent where
@@ -548,7 +536,7 @@ class Article:
 		system (i.e. it can't just be the article ID, because that
 		would collide if more than one feed included the same
 		article)."""
-		h = new_sha1()
+		h = hashlib.sha1()
 		def add_hash(s):
 			h.update(s.encode("UTF-8"))
 

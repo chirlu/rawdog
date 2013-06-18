@@ -24,8 +24,6 @@ Option to limit update runtime
 
 Fix rawdog -a https://www.fsf.org/blogs/rms/
 
-Somewhere safe for plugins to persist data...
-
 --change-feed-url option to change feed URL without losing articles
 
 Look at Expires header to automatically select "periods"
@@ -62,8 +60,6 @@ Option to choose whether full content or summary is preferred.
 
 Review expiry logic: is maxage=0 the same as currentonly?
 
-Plugin that gets run on new articles.
-
 OPML listing -- needs feed type.
 Do for now as separate program once config parser separate.
 
@@ -81,7 +77,7 @@ Add a needs_update() method to Feed; make Rawdog call that on all the feeds
 
 For rawdog 3:
 - generalise templating (so the show template option takes a name, etc.)
-- require Python 2.3
+- newer Python features
   - use unicode.encode('ascii','xmlcharrefreplace') if possible?
   - "for line in file"
   - "item in dict"

@@ -911,13 +911,13 @@ class RemoveFeedEditor:
 	def __init__(self, url):
 		self.url = url
 	def edit(self, inputfile, outputfile):
-		while 1:
+		while True:
 			l = inputfile.readline()
 			if l == "":
 				break
 			ls = l.strip().split(None)
 			if len(ls) > 2 and ls[0] == "feed" and ls[2] == self.url:
-				while 1:
+				while True:
 					l = inputfile.readline()
 					if l == "":
 						break
@@ -954,7 +954,7 @@ class FeedFetcher:
 		config = self.config
 
 		config.log("Thread ", num, " starting")
-		while 1:
+		while True:
 			self.lock.acquire()
 			if self.jobs == {}:
 				job = None

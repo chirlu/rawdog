@@ -321,6 +321,17 @@ class BasicAuthProcessor(urllib2.BaseHandler):
 
 	https_request = http_request
 
+class DisableIMProcessor(urllib2.BaseHandler):
+	"""urllib2 handler that disables RFC 3229 for a request."""
+
+	def http_request(self, req):
+		# Request doesn't provide a method for removing headers --
+		# so overwrite the header instead.
+		req.add_header("A-IM", "identity")
+		return req
+
+	https_request = http_request
+
 non_alphanumeric_re = re.compile(r'<[^>]*>|\&[^\;]*\;|[^a-z0-9]')
 class Feed:
 	"""An RSS feed."""
@@ -360,19 +371,21 @@ class Feed:
 		if self.args.has_key("user") and self.args.has_key("password"):
 			handlers.append(BasicAuthProcessor(self.args["user"], self.args["password"]))
 
-		plugins.call_hook("add_urllib2_handlers", rawdog, config, self, handlers)
-
-		use_im = True
 		if self.get_keepmin(config) == 0 or config["currentonly"]:
-			use_im = False
+			# If RFC 3229 and "A-IM: feed" is used, then there's
+			# no way to tell when an article has been removed.
+			# So if we only want to keep articles that are still
+			# being published by the feed, we have to turn it off.
+			handlers.append(DisableIMProcessor())
+
+		plugins.call_hook("add_urllib2_handlers", rawdog, config, self, handlers)
 
 		try:
 			return feedparser.parse(self.url,
 				etag = self.etag,
 				modified = self.modified,
 				agent = "rawdog/" + VERSION,
-				handlers = handlers,
-				use_im = use_im)
+				handlers = handlers)
 		except Exception, e:
 			return {
 				"rawdog_exception": e,

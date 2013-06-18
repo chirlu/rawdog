@@ -18,9 +18,14 @@ Tidy up the code formatting in a few places to make it closer to PEP 8.
 Remove the --upgrade option; I think it's highly unlikely that anybody
 still has any rawdog 1 state files around.
 
-Use a custom urllib2 handler to do HTTP basic authentication, rather
-than patching feedparser. This also fixes proxy authentication, which I
+Use a custom urllib2 handler to do HTTP basic authentication, instead of
+a feedparser patch. This also fixes proxy authentication, which I
 accidentally broke by removing a helper class several releases ago.
+
+Use a custom urllib2 handler to disable RFC 3229, instead of a
+feedparser patch. The behaviour is slightly different in that it now
+sends "A-IM: identity" rather than no header at all; this should have
+the same effect, though.
 
 - rawdog 2.14
 

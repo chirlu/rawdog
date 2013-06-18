@@ -438,7 +438,7 @@ class Feed:
 				if a.feed == feed and id is not None:
 					article_ids[id] = a
 
-		seen = {}
+		seen_articles = set()
 		sequence = 0
 		for entry_info in p["entries"]:
 			article = Article(feed, entry_info, now, sequence)
@@ -446,7 +446,7 @@ class Feed:
 			plugins.call_hook("article_seen", rawdog, config, article, ignore)
 			if ignore.value:
 				continue
-			seen[article.hash] = True
+			seen_articles.add(article.hash)
 			sequence += 1
 
 			id = entry_info.get("id")
@@ -466,7 +466,7 @@ class Feed:
 
 		if config["currentonly"]:
 			for (hash, a) in articles.items():
-				if a.feed == feed and not seen.has_key(hash):
+				if a.feed == feed and hash not in seen_articles:
 					del articles[hash]
 
 		return True
@@ -944,9 +944,7 @@ class FeedFetcher:
 		self.rawdog = rawdog
 		self.config = config
 		self.lock = threading.Lock()
-		self.jobs = {}
-		for feed in feedlist:
-			self.jobs[feed] = 1
+		self.jobs = set(feedlist)
 		self.results = {}
 
 	def worker(self, num):
@@ -956,11 +954,10 @@ class FeedFetcher:
 		config.log("Thread ", num, " starting")
 		while True:
 			self.lock.acquire()
-			if self.jobs == {}:
+			try:
+				job = self.jobs.pop()
+			except KeyError:
 				job = None
-			else:
-				job = self.jobs.keys()[0]
-				del self.jobs[job]
 			self.lock.release()
 			if job is None:
 				break
@@ -976,7 +973,7 @@ class FeedFetcher:
 		workers = []
 		for i in range(numworkers):
 			self.lock.acquire()
-			isempty = (self.jobs == {})
+			isempty = (len(self.jobs) == 0)
 			self.lock.release()
 			if isempty:
 				# No jobs left in the queue -- don't bother
@@ -1105,9 +1102,9 @@ class Rawdog(Persistable):
 			self.modified()
 			self.using_splitstate = config["splitstate"]
 
-		seenfeeds = {}
+		seen_feeds = set()
 		for (url, period, args) in config["feedslist"]:
-			seenfeeds[url] = 1
+			seen_feeds.add(url)
 			if not self.feeds.has_key(url):
 				config.log("Adding new feed: ", url)
 				self.feeds[url] = Feed(url)
@@ -1125,7 +1122,7 @@ class Rawdog(Persistable):
 				feed.args = newargs
 				self.modified()
 		for url in self.feeds.keys():
-			if not seenfeeds.has_key(url):
+			if url not in seen_feeds:
 				config.log("Removing feed: ", url)
 				if config["splitstate"]:
 					try:
@@ -1170,7 +1167,7 @@ class Rawdog(Persistable):
 		else:
 			prefetched = {}
 
-		seen_some_items = {}
+		seen_some_items = set()
 		def do_expiry(articles):
 			feedcounts = {}
 			for key, article in articles.items():
@@ -1193,7 +1190,7 @@ class Rawdog(Persistable):
 					count += 1
 					del articles[key]
 					continue
-				if (seen_some_items.has_key(url)
+				if (url in seen_some_items
 				    and self.feeds.has_key(url)
 				    and article.can_expire(now, config)
 				    and feedcounts[url] > self.feeds[url].get_keepmin(config)):
@@ -1225,7 +1222,7 @@ class Rawdog(Persistable):
 			url = feed.url
 			plugins.call_hook("post_update_feed", self, config, feed, rc)
 			if rc:
-				seen_some_items[url] = 1
+				seen_some_items.add(url)
 				if config["splitstate"]:
 					feedstate.modified()
 
@@ -1395,8 +1392,8 @@ __description__
 		"""Filter the list of articles to remove articles that are too
 		old or are duplicates."""
 		kept_articles = []
-		seen_links = {}
-		seen_guids = {}
+		seen_links = set()
+		seen_guids = set()
 		dup_count = 0
 		for article in articles:
 			feed = self.feeds[article.feed]
@@ -1422,14 +1419,14 @@ __description__
 				is_dup = False
 				for key in config["hideduplicates"]:
 					if key == "id" and guid is not None:
-						if seen_guids.has_key(guid):
+						if guid in seen_guids:
 							is_dup = True
-						seen_guids[guid] = 1
+						seen_guids.add(guid)
 						break
 					elif key == "link" and link is not None:
-						if seen_links.has_key(link):
+						if link in seen_links:
 							is_dup = True
-						seen_links[link] = 1
+						seen_links.add(link)
 						break
 				if is_dup:
 					dup_count += 1

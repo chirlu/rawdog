@@ -5,7 +5,8 @@ version in Debian and Red Hat's previous stable releases, so it should
 be safe to assume on current systems, and means we can clean up some
 older compatibility cruft.
 
-Make some minor improvements to the documentation.
+Make the rawdog(1) man page describe all of rawdog's options, and make
+some other minor improvements to the documentation and help.
 
 - rawdog 2.14
 

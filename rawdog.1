@@ -18,11 +18,28 @@ latest articles it's seen.
 This program follows the usual GNU command line syntax, with long
 options starting with two dashes (`\-'). A summary of options is
 included below. For a complete description, see the README file.
+.SS General Options
+.TP
+.BI \-d \ DIR\fP, \ \-\-dir \ DIR
+Use
+.I DIR
+instead of the $HOME/.rawdog directory.
+.TP
+.B \-N, \-\-no\-locking
+Do not lock the state file.
+.TP
+.B \-v, \-\-verbose
+Print more detailed status information.
+.TP
+.B \-W, \-\-no\-lock\-wait
+Exit silently if the state file is locked.
+.SS Actions
+\fBrawdog\fP will perform these actions in the order given.
 .TP
 .BI \-a \ URL\fP, \ \-\-add \ URL
-Add a new feed to the config file, using Mark Pilgrim's "feedfinder"
-module to extract the location of the feed from
-.IR URL .
+Try to find a feed associated with
+.I URL
+and add it to the config file.
 .TP
 .BI \-c \ FILE\fP, \ \-\-config \ FILE
 Read
@@ -36,19 +53,29 @@ may be an absolute path or a path relative to your .rawdog directory.
 Note that $HOME/.rawdog/config will still be read first even if you
 specify this option.
 .TP
-.BI \-d \ DIR\fP, \ \-\-dir \ DIR
-Use
-.I DIR
-instead of the $HOME/.rawdog directory.
-.TP
-.BI \-f \ SOMEURL\fP, \ \-\-update\-feed \ SOMEURL
+.BI \-f \ URL\fP, \ \-\-update\-feed \ URL
 Update the feed pointed to by
-.I SOMEURL
+.I URL
 immediately, even if its period hasn't elapsed since it was last
 updated.
 .TP
+.B \-l, \ \-\-list
+List feeds known at the time of last update.
+.TP
+.BI \-r \ URL\fP, \ \-\-remove \ URL
+Remove feed
+.I URL
+from the config file.
+.TP
 .B \-t, \ \-\-show\-template
-Print the template currently in use to stdout.
+Print the
+.I template
+currently in use to stdout.
+.TP
+.B \-T, \ \-\-show\-itemtemplate
+Print the
+.I itemtemplate
+currently in use to stdout.
 .TP
 .B \-u, \-\-update
 Fetch data from the feeds and store it. This could take some time if
@@ -56,9 +83,31 @@ you've got lots of feeds.
 .TP
 .B \-w, \-\-write
 Write out the HTML output file.
+.SS Special Actions
+If one of these options is specified, \fBrawdog\fP will perform only
+that action, then exit.
 .TP
 .B \-\-help
-Provide a brief summary of all the options rawdog supports, and exit.
+Provide a brief summary of all the options rawdog supports.
+.TP
+.BI \-\-upgrade \ OLDDIR\ NEWDIR
+Import feed state from rawdog 1.x directory
+.I OLDDIR
+into rawdog 2.x directory
+.IR NEWDIR .
+.SH EXAMPLES
+\fBrawdog\fP is typically invoked from
+.BR cron (1).
+The following
+.BR crontab (5)
+entry would fetch data from feeds and write it to HTML once an hour,
+exiting if \fBrawdog\fP is already running:
+.PP
+.nf
+.RS
+0 * * * *  rawdog -Wvw
+.RE
+.fi
 .SH FILES
 $HOME/.rawdog/config
 .SH SEE ALSO

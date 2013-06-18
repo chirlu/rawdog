@@ -1629,14 +1629,10 @@ def main(argv):
 
 	locale.setlocale(locale.LC_ALL, "")
 
+	# This is quite expensive and not threadsafe, so we do it on
+	# startup and cache the result.
 	global system_encoding
-	try:
-		# This doesn't exist on Python 2.2.
-		# It's also quite expensive, which is why we do it on startup
-		# and cache the result.
-		system_encoding = locale.getpreferredencoding()
-	except:
-		system_encoding = "UTF-8"
+	system_encoding = locale.getpreferredencoding()
 
 	try:
 		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:r:NW", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "upgrade", "add=", "remove=", "no-locking", "no-lock-wait"])

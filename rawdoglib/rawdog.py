@@ -1613,7 +1613,6 @@ General options (use only once):
 -v, --verbose                Print more detailed status information
 -N, --no-locking             Do not lock the state file
 -W, --no-lock-wait           Exit silently if state file is locked
---help                       Display this help and exit
 
 Actions (performed in order given):
 -u, --update                 Fetch data from feeds and store it
@@ -1630,6 +1629,7 @@ Actions (performed in order given):
 Special actions (all other options are ignored if one of these is specified):
 --upgrade OLDDIR NEWDIR      Import feed state from rawdog 1.x directory
                              OLDDIR into rawdog 2.x directory NEWDIR
+--help                       Display this help and exit
 
 Report bugs to <ats@offog.org>."""
 

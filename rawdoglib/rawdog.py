@@ -59,15 +59,6 @@ def new_sha1(s = ""):
 	else:
 		return hashlib.sha1(s)
 
-def set_socket_timeout(n):
-	"""Set the system socket timeout."""
-	if hasattr(socket, "setdefaulttimeout"):
-		socket.setdefaulttimeout(n)
-	else:
-		# Python 2.2 and earlier need to use an external module.
-		import timeoutsocket
-		timeoutsocket.setDefaultSocketTimeout(n)
-
 system_encoding = None
 def get_system_encoding():
 	"""Get the system encoding."""
@@ -1180,7 +1171,7 @@ class Rawdog(Persistable):
 		feedparser._FeedParserMixin.can_contain_relative_uris = ["url"]
 		feedparser._FeedParserMixin.can_contain_dangerous_markup = []
 		feedparser.BeautifulSoup = None
-		set_socket_timeout(config["timeout"])
+		socket.setdefaulttimeout(config["timeout"])
 
 		if feedurl is None:
 			update_feeds = [url for url in self.feeds.keys()

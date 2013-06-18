@@ -19,18 +19,10 @@ This program follows the usual GNU command line syntax, with long
 options starting with two dashes (`\-'). A summary of options is
 included below. For a complete description, see the README file.
 .TP
-.B \-u, \-\-update
-Fetch data from the feeds and store it. This could take some time if
-you've got lots of feeds.
-.TP
-.B \-w, \-\-write
-Write out the HTML output file.
-.TP
-.BI \-f \ SOMEURL\fP, \ \-\-update\-feed \ SOMEURL
-Update the feed pointed to by
-.I SOMEURL
-immediately, even if its period hasn't elapsed since it was last
-updated.
+.BI \-a \ URL\fP, \ \-\-add \ URL
+Add a new feed to the config file, using Mark Pilgrim's "feedfinder"
+module to extract the location of the feed from
+.IR URL .
 .TP
 .BI \-c \ FILE\fP, \ \-\-config \ FILE
 Read
@@ -44,18 +36,26 @@ may be an absolute path or a path relative to your .rawdog directory.
 Note that $HOME/.rawdog/config will still be read first even if you
 specify this option.
 .TP
-.B \-t, \ \-\-show\-template
-Print the template currently in use to stdout.
-.TP
-.BI \-a \ URL\fP, \ \-\-add \ URL
-Add a new feed to the config file, using Mark Pilgrim's "feedfinder"
-module to extract the location of the feed from
-.IR URL .
-.TP
 .BI \-d \ DIR\fP, \ \-\-dir \ DIR
 Use
 .I DIR
 instead of the $HOME/.rawdog directory.
+.TP
+.BI \-f \ SOMEURL\fP, \ \-\-update\-feed \ SOMEURL
+Update the feed pointed to by
+.I SOMEURL
+immediately, even if its period hasn't elapsed since it was last
+updated.
+.TP
+.B \-t, \ \-\-show\-template
+Print the template currently in use to stdout.
+.TP
+.B \-u, \-\-update
+Fetch data from the feeds and store it. This could take some time if
+you've got lots of feeds.
+.TP
+.B \-w, \-\-write
+Write out the HTML output file.
 .TP
 .B \-\-help
 Provide a brief summary of all the options rawdog supports, and exit.
@@ -66,5 +66,5 @@ $HOME/.rawdog/config
 .SH AUTHOR
 rawdog was written by Adam Sampson <ats@offog.org>.
 .PP
-This manual page was written by Decklin Foster <decklin@red\-bean.com>,
-for the Debian project (but may be used by others).
+This manual page was originally written by Decklin Foster
+<decklin@red\-bean.com>, for the Debian project (but may be used by others).

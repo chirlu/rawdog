@@ -24,12 +24,7 @@ import os, time, getopt, sys, re, cgi, socket, urllib2, calendar
 import string, locale
 from StringIO import StringIO
 import types
-
-try:
-	import threading
-	have_threading = 1
-except:
-	have_threading = 0
+import threading
 
 try:
 	import hashlib
@@ -678,8 +673,7 @@ class Config:
 	def __init__(self, locking):
 		self.locking = locking
 		self.files_loaded = []
-		if have_threading:
-			self.loglock = threading.Lock()
+		self.loglock = threading.Lock()
 		self.reset()
 
 	def reset(self):
@@ -852,11 +846,9 @@ class Config:
 	def log(self, *args):
 		"""If running in verbose mode, print a status message."""
 		if self["verbose"]:
-			if have_threading:
-				self.loglock.acquire()
+			self.loglock.acquire()
 			print >>sys.stderr, "".join(map(str, args))
-			if have_threading:
-				self.loglock.release()
+			self.loglock.release()
 
 	def bug(self, *args):
 		"""Report detection of a bug in rawdog."""
@@ -1187,7 +1179,7 @@ class Rawdog(Persistable):
 		numfeeds = len(update_feeds)
 		config.log("Will update ", numfeeds, " feeds")
 
-		if have_threading and config["numthreads"] > 0:
+		if config["numthreads"] > 0:
 			fetcher = FeedFetcher(self, update_feeds, config)
 			prefetched = fetcher.run(config["numthreads"])
 		else:

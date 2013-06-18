@@ -7,7 +7,7 @@ be safe to assume on current systems.
 Make setup.py complain if you have an inappropriate Python version.
 
 Remove obsolete code that supported pre-2.6 versions of Python
-(timeoutsocket.py).
+(timeoutsocket.py, conditional imports).
 
 Make the rawdog(1) man page describe all of rawdog's options, and make
 some other minor improvements to the documentation and help.

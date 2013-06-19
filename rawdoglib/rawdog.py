@@ -1001,22 +1001,19 @@ class FeedFetcher:
 				self.results[job] = result
 		config.log("Thread ", num, " done")
 
-	def run(self, numworkers):
-		self.config.log("Thread farm starting with ", len(self.jobs), " jobs")
-		workers = []
-		for i in range(numworkers):
-			with self.lock:
-				if len(self.jobs) == 0:
-					# No jobs left in the queue -- don't
-					# bother starting any more workers.
-					break
+	def run(self, max_workers):
+		num_workers = min(max_workers, len(self.jobs))
 
+		self.config.log("Starting ", num_workers,
+		                " worker threads for ", len(self.jobs), " jobs")
+		workers = []
+		for i in range(num_workers):
 			t = threading.Thread(target=self.worker, args=(i,))
 			t.start()
 			workers.append(t)
 		for worker in workers:
 			worker.join()
-		self.config.log("Thread farm finished with ", len(self.results), " results")
+		self.config.log("Worker threads finished")
 		return self.results
 
 class FeedState(Persistable):

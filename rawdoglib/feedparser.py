@@ -3,7 +3,6 @@
 Changes made by Adam Sampson <ats@offog.org> for rawdog:
 - provide _raw versions of text content
 - handle file: URLs
-- fix startElementNS/endElementNS namespace mangling bug
 - save the traceback from parser exceptions
 
 Handles RSS 0.9x, RSS 1.0, RSS 2.0, CDF, Atom 0.3, and Atom 1.0 feeds

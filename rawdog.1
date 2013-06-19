@@ -15,103 +15,98 @@ it's seen.
 .PP
 \fBrawdog\fP uses the ETags and Last-Modified headers to avoid fetching
 a file that hasn't changed, and supports gzip and delta compression to
-reduce bandwidth when it has. \fBrawdog\fP is configured from a simple
-text file; the only state kept between invocations that can't be
-reconstructed from the feeds is the ordering of articles.
+reduce bandwidth when it has.
+\fBrawdog\fP is configured from a simple text file; the only state kept
+between invocations that can't be reconstructed from the feeds is the
+ordering of articles.
 .SH OPTIONS
 This program follows the usual GNU command line syntax, with long
-options starting with two dashes (`\-'). A summary of options is
-included below. For a complete description, see the README file.
+options starting with two dashes (`\-').
+A summary of options is included below.
+For a complete description, see the README file.
 .SS General Options
 .TP
-.BI \-d \ DIR\fP, \ \-\-dir \ DIR
-Use
-.I DIR
-instead of the $HOME/.rawdog directory.
+\fB\-d\fP \fIDIR\fP, \fB\-\-dir\fP \fIDIR\fP
+Use \fIDIR\fP instead of the $HOME/.rawdog directory.
 This option lets you have two or more \fBrawdog\fP setups with different
 configurations and sets of feeds.
 .TP
-.B \-N, \-\-no\-locking
+\fB\-N\fP, \fB\-\-no\-locking\fP
 Do not lock the state file.
 .IP ""
 \fBrawdog\fP usually claims a lock on its state file, to stop more than
-one instance from running at the same time. Unfortunately, some
-filesystems don't support file locking; you can use this option to
-disable locking entirely if you're in that situation.
+one instance from running at the same time.
+Unfortunately, some filesystems don't support file locking; you can use
+this option to disable locking entirely if you're in that situation.
 .TP
-.B \-v, \-\-verbose
+\fB\-v\fP, \fB\-\-verbose\fP
 Print more detailed information about what \fBrawdog\fP is doing while
 it runs.
 .TP
-.B \-W, \-\-no\-lock\-wait
+\fB\-W\fP, \fB\-\-no\-lock\-wait\fP
 Exit silently if the state file is already locked.
 .IP ""
 If the state file is already locked, \fBrawdog\fP will normally wait
-until it becomes available, then run. However, if you're got a lot of
-feeds and a slow network connection, you might prefer \fBrawdog\fP to
-just give up immediately if the previous instance is still running.
+until it becomes available, then run.
+However, if you're got a lot of feeds and a slow network connection, you
+might prefer \fBrawdog\fP to just give up immediately if the previous
+instance is still running.
 .SS Actions
 \fBrawdog\fP will perform these actions in the order given.
 .TP
-.BI \-a \ URL\fP, \ \-\-add \ URL
-Try to find a feed associated with
-.I URL
-and add it to the config file.
+\fB\-a\fP \fIURL\fP, \fB\-\-add\fP \fIURL\fP
+Try to find a feed associated with \fIURL\fP and add it to the config
+file.
 .IP ""
-.I URL
-may be a feed itself, or it can be an HTML page that links to a feed in
-any of a variety of ways. \fBrawdog\fP uses heuristics to pick the best
-feed it can find, and will complain if it can't find one.
+\fIURL\fP may be a feed itself, or it can be an HTML page that links to
+a feed in any of a variety of ways.
+\fBrawdog\fP uses heuristics to pick the best feed it can find, and will
+complain if it can't find one.
 .TP
-.BI \-c \ FILE\fP, \ \-\-config \ FILE
-Read
-.I FILE
-as an additional config file; any options provided in
-.I FILE
-will override those set in the main config file (with the exception of
-"feed", which is cumulative).
-.I FILE
-may be an absolute path or a path relative to your .rawdog directory.
+\fB\-c\fP \fIFILE\fP, \fB\-\-config\fP \fIFILE\fP
+Read \fIFILE\fP as an additional config file; any options provided in
+\fIFILE\fP will override those set in the main config file (with the
+exception of "feed", which is cumulative).
+\fIFILE\fP may be an absolute path or a path relative to your .rawdog
+directory.
 .IP ""
 Note that $HOME/.rawdog/config will still be read first even if you
-specify this option. \fB\-c\fP is mostly useful when you want to write
-the same set of feeds out using two different sets of output options.
+specify this option.
+\fB\-c\fP is mostly useful when you want to write the same set of feeds
+out using two different sets of output options.
 .TP
-.BI \-f \ URL\fP, \ \-\-update\-feed \ URL
-Update the feed pointed to by
-.I URL
-immediately, even if its period hasn't elapsed since it was last
-updated. This is useful when you're publishing a feed yourself, and want
-to test whether it's working properly.
+\fB\-f\fP \fIURL\fP, \fB\-\-update\-feed\fP \fIURL\fP
+Update the feed pointed to by \fIURL\fP immediately, even if its period
+hasn't elapsed since it was last updated.
+This is useful when you're publishing a feed yourself, and want to test
+whether it's working properly.
 .TP
-.B \-l, \ \-\-list
+\fB\-l\fP, \fB\-\-list\fP
 List brief information about each of the feeds that was known about at
 the time of the last update.
 .TP
-.BI \-r \ URL\fP, \ \-\-remove \ URL
-Remove feed
-.I URL
-from the config file.
+\fB\-r\fP \fIURL\fP, \fB\-\-remove\fP \fIURL\fP
+Remove feed \fIURL\fP from the config file.
 .TP
-.B \-t, \ \-\-show\-template
-Print the page template currently in use to stdout. This can be used as
-a starting point if you want to design your own template for use with
-the \fBtemplate\fP option in the config file.
+\fB\-t\fP, \fB\-\-show\-template\fP
+Print the page template currently in use to stdout.
+This can be used as a starting point if you want to design your own
+template for use with the \fBtemplate\fP option in the config file.
 .TP
-.B \-T, \ \-\-show\-itemtemplate
+\fB\-T\fP, \fB\-\-show\-itemtemplate\fP
 Print the item template currently in use to stdout.
 .TP
-.B \-u, \-\-update
-Fetch data from the feeds and store it. This could take some time if
-you've got lots of feeds.
+\fB\-u\fP, \fB\-\-update\fP
+Fetch data from the feeds and store it.
+This could take some time if you've got lots of feeds.
 .TP
-.B \-w, \-\-write
+\fB\-w\fP, \fB\-\-write\fP
 Write out the HTML output file.
 .SS Special Actions
 If one of these options is specified, \fBrawdog\fP will perform only
 that action, then exit.
 .TP
-.B \-\-help
+\fB\-\-help\fP
 Provide a brief summary of all the options \fBrawdog\fP supports.
 .SH EXAMPLES
 \fBrawdog\fP is typically invoked from
@@ -136,4 +131,5 @@ contributions and bug reports from many of \fBrawdog\fP's users.
 See \fBrawdog\fP's NEWS file for a complete list of contributors.
 .PP
 This manual page was originally written by Decklin Foster
-<decklin@red\-bean.com>, for the Debian project (but may be used by others).
+<decklin@red\-bean.com>, for the Debian project (but may be used by
+others).

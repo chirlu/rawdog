@@ -991,7 +991,7 @@ class FeedFetcher:
 					# No jobs left.
 					break
 
-			config.log("Thread ", num, " fetching feed: ", job)
+			config.log("[", num, "] Fetching feed: ", job)
 			feed = rawdog.feeds[job]
 			plugins.call_hook("pre_update_feed", rawdog, config, feed)
 			result = feed.fetch(rawdog, config)
@@ -1000,10 +1000,11 @@ class FeedFetcher:
 				self.results[job] = result
 
 	def run(self, max_workers):
+		max_workers = max(max_workers, 1)
 		num_workers = min(max_workers, len(self.jobs))
 
-		self.config.log("Starting ", num_workers,
-		                " worker threads for ", len(self.jobs), " jobs")
+		self.config.log("Fetching ", len(self.jobs), " feeds using ",
+		                num_workers, " threads")
 		workers = []
 		for i in range(1, num_workers):
 			t = threading.Thread(target=self.worker, args=(i,))
@@ -1012,7 +1013,7 @@ class FeedFetcher:
 		self.worker(0)
 		for worker in workers:
 			worker.join()
-		self.config.log("Worker threads finished")
+		self.config.log("Fetch complete")
 		return self.results
 
 class FeedState(Persistable):
@@ -1188,11 +1189,8 @@ class Rawdog(Persistable):
 		numfeeds = len(update_feeds)
 		config.log("Will update ", numfeeds, " feeds")
 
-		if config["numthreads"] > 0:
-			fetcher = FeedFetcher(self, update_feeds, config)
-			prefetched = fetcher.run(config["numthreads"])
-		else:
-			prefetched = {}
+		fetcher = FeedFetcher(self, update_feeds, config)
+		fetched = fetcher.run(config["numthreads"])
 
 		seen_some_items = set()
 		def do_expiry(articles):
@@ -1239,11 +1237,7 @@ class Rawdog(Persistable):
 			else:
 				articles = self.articles
 
-			if url in prefetched:
-				content = prefetched[url]
-			else:
-				plugins.call_hook("pre_update_feed", self, config, feed)
-				content = feed.fetch(self, config)
+			content = fetched[url]
 			plugins.call_hook("mid_update_feed", self, config, feed, content)
 			rc = feed.update(self, now, config, articles, content)
 			url = feed.url

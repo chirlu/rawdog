@@ -724,7 +724,7 @@ class Config:
 			"hideduplicates" : "",
 			"newfeedperiod" : "3h",
 			"changeconfig": False,
-			"numthreads": 0,
+			"numthreads": 1,
 			"splitstate": False,
 			"useids": False,
 			}

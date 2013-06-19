@@ -1005,10 +1005,11 @@ class FeedFetcher:
 		self.config.log("Starting ", num_workers,
 		                " worker threads for ", len(self.jobs), " jobs")
 		workers = []
-		for i in range(num_workers):
+		for i in range(1, num_workers):
 			t = threading.Thread(target=self.worker, args=(i,))
 			t.start()
 			workers.append(t)
+		self.worker(0)
 		for worker in workers:
 			worker.join()
 		self.config.log("Worker threads finished")

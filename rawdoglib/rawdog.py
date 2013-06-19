@@ -864,9 +864,8 @@ class Config:
 	def log(self, *args):
 		"""If running in verbose mode, print a status message."""
 		if self["verbose"]:
-			self.loglock.acquire()
-			print >>sys.stderr, "".join(map(str, args))
-			self.loglock.release()
+			with self.loglock:
+				print >>sys.stderr, "".join(map(str, args))
 
 	def bug(self, *args):
 		"""Report detection of a bug in rawdog."""
@@ -986,14 +985,11 @@ class FeedFetcher:
 
 		config.log("Thread ", num, " starting")
 		while True:
-			self.lock.acquire()
-			try:
-				job = self.jobs.pop()
-			except KeyError:
-				job = None
-			self.lock.release()
-			if job is None:
-				break
+			with self.lock:
+				try:
+					job = self.jobs.pop()
+				except KeyError:
+					break
 
 			config.log("Thread ", num, " fetching feed: ", job)
 			feed = rawdog.feeds[job]
@@ -1005,13 +1001,11 @@ class FeedFetcher:
 		self.config.log("Thread farm starting with ", len(self.jobs), " jobs")
 		workers = []
 		for i in range(numworkers):
-			self.lock.acquire()
-			isempty = (len(self.jobs) == 0)
-			self.lock.release()
-			if isempty:
-				# No jobs left in the queue -- don't bother
-				# starting any more workers.
-				break
+			with self.lock:
+				if len(self.jobs) == 0:
+					# No jobs left in the queue -- don't
+					# bother starting any more workers.
+					break
 
 			t = threading.Thread(target=self.worker, args=(i,))
 			t.start()

@@ -983,7 +983,6 @@ class FeedFetcher:
 		rawdog = self.rawdog
 		config = self.config
 
-		config.log("Thread ", num, " starting")
 		while True:
 			with self.lock:
 				try:
@@ -999,7 +998,6 @@ class FeedFetcher:
 
 			with self.lock:
 				self.results[job] = result
-		config.log("Thread ", num, " done")
 
 	def run(self, max_workers):
 		num_workers = min(max_workers, len(self.jobs))

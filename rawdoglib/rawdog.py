@@ -989,12 +989,16 @@ class FeedFetcher:
 				try:
 					job = self.jobs.pop()
 				except KeyError:
+					# No jobs left.
 					break
 
 			config.log("Thread ", num, " fetching feed: ", job)
 			feed = rawdog.feeds[job]
 			plugins.call_hook("pre_update_feed", rawdog, config, feed)
-			self.results[job] = feed.fetch(rawdog, config)
+			result = feed.fetch(rawdog, config)
+
+			with self.lock:
+				self.results[job] = result
 		config.log("Thread ", num, " done")
 
 	def run(self, numworkers):

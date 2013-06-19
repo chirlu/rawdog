@@ -27,6 +27,8 @@ feedparser patch. The behaviour is slightly different in that it now
 sends "A-IM: identity" rather than no header at all; this should have
 the same effect, though.
 
+Tidy up the code that manages the pool of feed-fetching threads.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

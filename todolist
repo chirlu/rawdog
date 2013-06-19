@@ -1,3 +1,6 @@
+Import fakefinder from Debian's rawdog patch, and extend it to replace
+feedfinder (which has license problems that are unlikely to be solved).
+
 Have a proper test suite that checks all the unusual feed options work -- e.g.
 authentication.
 

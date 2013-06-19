@@ -30,9 +30,6 @@ mostly converting strings that feedparser itself has created.
 Import fakefinder from Debian's rawdog patch, and extend it to replace
 feedfinder (which has license problems that are unlikely to be solved).
 
-Have a proper test suite that checks all the unusual feed options work -- e.g.
-authentication.
-
 Handle maxage working on article.date/added -- make this a config option? Merge with one of the existing options?
 
 Make maxarticles work as a per-feed option.

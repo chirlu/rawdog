@@ -1,0 +1,338 @@
+#!/bin/sh
+# test-rawdog: run some basic tests to make sure rawdog's working.
+# Copyright 2013 Adam Sampson <ats@offog.org>
+#
+# rawdog is free software; you can redistribute and/or modify it
+# under the terms of that license as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option)
+# any later version.
+#
+# rawdog is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with rawdog; see the file COPYING. If not, write to the Free
+# Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA 02110-1301, USA, or see http://www.gnu.org/.
+
+statedir="testauto"
+
+# This directory must be exposed through an Apache webserver
+# (once this script creates it).
+# We need to be able to write an .htaccess file into it containing
+# mod_rewrite directives.
+httpdir="/home/pub/azz/rawdog-test/dir"
+httpurl="http://cartman.at.offog.org/azz/rawdog-test/dir"
+
+die () {
+	echo "Test failed:" "$@"
+	exit 1
+}
+
+cleanstate () {
+	rm -fr $statedir $httpdir
+	mkdir -p $statedir $statedir/feeds $httpdir
+	cp config $statedir/config
+}
+
+begin () {
+	echo ">>> Testing $1"
+	cleanstate
+}
+
+add () {
+	echo "$1" >>$statedir/config
+}
+
+contains () {
+	file="$1"
+	shift
+	for key in "$@"; do
+		if ! grep -q "$key" "$file"; then
+			cat "$file"
+			die "expected $file to contain '$key'"
+		fi
+	done
+}
+
+not_contains () {
+	file="$1"
+	shift
+	for key in "$@"; do
+		if grep -q "$key" "$file"; then
+			cat "$file"
+			die "expected $file not to contain '$key'"
+		fi
+	done
+}
+
+run () {
+	./rawdog -d $statedir "$@" >$statedir/out 2>&1 || die "exited non-0"
+}
+
+# Run rawdog, expecting no complaints.
+runs () {
+	run "$@"
+	if [ -s $statedir/out ]; then
+		cat $statedir/out
+		die "expected no output"
+	fi
+}
+
+# Run rawdog, expecting a complaint containing the first arg.
+rune () {
+	key="$1"
+	shift
+	run "$@"
+	contains "$statedir/out" "$key"
+}
+
+make_rss20 () {
+	cat >"$1" <<EOF
+<rss version="2.0">
+  <channel>
+    <title>example-feed-title</title>
+    <link>http://example.org/</link>
+    <description>example-feed-description</description>
+    <item>
+      <title>example-item-title</title>
+      <link>http://example.org/item</link>
+      <description><![CDATA[<p>example-item-description</p>]]></description>
+    </item>
+  </channel>
+</rss>
+EOF
+}
+
+make_range () {
+	from="$1"
+	to="$2"
+	file="$3"
+	cat >"$file" <<EOF
+<rss version="2.0">
+  <channel>
+    <title>example-feed-title</title>
+    <link>http://example.org/</link>
+    <description>example-feed-description</description>
+EOF
+	for i in $(seq $from $to); do
+		cat >>"$file" <<EOF
+    <item>
+      <title>range-title-$i</title>
+      <link>http://example.org/item$i</link>
+      <description><![CDATA[<p>range-description-$i</p>]]></description>
+    </item>
+EOF
+	done
+	cat >>"$file" <<EOF
+  </channel>
+</rss>
+EOF
+}
+
+make_n () {
+	make_range 1 "$@"
+}
+
+output_range () {
+	contains $statedir/output.html $(seq -f "range-title-%.f" $1 $2)
+}
+
+not_output_range () {
+	not_contains $statedir/output.html $(seq -f "range-title-%.f" $1 $2)
+}
+
+output_n () {
+	output_range 1 "$@"
+}
+
+begin "help"
+run --help
+
+begin "bad config syntax"
+add "foo"
+rune "Bad line in config"
+
+begin "bad config directive"
+add "foo bar"
+rune "Unknown config command"
+
+begin "filename"
+make_rss20 $statedir/simple.rss
+add "feed 0 simple.rss"
+runs -u
+
+# FIXME: produces timeout error
+#begin "file not found"
+#add "feed 0 simple.rss"
+#rune "404" -u
+
+begin "file: URL"
+make_rss20 $statedir/simple.rss
+add "feed 0 file:simple.rss"
+runs -u
+
+begin "http: URL and write"
+make_rss20 $httpdir/simple.rss
+add "feed 0 $httpurl/simple.rss"
+runs -uw
+contains $statedir/output.html example-item-title example-item-description
+
+begin "HTTP 404"
+add "feed 0 $httpurl/notthere"
+rune "404" -u
+
+begin "0 period"
+make_rss20 $httpdir/simple.rss
+add "feed 0 $httpurl/simple.rss"
+runs -u
+rm $httpdir/simple.rss
+rune "404" -u
+
+begin "1h period"
+make_rss20 $httpdir/simple.rss
+add "feed 1h $httpurl/simple.rss"
+runs -u
+rm $httpdir/simple.rss
+runs -u
+
+begin "10 items"
+make_n 10 $httpdir/feed.rss
+add "feed 0 $httpurl/feed.rss"
+runs -uw
+output_n 10
+
+begin "maxarticles 10"
+make_n 20 $httpdir/feed.rss
+add "maxarticles 10"
+add "feed 0 $httpurl/feed.rss"
+runs -uw
+output_n 10
+not_output_range 11 20
+
+begin "keepmin 10"
+make_n 20 $httpdir/feed.rss
+add "keepmin 10"
+add "expireage 0"
+add "feed 0 $httpurl/feed.rss"
+runs -uw
+output_n 20
+make_n 5 $httpdir/feed.rss
+runs -uw
+# Should have the 5 currently in the feed, and 10 in total
+output_n 5
+if [ $(grep range-title- $statedir/output.html | wc -l) != 10 ]; then
+	die "Should contain 10 items"
+fi
+
+begin "currentonly true"
+make_n 10 $httpdir/feed.rss
+add "currentonly true"
+add "feed 0 $httpurl/feed.rss"
+runs -uw
+output_n 10
+make_n 5 $httpdir/feed.rss
+runs -uw
+output_n 5
+not_output_range 6 10
+
+begin "HTTP basic authentication"
+htpasswd -bc $httpdir/passwd TestUser TestPass 2>/dev/null
+cat >$httpdir/.htaccess <<EOF
+AuthType Basic
+AuthName "Test Realm"
+AuthUserFile $httpdir/passwd
+Require valid-user
+EOF
+make_rss20 $httpdir/private.rss
+add "feed 0 $httpurl/private.rss"
+rune "401" -u
+add "  user TestUser"
+add "  password TestPass"
+runs -u
+
+begin "HTTP 302 temporary redirect"
+cat >$httpdir/.htaccess <<EOF
+RewriteEngine On
+RewriteRule old.rss $httpurl/new.rss [L,R=302]
+EOF
+make_rss20 $httpdir/new.rss
+add "feed 0 $httpurl/old.rss"
+runs -u
+
+begin "HTTP 301 permanent redirect, changeconfig false"
+cat >$httpdir/.htaccess <<EOF
+RewriteEngine On
+RewriteRule old.rss $httpurl/new.rss [L,R=301]
+EOF
+make_rss20 $httpdir/new.rss
+add "changeconfig false"
+add "feed 0 $httpurl/old.rss"
+rune "You should update its entry" -u
+contains $statedir/config "$httpurl/old.rss"
+
+begin "HTTP 301 permanent redirect, changeconfig true"
+cat >$httpdir/.htaccess <<EOF
+RewriteEngine On
+RewriteRule old.rss $httpurl/new.rss [L,R=301]
+EOF
+make_rss20 $httpdir/new.rss
+add "changeconfig true"
+add "feed 0 $httpurl/old.rss"
+rune "has been updated automatically" -u
+contains $statedir/config "$httpurl/new.rss"
+runs -u
+
+begin "HTTP 410 gone"
+cat >$httpdir/.htaccess <<EOF
+RewriteEngine On
+RewriteRule gone.rss - [L,G]
+EOF
+add "feed 0 $httpurl/gone.rss"
+rune "You should remove it" -u
+
+begin "converting to splitstate"
+make_n 10 $httpdir/feed.rss
+add "splitstate false"
+add "feed 1h $httpurl/feed.rss"
+runs -uw
+output_n 10
+rm $httpdir/feed.rss
+add "splitstate true"
+runs -uw
+output_n 10
+
+begin "converting from splitstate"
+make_n 10 $httpdir/feed.rss
+add "splitstate true"
+add "feed 1h $httpurl/feed.rss"
+runs -uw
+output_n 10
+rm $httpdir/feed.rss
+add "splitstate false"
+runs -uw
+output_n 10
+
+for opt in "splitstate false" "splitstate true"; do
+	begin "HTTP 301, moving items from existing feed, $opt"
+	make_range 1 5 $httpdir/old.rss
+	add "$opt"
+	add "keepmin 20"
+	add "changeconfig true"
+	add "feed 0 $httpurl/old.rss"
+	runs -uw
+	rm $httpdir/old.rss
+	make_range 6 10 $httpdir/new.rss
+	cat >$httpdir/.htaccess <<EOF
+	RewriteEngine On
+	RewriteRule old.rss $httpurl/new.rss [L,R=301]
+EOF
+	rune "has been updated automatically" -uw
+	# We should still have the original items at this point.
+	output_range 1 10
+	runs -uw
+	output_range 1 10
+done
+

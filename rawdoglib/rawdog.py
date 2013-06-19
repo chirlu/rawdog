@@ -43,6 +43,14 @@ try:
 except:
 	feedfinder = None
 
+# Turn off content-cleaning, since we want to see an approximation to the
+# original content for hashing. rawdog will sanitise HTML when writing.
+feedparser.RESOLVE_RELATIVE_URIS = 0
+feedparser.SANITIZE_HTML = 0
+
+# Disable BeautifulSoup -- it's too flaky for most feeds.
+feedparser.BeautifulSoup = None
+
 system_encoding = None
 def get_system_encoding():
 	"""Get the system encoding."""
@@ -1169,15 +1177,6 @@ class Rawdog(Persistable):
 		expire old ones."""
 		config.log("Starting update")
 		now = time.time()
-
-		# Turn off content-cleaning, since we want to see an
-		# approximation to the original content for hashing.
-		# rawdog will sanitise it when writing.
-		feedparser.RESOLVE_RELATIVE_URIS = 0
-		feedparser.SANITIZE_HTML = 0
-
-		# Disable BeautifulSoup -- it's too flaky for most feeds.
-		feedparser.BeautifulSoup = None
 
 		socket.setdefaulttimeout(config["timeout"])
 

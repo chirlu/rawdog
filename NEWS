@@ -31,6 +31,9 @@ Make the code that manages the pool of feed-fetching threads only start
 as many threads as necessary (including none if there's only one feed to
 fetch), and generally tidy it up.
 
+Set feedparser behaviour using SANITIZE_HTML etc., rather than by
+directly changing the lists of elements it's looking for.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

@@ -1170,9 +1170,15 @@ class Rawdog(Persistable):
 		config.log("Starting update")
 		now = time.time()
 
-		feedparser._FeedParserMixin.can_contain_relative_uris = ["url"]
-		feedparser._FeedParserMixin.can_contain_dangerous_markup = []
+		# Turn off content-cleaning, since we want to see an
+		# approximation to the original content for hashing.
+		# rawdog will sanitise it when writing.
+		feedparser.RESOLVE_RELATIVE_URIS = 0
+		feedparser.SANITIZE_HTML = 0
+
+		# Disable BeautifulSoup -- it's too flaky for most feeds.
 		feedparser.BeautifulSoup = None
+
 		socket.setdefaulttimeout(config["timeout"])
 
 		if feedurl is None:

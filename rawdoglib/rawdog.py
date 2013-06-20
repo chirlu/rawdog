@@ -415,53 +415,66 @@ class Feed:
 			version = ""
 		self.last_update = now
 
-		error = None
-		non_fatal = False
+		errors = []
+		fatal = False
 		old_url = self.url
+
 		if "rawdog_exception" in p:
-			error = "Error fetching or parsing feed: %s" % str(p["rawdog_exception"])
+			errors.append("Error fetching or parsing feed: " + str(p["rawdog_exception"]))
 			if config["showtracebacks"]:
 				from traceback import format_tb
-				error += "\n" + "".join(format_tb(p["rawdog_traceback"]))
-		elif status == 0 and len(p["feed"]) == 0:
+				errors.append("".join(format_tb(p["rawdog_traceback"])))
+			errors.append("")
+			fatal = True
+
+		if status == 0 and len(p["feed"]) == 0:
 			if config["ignoretimeouts"]:
 				return False
 			else:
-				error = "Timeout while reading feed."
+				errors.append("Timeout while reading feed.")
+				errors.append("")
+				fatal = True
 		elif status == 301:
 			# Permanent redirect. The feed URL needs changing.
-
-			error = "New URL:     " + p["url"] + "\n"
-			error += "The feed has moved permanently to a new URL.\n"
+			errors.append("New URL:     " + p["url"])
+			errors.append("The feed has moved permanently to a new URL.")
 			if config["changeconfig"]:
 				rawdog.change_feed_url(self.url, p["url"], config)
-				error += "The config file has been updated automatically."
+				errors.append("The config file has been updated automatically.")
 			else:
-				error += "You should update its entry in your config file."
-			non_fatal = True
+				errors.append("You should update its entry in your config file.")
+			errors.append("")
 		elif status in [403, 410]:
 			# The feed is disallowed or gone. The feed should be unsubscribed.
-			error = "The feed has gone.\n"
-			error += "You should remove it from your config file."
+			errors.append("The feed has gone.")
+			errors.append("You should remove it from your config file.")
+			errors.append("")
+			fatal = True
 		elif status / 100 in [4, 5]:
 			# Some sort of client or server error. The feed may need unsubscribing.
-			error = "The feed returned an error.\n"
-			error += "If this condition persists, you should remove it from your config file."
-		elif (status / 100 in (2, 3)) and version == "" and len(p["entries"]) == 0:
+			errors.append("The feed returned an error.")
+			errors.append("If this condition persists, you should remove it from your config file.")
+			errors.append("")
+			fatal = True
+
+		if (status / 100 in (2, 3)) and version == "" and len(p["entries"]) == 0:
 			# feedparser couldn't detect the type of this feed or
 			# retrieve any entries from it.
-			error = "The data retrieved from this URL could not be understood as a feed.\n"
-			error += "You should check whether the feed has changed URLs or been removed."
+			errors.append("The data retrieved from this URL could not be understood as a feed.")
+			errors.append("You should check whether the feed has changed URLs or been removed.")
+			errors.append("")
+			fatal = True
 
-		plugins.call_hook("feed_fetched", rawdog, config, self, p, error, non_fatal)
+		old_error = "\n".join(errors)
+		plugins.call_hook("feed_fetched", rawdog, config, self, p, old_error, not fatal)
 
-		if error is not None:
+		if len(errors) != 0:
 			print >>sys.stderr, "Feed:        " + old_url
 			if status != 0:
 				print >>sys.stderr, "HTTP Status: " + str(status)
-			print >>sys.stderr, error
-			print >>sys.stderr
-			if not non_fatal:
+			for line in errors:
+				print >>sys.stderr, line
+			if fatal:
 				return False
 
 		p = ensure_unicode(p, p.get("encoding") or "UTF-8")

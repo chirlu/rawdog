@@ -61,6 +61,9 @@ rawdog now complains if feedparser can't detect the type of a feed or
 retrieve any items from it. This usually means that the URL isn't
 actually a feed -- for example, if it's redirecting to an error page.
 
+rawdog can now report more than one error for a feed at once -- e.g.
+a permanent redirection to something that isn't a feed.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

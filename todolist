@@ -57,6 +57,11 @@ having to reread it.
 Option to limit update runtime
 
 Fix rawdog -a https://www.fsf.org/blogs/rms/
+... specifically, the problem is that it lists lots of feeds that aren't
+related to that page:
+	<link rel="alternate" title="FSF News" href="//static.fsf.org/fsforg/rss/news.xml" type="application/rss+xml" />
+	<link rel="alternate" title="FSF Events" href="//static.fsf.org/fsforg/rss/events.xml" type="application/rss+xml" />
+... I'm not sure there's anything that can reasonably be done about that.
 
 --change-feed-url option to change feed URL without losing articles
 

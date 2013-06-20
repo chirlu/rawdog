@@ -293,32 +293,25 @@ EOF
 add "feed 0 $httpurl/gone.rss"
 rune "You should remove it" -u
 
-begin "converting to splitstate"
-make_n 10 $httpdir/feed.rss
-add "splitstate false"
-add "feed 1h $httpurl/feed.rss"
-runs -uw
-output_n 10
-rm $httpdir/feed.rss
-add "splitstate true"
-runs -uw
-output_n 10
+for state in false true; do
+	other=$(if $state; then echo false; else echo true; fi)
 
-begin "converting from splitstate"
-make_n 10 $httpdir/feed.rss
-add "splitstate true"
-add "feed 1h $httpurl/feed.rss"
-runs -uw
-output_n 10
-rm $httpdir/feed.rss
-add "splitstate false"
-runs -uw
-output_n 10
+	begin "converting from splitstate $state to splitstate $other"
+	make_n 10 $httpdir/feed.rss
+	add "splitstate $state"
+	add "feed 1h $httpurl/feed.rss"
+	runs -uw
+	output_n 10
+	rm $httpdir/feed.rss
+	add "splitstate $other"
+	runs -uw
+	output_n 10
+done
 
-for opt in "splitstate false" "splitstate true"; do
-	begin "HTTP 301, moving items from existing feed, $opt"
+for state in false true; do
+	begin "HTTP 301, moving items from existing feed, splitstate $state"
 	make_range 1 5 $httpdir/old.rss
-	add "$opt"
+	add "splitstate $state"
 	add "keepmin 20"
 	add "changeconfig true"
 	add "feed 0 $httpurl/old.rss"

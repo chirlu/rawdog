@@ -1,18 +1,18 @@
-# persister: safe class persistance wrapper
+# persister: persist Python objects safely to pickle files
 # Copyright 2003, 2004, 2005, 2013 Adam Sampson <ats@offog.org>
 #
-# persister is free software; you can redistribute it and/or modify it
+# rawdog is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation; either version 2.1 of the
 # License, or (at your option) any later version.
 #
-# persister is distributed in the hope that it will be useful, but
+# rawdog is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public
-# License along with persister; see the file COPYING.LGPL. If not,
+# License along with rawdog; see the file COPYING.LGPL. If not,
 # write to the Free Software Foundation, Inc., 51 Franklin Street,
 # Fifth Floor, Boston, MA 02110-1301, USA, or see http://www.gnu.org/.
 

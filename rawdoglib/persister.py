@@ -27,7 +27,7 @@ class Persistable:
 	def __init__(self):
 		self._modified = False
 
-	def modified(self, state = True):
+	def modified(self, state=True):
 		self._modified = state
 
 	def is_modified(self):
@@ -44,7 +44,7 @@ class Persister:
 		self.file = None
 		self.object = None
 
-	def load(self, no_block = True):
+	def load(self, no_block=True):
 		"""Load the persisted object from the file, or create a new one
 		   if this isn't possible. Returns the loaded object."""
 

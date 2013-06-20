@@ -16,78 +16,157 @@
 # write to the Free Software Foundation, Inc., 51 Franklin Street,
 # Fifth Floor, Boston, MA 02110-1301, USA, or see http://www.gnu.org/.
 
-import fcntl, os, errno
 import cPickle as pickle
+import errno
+import fcntl
+import os
+import sys
 
 class Persistable:
-	"""Something which can be persisted. When a subclass of this wants to
-	   indicate that it has been modified, it should call
-	   self.modified()."""
+	"""An object which can be persisted."""
 
 	def __init__(self):
 		self._modified = False
 
 	def modified(self, state=True):
+		"""Mark the object as having been modified (or not)."""
 		self._modified = state
 
 	def is_modified(self):
 		return self._modified
 
-class Persister:
-	"""Persist another class to a file, safely. The class being persisted
-	   must derive from Persistable (although this isn't enforced)."""
+class Persisted:
+	"""Context manager for a persistent object.  The object being persisted
+	must implement the Persistable interface."""
 
-	def __init__(self, filename, klass, use_locking=True):
-		self.filename = filename
+	def __init__(self, klass, filename, persister):
 		self.klass = klass
-		self.use_locking = use_locking
+		self.filename = filename
+		self.persister = persister
 		self.file = None
 		self.object = None
+		self.refcount = 0
 
 	def rename(self, new_filename):
-		"""Rename the persisted file, even if it's currently loaded."""
+		"""Rename the persisted file. This works whether the file is
+		currently open or not."""
+
+		self.persister._rename(self.filename, new_filename)
 		os.rename(self.filename, new_filename)
 		self.filename = new_filename
 
-	def load(self, no_block=True):
-		"""Load the persisted object from the file, or create a new one
-		   if this isn't possible. Returns the loaded object."""
+	def __enter__(self):
+		"""As open()."""
+		return self.open()
 
-		def get_lock():
-			if not self.use_locking:
-				return True
-			mode = fcntl.LOCK_EX
-			if no_block:
-				mode |= fcntl.LOCK_NB
-			try:
-				fcntl.lockf(self.file.fileno(), mode)
-			except IOError, e:
-				if no_block and e.errno in (errno.EACCES, errno.EAGAIN):
-					return False
-				raise e
+	def __exit__(self, type, value, tb):
+		"""As close(), unless an exception occurred in which case do
+		nothing."""
+		if tb is None:
+			self.close()
+
+	def open(self, no_block=True):
+		"""Return the persistent object, loading it from its file if it
+		isn't already open. You must call close() once you're finished
+		with the object.
+
+		If no_block is True, then this will return None if loading the
+		object would otherwise block (i.e. if it's locked by another
+		process)."""
+
+		if self.refcount > 0:
+			# Already loaded.
+			self.refcount += 1
+			return self.object
+
+		try:
+			self._open(no_block)
+		except KeyboardInterrupt:
+			sys.exit(1)
+		except:
+			print "An error occurred while reading state from " + os.path.abspath(self.filename) + "."
+			print "This usually means the file is corrupt, and removing it will fix the problem."
+			sys.exit(1)
+
+		self.refcount = 1
+		return self.object
+
+	def _get_lock(self, no_block):
+		if not self.persister.use_locking:
 			return True
 
 		try:
+			mode = fcntl.LOCK_EX
+			if no_block:
+				mode |= fcntl.LOCK_NB
+			fcntl.lockf(self.file.fileno(), mode)
+		except IOError, e:
+			if no_block and e.errno in (errno.EACCES, errno.EAGAIN):
+				return False
+			raise e
+		return True
+
+	def _open(self, no_block):
+		self.persister.log("Loading state file: ", self.filename)
+		try:
 			self.file = open(self.filename, "r+")
-			if not get_lock():
+			if not self._get_lock(no_block):
 				return None
+
 			self.object = pickle.load(self.file)
 			self.object.modified(False)
 		except IOError:
 			self.file = open(self.filename, "w+")
-			if not get_lock():
+			if not self._get_lock(no_block):
 				return None
+
 			self.object = self.klass()
 			self.object.modified()
-		return self.object
 
-	def save(self):
-		"""Save the persisted object back to the file if necessary."""
+	def close(self):
+		"""Reduce the reference count of the persisted object, saving
+		it back to its file if necessary."""
+
+		self.refcount -= 1
+		if self.refcount > 0:
+			# Still in use.
+			return
+
 		if self.object.is_modified():
+			self.persister.log("Saving state file: ", self.filename)
 			newname = "%s.new-%d" % (self.filename, os.getpid())
 			newfile = open(newname, "w")
 			pickle.dump(self.object, newfile, pickle.HIGHEST_PROTOCOL)
 			newfile.close()
 			os.rename(newname, self.filename)
+
 		self.file.close()
+		self.persister._remove(self.filename)
+
+class Persister:
+	"""Manage the collection of persisted files."""
+
+	def __init__(self, config):
+		self.files = {}
+		self.log = config.log
+		self.use_locking = config.locking
+
+	def get(self, klass, filename):
+		"""Get a context manager for a persisted file.
+		If the file is already open, this will return
+		the existing context manager."""
+
+		if filename in self.files:
+			return self.files[filename]
+
+		p = Persisted(klass, filename, self)
+		self.files[filename] = p
+		return p
+
+	def _rename(self, old_filename, new_filename):
+		self.files[new_filename] = self.files[old_filename]
+		del self.files[old_filename]
+
+	def _remove(self, filename):
+		del self.files[filename]
 

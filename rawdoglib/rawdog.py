@@ -51,6 +51,9 @@ feedparser.SANITIZE_HTML = 0
 # Disable BeautifulSoup -- it's too flaky for most feeds.
 feedparser.BeautifulSoup = None
 
+# This is initialised in main().
+persister = None
+
 system_encoding = None
 def get_system_encoding():
 	"""Get the system encoding."""
@@ -1078,12 +1081,12 @@ class Rawdog(Persistable):
 		self.feeds[newurl] = feed
 
 		if config["splitstate"]:
-			persister, feedstate = load_persisted(old_state, FeedState, config)
-			persister.rename(feed.get_state_filename())
-			for article in feedstate.articles.values():
-				article.feed = newurl
-			feedstate.modified()
-			save_persisted(persister, config)
+			feedstate_p = persister.get(FeedState, old_state)
+			feedstate_p.rename(feed.get_state_filename())
+			with feedstate_p as feedstate:
+				for article in feedstate.articles.values():
+					article.feed = newurl
+				feedstate.modified()
 		else:
 			for article in self.articles.values():
 				if article.feed == oldurl:
@@ -1118,24 +1121,23 @@ class Rawdog(Persistable):
 			if config["splitstate"]:
 				config.log("Converting to split state files")
 				for feed_hash, feed in self.feeds.items():
-					persister, feedstate = load_persisted(feed.get_state_filename(), FeedState, config)
-					feedstate.articles = {}
-					for article_hash, article in self.articles.items():
-						if article.feed == feed_hash:
-							feedstate.articles[article_hash] = article
-					feedstate.modified()
-					save_persisted(persister, config)
+					with persister.get(FeedState, feed.get_state_filename()) as feedstate:
+						feedstate.articles = {}
+						for article_hash, article in self.articles.items():
+							if article.feed == feed_hash:
+								feedstate.articles[article_hash] = article
+						feedstate.modified()
 				self.articles = {}
 			else:
 				config.log("Converting to single state file")
 				self.articles = {}
 				for feed_hash, feed in self.feeds.items():
-					persister, feedstate = load_persisted(feed.get_state_filename(), FeedState, config)
-					for article_hash, article in feedstate.articles.items():
-						self.articles[article_hash] = article
-					feedstate.articles = {}
-					feedstate.modified()
-					save_persisted(persister, config)
+					with persister.get(FeedState, feed.get_state_filename()) as feedstate:
+						for article_hash, article in feedstate.articles.items():
+							self.articles[article_hash] = article
+						feedstate.articles = {}
+						feedstate.modified()
+					# FIXME: Have Persisted do this?
 					os.unlink(feed.get_state_filename())
 			self.modified()
 			self.using_splitstate = config["splitstate"]
@@ -1239,7 +1241,8 @@ class Rawdog(Persistable):
 			feed = self.feeds[url]
 
 			if config["splitstate"]:
-				persister, feedstate = load_persisted(feed.get_state_filename(), FeedState, config)
+				feedstate_p = persister.get(FeedState, feed.get_state_filename())
+				feedstate = feedstate_p.open()
 				articles = feedstate.articles
 			else:
 				articles = self.articles
@@ -1256,7 +1259,7 @@ class Rawdog(Persistable):
 
 			if config["splitstate"]:
 				do_expiry(articles)
-				save_persisted(persister, config)
+				feedstate_p.close()
 
 		if config["splitstate"]:
 			self.articles = {}
@@ -1537,9 +1540,8 @@ __description__
 		if config["splitstate"]:
 			article_list = []
 			for feed in self.feeds.values():
-				persister, feedstate = load_persisted(feed.get_state_filename(), FeedState, config)
-				article_list += list_articles(feedstate.articles)
-				save_persisted(persister, config)
+				with persister.get(FeedState, feed.get_state_filename()) as feedstate:
+					article_list += list_articles(feedstate.articles)
 		else:
 			article_list = list_articles(self.articles)
 		numarticles = len(article_list)
@@ -1565,10 +1567,9 @@ __description__
 			found = {}
 			for (feed_url, article_hashes) in wanted.items():
 				feed = self.feeds[feed_url]
-				persister, feedstate = load_persisted(feed.get_state_filename(), FeedState, config)
-				for hash in article_hashes:
-					found[hash] = feedstate.articles[hash]
-				save_persisted(persister, config)
+				with persister.get(FeedState, feed.get_state_filename()) as feedstate:
+					for hash in article_hashes:
+						found[hash] = feedstate.articles[hash]
 		else:
 			found = self.articles
 
@@ -1621,26 +1622,6 @@ Special actions (all other options are ignored if one of these is specified):
 --help                       Display this help and exit
 
 Report bugs to <ats@offog.org>."""
-
-def load_persisted(fn, klass, config, no_block=False):
-	"""Attempt to load a persisted object. Returns the persister and the
-	object."""
-	config.log("Loading state file: ", fn)
-	persister = Persister(fn, klass, config.locking)
-	try:
-		obj = persister.load(no_block=no_block)
-	except KeyboardInterrupt:
-		sys.exit(1)
-	except:
-		print "An error occurred while reading state from " + os.getcwd() + "/" + fn + "."
-		print "This usually means the file is corrupt, and removing it will fix the problem."
-		sys.exit(1)
-	return (persister, obj)
-
-def save_persisted(persister, config):
-	if persister.object.is_modified():
-		config.log("Saving state file: ", persister.filename)
-	persister.save()
 
 def main(argv):
 	"""The command-line interface to the aggregator."""
@@ -1706,7 +1687,11 @@ def main(argv):
 			config["verbose"] = True
 	load_config("config")
 
-	persister, rawdog = load_persisted("state", Rawdog, config, no_lock_wait)
+	global persister
+	persister = Persister(config)
+
+	rawdog_p = persister.get(Rawdog, "state")
+	rawdog = rawdog_p.open(no_block=no_lock_wait)
 	if rawdog is None:
 		return 0
 	if not rawdog.check_state_version():
@@ -1746,7 +1731,7 @@ def main(argv):
 
 	plugins.call_hook("shutdown", rawdog, config)
 
-	save_persisted(persister, config)
+	rawdog_p.close()
 
 	return 0
 

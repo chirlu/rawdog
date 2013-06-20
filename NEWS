@@ -37,8 +37,14 @@ directly changing the lists of elements it's looking for.
 Fix a bug: if you're using splitstate mode, and a feed returns a 301
 permanent redirect, rawdog needs to rename the state file and adjust the
 articles in it so they're attached to the feed's new URL. In previous
-versions this didn't work correctly.
-(and it still doesn't because I'm halfway through doing this fix)
+versions this didn't work correctly for two reasons: it tried to load
+the existing articles from the new filename, and the resulting file got
+clobbered because it was already being used by --update.
+
+Significantly rework the Persister class: there's now a Persisted class
+that can act as a context manager for "with" statements, which
+simplifies the code quite a bit, and it correctly handles persisted
+objects being opened multiple times and renamed.
 
 - rawdog 2.14
 

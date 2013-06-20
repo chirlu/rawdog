@@ -69,7 +69,10 @@ not_contains () {
 }
 
 run () {
-	./rawdog -d $statedir "$@" >$statedir/out 2>&1 || die "exited non-0"
+	if ! ./rawdog -d $statedir "$@" >$statedir/out 2>&1; then
+		cat $statedir/out
+		die "exited non-0"
+	fi
 }
 
 # Run rawdog, expecting no complaints.

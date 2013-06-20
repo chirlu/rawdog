@@ -1,6 +1,3 @@
-Bug: if a feed has been redirected to an HTML page, we don't detect this.
-(Look at the content type in feedparser's results?)
-
 Make statefile directory if not present.
 
 Remove rawdog's copy of feedparser. This means doing away with all our patches:

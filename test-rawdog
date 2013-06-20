@@ -203,6 +203,47 @@ add "feed 0 $httpurl/simple.rss"
 runs -uw
 contains $statedir/output.html example-item-title example-item-description
 
+begin "HTML rather than a feed"
+cat >$httpdir/bad.html <<EOF
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+            "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <title>Not a feed</title>
+</head>
+<body>
+  <p>This is manifestly not a feed.</p>
+</body>
+</html>
+EOF
+add "feed 0 $httpurl/bad.html"
+rune "could not be understood" -u
+
+begin "plain text rather than a feed"
+cat >$httpdir/bad.txt <<EOF
+This is manifestly not a feed.
+EOF
+add "feed 0 $httpurl/bad.txt"
+rune "could not be understood" -u
+
+begin "empty file rather than a feed"
+touch $httpdir/bad.xml
+add "feed 0 $httpurl/bad.xml"
+rune "could not be understood" -u
+
+begin "valid feed with no items"
+cat >$httpdir/empty.xml <<EOF
+<rss version="2.0">
+  <channel>
+    <title>example-feed-title</title>
+    <link>http://example.org/</link>
+    <description>example-feed-description</description>
+  </channel>
+</rss>
+EOF
+add "feed 0 $httpurl/empty.xml"
+runs -u
+
 begin "HTTP 404"
 add "feed 0 $httpurl/notthere"
 rune "404" -u

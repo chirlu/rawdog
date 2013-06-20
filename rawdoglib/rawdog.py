@@ -408,6 +408,11 @@ class Feed:
 		Returns True if any articles were read, False otherwise."""
 
 		status = p.get("status")
+		if status is None:
+			status = 0
+		version = p.get("version")
+		if version is None:
+			version = ""
 		self.last_update = now
 
 		error = None
@@ -418,14 +423,11 @@ class Feed:
 			if config["showtracebacks"]:
 				from traceback import format_tb
 				error += "\n" + "".join(format_tb(p["rawdog_traceback"]))
-		elif status is None and len(p["feed"]) == 0:
+		elif status == 0 and len(p["feed"]) == 0:
 			if config["ignoretimeouts"]:
 				return False
 			else:
 				error = "Timeout while reading feed."
-		elif status is None:
-			# Fetched by some protocol that doesn't have status.
-			pass
 		elif status == 301:
 			# Permanent redirect. The feed URL needs changing.
 
@@ -445,12 +447,17 @@ class Feed:
 			# Some sort of client or server error. The feed may need unsubscribing.
 			error = "The feed returned an error.\n"
 			error += "If this condition persists, you should remove it from your config file."
+		elif (status / 100 in (2, 3)) and version == "" and len(p["entries"]) == 0:
+			# feedparser couldn't detect the type of this feed or
+			# retrieve any entries from it.
+			error = "The data retrieved from this URL could not be understood as a feed.\n"
+			error += "You should check whether the feed has changed URLs or been removed."
 
 		plugins.call_hook("feed_fetched", rawdog, config, self, p, error, non_fatal)
 
 		if error is not None:
 			print >>sys.stderr, "Feed:        " + old_url
-			if status is not None:
+			if status != 0:
 				print >>sys.stderr, "HTTP Status: " + str(status)
 			print >>sys.stderr, error
 			print >>sys.stderr

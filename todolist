@@ -3,8 +3,6 @@ Bug: if a feed has been redirected to an HTML page, we don't detect this.
 
 Make statefile directory if not present.
 
-do_expiry(articles) - should mark feedstate as modified if it expired any.
-
 Remove rawdog's copy of feedparser. This means doing away with all our patches:
 
 - _raw versions of content

@@ -1203,6 +1203,9 @@ class Rawdog(Persistable):
 
 		seen_some_items = set()
 		def do_expiry(articles):
+			"""Expire articles from a list. Return True if any
+			articles were expired."""
+
 			feedcounts = {}
 			for key, article in articles.items():
 				url = article.feed
@@ -1234,6 +1237,8 @@ class Rawdog(Persistable):
 					del articles[key]
 			config.log("Expired ", count, " articles, leaving ", len(articles))
 
+			return (count > 0)
+
 		count = 0
 		for url in update_feeds:
 			count += 1
@@ -1258,7 +1263,8 @@ class Rawdog(Persistable):
 					feedstate.modified()
 
 			if config["splitstate"]:
-				do_expiry(articles)
+				if do_expiry(articles):
+					feedstate.modified()
 				feedstate_p.close()
 
 		if config["splitstate"]:

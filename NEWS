@@ -46,6 +46,11 @@ that can act as a context manager for "with" statements, which
 simplifies the code quite a bit, and it correctly handles persisted
 objects being opened multiple times and renamed.
 
+Split state files are now explicitly marked as modified if any articles
+were expired from them. (This won't actually change rawdog's behaviour,
+since articles were only expired if some articles had been seen during
+the update, and that would also have marked the state as modified.)
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

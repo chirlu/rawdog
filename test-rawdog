@@ -234,6 +234,37 @@ make_text $httpdir/bad.txt
 add "feed 0 $httpurl/bad.txt"
 rune "could not be understood" -u
 
+for code in 301 302; do
+	begin "HTTP $code redirect to HTML"
+	cat >$httpdir/.htaccess <<EOF
+RewriteEngine On
+RewriteRule old.rss $httpurl/bad.html [L,R=$code]
+EOF
+	make_html $httpdir/bad.html
+	add "changeconfig false"
+	add "feed 0 $httpurl/old.rss"
+	rune "could not be understood" -u
+
+	begin "HTTP $code redirect to plain text"
+	cat >$httpdir/.htaccess <<EOF
+RewriteEngine On
+RewriteRule old.rss $httpurl/bad.txt [L,R=$code]
+EOF
+	make_text $httpdir/bad.txt
+	add "changeconfig false"
+	add "feed 0 $httpurl/old.rss"
+	rune "could not be understood" -u
+
+	begin "HTTP $code redirect to 404"
+	cat >$httpdir/.htaccess <<EOF
+RewriteEngine On
+RewriteRule old.rss $httpurl/notthere [L,R=$code]
+EOF
+	add "changeconfig false"
+	add "feed 0 $httpurl/old.rss"
+	rune "404" -u
+done
+
 begin "empty file rather than a feed"
 touch $httpdir/bad.xml
 add "feed 0 $httpurl/bad.xml"

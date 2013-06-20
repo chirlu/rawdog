@@ -44,6 +44,11 @@ class Persister:
 		self.file = None
 		self.object = None
 
+	def rename(self, new_filename):
+		"""Rename the persisted file, even if it's currently loaded."""
+		os.rename(self.filename, new_filename)
+		self.filename = new_filename
+
 	def load(self, no_block=True):
 		"""Load the persisted object from the file, or create a new one
 		   if this isn't possible. Returns the loaded object."""

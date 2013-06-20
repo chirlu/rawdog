@@ -1071,7 +1071,7 @@ class Rawdog(Persistable):
 
 		feed = self.feeds[oldurl]
 		# Changing the URL will change the state filename as well,
-		# so we need to move the state file.
+		# so we need to save the old name to load from.
 		old_state = feed.get_state_filename()
 		feed.url = newurl
 		del self.feeds[oldurl]
@@ -1079,11 +1079,11 @@ class Rawdog(Persistable):
 
 		if config["splitstate"]:
 			persister, feedstate = load_persisted(old_state, FeedState, config)
+			persister.rename(feed.get_state_filename())
 			for article in feedstate.articles.values():
 				article.feed = newurl
 			feedstate.modified()
 			save_persisted(persister, config)
-			os.rename(old_state, feed.get_state_filename())
 		else:
 			for article in self.articles.values():
 				if article.feed == oldurl:

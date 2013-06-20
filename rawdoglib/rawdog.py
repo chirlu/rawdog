@@ -457,7 +457,7 @@ class Feed:
 			errors.append("")
 			fatal = True
 
-		if (status / 100 in (2, 3)) and version == "" and len(p["entries"]) == 0:
+		if status in (200, 301, 302, 307) and version == "" and len(p["entries"]) == 0:
 			# feedparser couldn't detect the type of this feed or
 			# retrieve any entries from it.
 			errors.append("The data retrieved from this URL could not be understood as a feed.")

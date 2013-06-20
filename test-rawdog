@@ -98,6 +98,27 @@ rune () {
 	contains "$statedir/out" "$key"
 }
 
+make_text () {
+	cat >"$1" <<EOF
+This is manifestly not a feed.
+EOF
+}
+
+make_html () {
+	cat >"$1" <<EOF
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+            "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <title>Not a feed</title>
+</head>
+<body>
+  <p>This is manifestly not a feed.</p>
+</body>
+</html>
+EOF
+}
+
 make_rss20 () {
 	cat >"$1" <<EOF
 <rss version="2.0">
@@ -204,25 +225,12 @@ runs -uw
 contains $statedir/output.html example-item-title example-item-description
 
 begin "HTML rather than a feed"
-cat >$httpdir/bad.html <<EOF
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-            "http://www.w3.org/TR/html4/strict.dtd">
-<html>
-<head>
-  <title>Not a feed</title>
-</head>
-<body>
-  <p>This is manifestly not a feed.</p>
-</body>
-</html>
-EOF
+make_html $httpdir/bad.html
 add "feed 0 $httpurl/bad.html"
 rune "could not be understood" -u
 
 begin "plain text rather than a feed"
-cat >$httpdir/bad.txt <<EOF
-This is manifestly not a feed.
-EOF
+make_text $httpdir/bad.txt
 add "feed 0 $httpurl/bad.txt"
 rune "could not be understood" -u
 

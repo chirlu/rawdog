@@ -1070,13 +1070,15 @@ class Rawdog(Persistable):
 		edit_file("config", ChangeFeedEditor(oldurl, newurl).edit)
 
 		feed = self.feeds[oldurl]
+		# Changing the URL will change the state filename as well,
+		# so we need to move the state file.
 		old_state = feed.get_state_filename()
 		feed.url = newurl
 		del self.feeds[oldurl]
 		self.feeds[newurl] = feed
 
 		if config["splitstate"]:
-			persister, feedstate = load_persisted(feed.get_state_filename(), FeedState, config)
+			persister, feedstate = load_persisted(old_state, FeedState, config)
 			for article in feedstate.articles.values():
 				article.feed = newurl
 			feedstate.modified()

@@ -34,6 +34,12 @@ fetch), and generally tidy it up.
 Set feedparser behaviour using SANITIZE_HTML etc., rather than by
 directly changing the lists of elements it's looking for.
 
+Fix a bug: if you're using splitstate mode, and a feed returns a 301
+permanent redirect, rawdog needs to rename the state file and adjust the
+articles in it so they're attached to the feed's new URL. In previous
+versions this didn't work correctly.
+(and it still doesn't because I'm halfway through doing this fix)
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

@@ -68,8 +68,14 @@ not_contains () {
 	done
 }
 
+# Run rawdog.
+runf () {
+	./rawdog -d $statedir "$@" >$statedir/out 2>&1
+}
+
+# Run rawdog, expecting it to exit 0.
 run () {
-	if ! ./rawdog -d $statedir "$@" >$statedir/out 2>&1; then
+	if ! runf "$@"; then
 		cat $statedir/out
 		die "exited non-0"
 	fi
@@ -161,6 +167,20 @@ rune "Bad line in config"
 begin "bad config directive"
 add "foo bar"
 rune "Unknown config command"
+
+begin "corrupt state file"
+echo this is not a valid state file >$statedir/state
+runf -u
+contains $statedir/out "means the file is corrupt"
+
+begin "corrupt splitstate file"
+make_rss20 $statedir/simple.rss
+add "splitstate true"
+add "feed 0 simple.rss"
+runs -u
+echo this is not a valid state file >$(echo $statedir/feeds/*.state)
+runf -u
+contains $statedir/out "means the file is corrupt"
 
 begin "filename"
 make_rss20 $statedir/simple.rss

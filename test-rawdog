@@ -33,7 +33,7 @@ die () {
 
 cleanstate () {
 	rm -fr $statedir $httpdir
-	mkdir -p $statedir $statedir/feeds $httpdir
+	mkdir -p $statedir $statedir/feeds $statedir/plugins $httpdir
 	cp config $statedir/config
 }
 
@@ -354,6 +354,20 @@ add "feed 0 $httpurl/private.rss"
 rune "401" -u
 add "  user TestUser"
 add "  password TestPass"
+runs -u
+
+begin "HTTP 304 not modified"
+make_rss20 $httpdir/feed.rss
+touch -d yesterday $httpdir/feed.rss
+add "feed 0 $httpurl/feed.rss"
+runs -u
+cat >$statedir/plugins/check304.py <<EOF
+import rawdoglib.plugins
+def feed_fetched(rawdog, config, feed, p, error, nf):
+    if p['status'] != 304:
+        print "didn't get HTTP 304 response"
+rawdoglib.plugins.attach_hook("feed_fetched", feed_fetched)
+EOF
 runs -u
 
 begin "HTTP 302 temporary redirect"

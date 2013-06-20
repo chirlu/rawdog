@@ -1,20 +1,20 @@
 # persister: persist Python objects safely to pickle files
 # Copyright 2003, 2004, 2005, 2013 Adam Sampson <ats@offog.org>
 #
-# rawdog is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as
-# published by the Free Software Foundation; either version 2.1 of the
-# License, or (at your option) any later version.
+# rawdog is free software; you can redistribute and/or modify it
+# under the terms of that license as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option)
+# any later version.
 #
 # rawdog is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# Lesser General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
 #
-# You should have received a copy of the GNU Lesser General Public
-# License along with rawdog; see the file COPYING.LGPL. If not,
-# write to the Free Software Foundation, Inc., 51 Franklin Street,
-# Fifth Floor, Boston, MA 02110-1301, USA, or see http://www.gnu.org/.
+# You should have received a copy of the GNU General Public License
+# along with rawdog; see the file COPYING. If not, write to the Free
+# Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA 02110-1301, USA, or see http://www.gnu.org/.
 
 import cPickle as pickle
 import errno

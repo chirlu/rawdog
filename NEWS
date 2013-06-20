@@ -44,7 +44,8 @@ clobbered because it was already being used by --update.
 Significantly rework the Persister class: there's now a Persisted class
 that can act as a context manager for "with" statements, which
 simplifies the code quite a bit, and it correctly handles persisted
-objects being opened multiple times and renamed.
+objects being opened multiple times and renamed. persister.py is now
+under the same license as the rest of rawdog (GPLv2+).
 
 Split state files are now explicitly marked as modified if any articles
 were expired from them. (This won't actually change rawdog's behaviour,

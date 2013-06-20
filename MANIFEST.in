@@ -2,7 +2,6 @@ include README
 include PLUGINS
 include NEWS
 include COPYING
-include COPYING.LGPL
 include config
 include style.css
 include rawdog

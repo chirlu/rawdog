@@ -626,3 +626,10 @@ alert('Annoying1');
 EOF
 not_contains $statedir/output.html "Annoying1" "Annoying2"
 
+begin "stray ] in URL"
+# This produced an "Invalid IPv6 URL" exception with feedparser r738.
+write_desc <<EOF
+<![CDATA[<p><a href="http://example.com/not-broken]">link</a></p>]]>
+EOF
+contains $statedir/output.html not-broken
+

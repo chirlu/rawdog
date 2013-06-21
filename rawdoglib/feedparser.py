@@ -1,7 +1,6 @@
 """Universal feed parser
 
 Changes made by Adam Sampson <ats@offog.org> for rawdog:
-- provide _raw versions of text content
 - handle file: URLs
 - save the traceback from parser exceptions
 
@@ -741,20 +740,6 @@ class _FeedParserMixin:
             output = output.strip()
         if not expectingText: return output
 
-        if self.encoding:
-            enc = self.encoding
-        else:
-            enc = "UTF-8"
-        if type(output) == types.StringType:
-            try:
-                output_raw = unicode(output, enc)
-            except:
-                # Invalid encoding, but we need to turn it into a valid Unicode
-                # string of some kind.
-                output_raw = unicode(output, "ISO-8859-1")
-        else:
-            output_raw = output
-
         # decode base64 content
         if base64 and self.contentparams.get('base64', 0):
             try:
@@ -843,36 +828,29 @@ class _FeedParserMixin:
                 self.entries[-1].setdefault(element, [])
                 contentparams = copy.deepcopy(self.contentparams)
                 contentparams['value'] = output
-                contentparams['value_raw'] = output_raw
                 self.entries[-1][element].append(contentparams)
             elif element == 'link':
                 self.entries[-1][element] = output
                 if output:
                     self.entries[-1]['links'][-1]['href'] = output
-                    self.entries[-1]['links'][-1]['href_raw'] = output_raw
             else:
                 if element == 'description':
                     element = 'summary'
                 self.entries[-1][element] = output
-                self.entries[-1][element + '_raw'] = output_raw
                 if self.incontent:
                     contentparams = copy.deepcopy(self.contentparams)
                     contentparams['value'] = output
-                    contentparams['value_raw'] = output_raw
                     self.entries[-1][element + '_detail'] = contentparams
         elif (self.infeed or self.insource):# and (not self.intextinput) and (not self.inimage):
             context = self._getContext()
             if element == 'description':
                 element = 'subtitle'
             context[element] = output
-            context[element + '_raw'] = output_raw
             if element == 'link':
                 context['links'][-1]['href'] = output
-                context['links'][-1]['href_raw'] = output_raw
             elif self.incontent:
                 contentparams = copy.deepcopy(self.contentparams)
                 contentparams['value'] = output
-                contentparams['value_raw'] = output_raw
                 context[element + '_detail'] = contentparams
         return output
 

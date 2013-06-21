@@ -597,15 +597,15 @@ class Article:
 
 		add_hash(self.feed)
 		entry_info = self.entry_info
-		if entry_info.has_key("title_raw"):
-			add_hash(entry_info["title_raw"])
+		if entry_info.has_key("title"):
+			add_hash(entry_info["title"])
 		if entry_info.has_key("link"):
 			add_hash(entry_info["link"])
 		if entry_info.has_key("content"):
 			for content in entry_info["content"]:
-				add_hash(content["value_raw"])
+				add_hash(content["value"])
 		if entry_info.has_key("summary_detail"):
-			add_hash(entry_info["summary_detail"]["value_raw"])
+			add_hash(entry_info["summary_detail"]["value"])
 
 		return h.hexdigest()
 

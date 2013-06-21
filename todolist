@@ -2,13 +2,6 @@ Make statefile directory if not present.
 
 Remove rawdog's copy of feedparser. This means doing away with all our patches:
 
-- _raw versions of content
-
-  Since sanitisation and rewriting are turned off, the CP1252 coversion is the
-  only difference between value and value_raw now anyway. I've instrumented my
-  copy to complain when it sees a difference, but it doesn't seem to be very
-  common.
-
 - file: URLs
 
   Fixed upstream.

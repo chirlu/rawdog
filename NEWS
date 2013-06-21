@@ -64,6 +64,15 @@ actually a feed -- for example, if it's redirecting to an error page.
 rawdog can now report more than one error for a feed at once -- e.g.
 a permanent redirection to something that isn't a feed.
 
+Remove the feedparser patch that provided "_raw" versions of content
+(before sanitisation) for use in the article hash, and use the normal
+version instead. Since we disable sanitisation at fetch time anyway, the
+only difference with current feedparser is that the _raw versions didn't
+have CP1252 encoding fixes applied -- so in the process of upgrading to
+this version, you'll see some duplicate articles on feeds with CP1252
+encoding problems. Tests suggest this doesn't affect many feeds (3 out
+of the 1000-odd in my test setup).
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

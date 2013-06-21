@@ -1,17 +1,10 @@
+Show feedparser version in --help.
+
+Add --version.
+
 Make statefile directory if not present.
 
-Remove rawdog's copy of feedparser. This means doing away with all our patches:
-
-- file: URLs
-
-  Fixed upstream.
-
-- traceback saving
-
-  Not actually used by rawdog at the moment anyway.
-
-Check existing bodges for feedparser bugs -- e.g. upstream feedparser doesn't
-use BeautifulSoup any more.
+Remove rawdog's copy of feedparser.
 
 Can we do without ensure_unicode? Having instrumented it, it looks like it's
 mostly converting strings that feedparser itself has created.
@@ -53,8 +46,6 @@ related to that page:
 --change-feed-url option to change feed URL without losing articles
 
 Look at Expires header to automatically select "periods"
-
-FIXME: redo sorting hack in feedparser.
 
 - Longer-term future: split features out to plugins
   - refresh header

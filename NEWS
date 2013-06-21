@@ -84,6 +84,8 @@ Add a --dump option to pretty-print feedparser's output for a URL.
 The feedparser module used to do this if invoked as a script, but more
 recent versions of feedparser don't support this.
 
+Upgrade feedparser to version 5.1.3.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

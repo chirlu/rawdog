@@ -50,8 +50,10 @@ except:
 feedparser.RESOLVE_RELATIVE_URIS = 0
 feedparser.SANITIZE_HTML = 0
 
-# Disable BeautifulSoup -- it's too flaky for most feeds.
-feedparser.BeautifulSoup = None
+# Disable microformat support, because it tends to return poor-quality data
+# (e.g. identifying inappropriate things as enclosures), and it relies on
+# BeautifulSoup which is unable to parse many feeds.
+feedparser.PARSE_MICROFORMATS = 0
 
 # This is initialised in main().
 persister = None

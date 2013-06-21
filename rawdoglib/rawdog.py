@@ -1635,22 +1635,22 @@ Usage: rawdog [OPTION]...
 
 General options (use only once):
 -d|--dir DIR                 Use DIR instead of ~/.rawdog
--v, --verbose                Print more detailed status information
 -N, --no-locking             Do not lock the state file
+-v, --verbose                Print more detailed status information
 -V|--log FILE                Append detailed status information to FILE
 -W, --no-lock-wait           Exit silently if state file is locked
 
 Actions (performed in order given):
--u, --update                 Fetch data from feeds and store it
--l, --list                   List feeds known at time of last update
--w, --write                  Write out HTML output
--f|--update-feed URL         Force an update on the single feed URL
--c|--config FILE             Read additional config file FILE
--t, --show-template          Print the template currently in use
--T, --show-itemtemplate      Print the item template currently in use
 -a|--add URL                 Try to find a feed associated with URL and
                              add it to the config file
+-c|--config FILE             Read additional config file FILE
+-f|--update-feed URL         Force an update on the single feed URL
+-l, --list                   List feeds known at time of last update
 -r|--remove URL              Remove feed URL from the config file
+-t, --show-template          Print the template currently in use
+-T, --show-itemtemplate      Print the item template currently in use
+-u, --update                 Fetch data from feeds and store it
+-w, --write                  Write out HTML output
 
 Special actions (all other options are ignored if one of these is specified):
 --help                       Display this help and exit
@@ -1668,7 +1668,26 @@ def main(argv):
 	system_encoding = locale.getpreferredencoding()
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:vV:a:r:NW", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "log=", "add=", "remove=", "no-locking", "no-lock-wait"])
+		SHORTOPTS = "a:c:d:f:lNr:tTuvV:wW"
+		LONGOPTS = [
+			"add=",
+			"config=",
+			"dir=",
+			"dump=",
+			"help",
+			"list",
+			"log=",
+			"no-lock-wait",
+			"no-locking",
+			"remove=",
+			"show-itemtemplate",
+			"show-template",
+			"update",
+			"update-feed=",
+			"verbose",
+			"write",
+			]
+		(optlist, args) = getopt.getopt(argv, SHORTOPTS, LONGOPTS)
 	except getopt.GetoptError, s:
 		print s
 		usage()
@@ -1692,12 +1711,12 @@ def main(argv):
 			return 0
 		elif o in ("-d", "--dir"):
 			statedir = a
+		elif o in ("-N", "--no-locking"):
+			locking = False
 		elif o in ("-v", "--verbose"):
 			verbose = True
 		elif o in ("-V", "--log"):
 			logfile_name = a
-		elif o in ("-N", "--no-locking"):
-			locking = False
 		elif o in ("-W", "--no-lock-wait"):
 			no_lock_wait = True
 	if statedir is None:
@@ -1742,29 +1761,29 @@ def main(argv):
 	plugins.call_hook("startup", rawdog, config)
 
 	for o, a in optlist:
-		if o in ("-u", "--update"):
-			rawdog.update(config)
+		if o in ("-a", "--add"):
+			add_feed("config", a, rawdog, config)
+			config.reload()
+			rawdog.sync_from_config(config)
+		elif o in ("-c", "--config"):
+			load_config(a)
+			rawdog.sync_from_config(config)
 		elif o in ("-f", "--update-feed"):
 			rawdog.update(config, a)
 		elif o in ("-l", "--list"):
 			rawdog.list(config)
-		elif o in ("-w", "--write"):
-			rawdog.write(config)
-		elif o in ("-c", "--config"):
-			load_config(a)
+		elif o in ("-r", "--remove"):
+			remove_feed("config", a, config)
+			config.reload()
 			rawdog.sync_from_config(config)
 		elif o in ("-t", "--show-template"):
 			rawdog.show_template(config)
 		elif o in ("-T", "--show-itemtemplate"):
 			rawdog.show_itemtemplate(config)
-		elif o in ("-a", "--add"):
-			add_feed("config", a, rawdog, config)
-			config.reload()
-			rawdog.sync_from_config(config)
-		elif o in ("-r", "--remove"):
-			remove_feed("config", a, config)
-			config.reload()
-			rawdog.sync_from_config(config)
+		elif o in ("-u", "--update"):
+			rawdog.update(config)
+		elif o in ("-w", "--write"):
+			rawdog.write(config)
 
 	plugins.call_hook("shutdown", rawdog, config)
 

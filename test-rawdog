@@ -307,6 +307,15 @@ add "feed 0 $httpurl/feed.rss"
 runs -uw
 output_n 10
 
+begin "new articles are collected"
+make_n 3 $httpdir/feed.rss
+add "feed 0 $httpurl/feed.rss"
+runs -uw
+output_n 3
+make_n 6 $httpdir/feed.rss
+runs -uw
+output_n 6
+
 begin "maxarticles 10"
 make_n 20 $httpdir/feed.rss
 add "maxarticles 10"

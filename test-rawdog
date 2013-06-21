@@ -136,6 +136,28 @@ make_rss20 () {
 EOF
 }
 
+make_atom10 () {
+	cat >"$1" <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>example-feed-title</title>
+  <link href="http://example.org/"/>
+  <updated>2013-06-21T18:00:00Z</updated>
+  <author>
+    <name>example-feed-author</name>
+  </author>
+  <id>http://example.org/feed-id</id>
+  <entry>
+    <title>example-item-title</title>
+    <link href="http://example.org/item"/>
+    <id>http://example.org/item-id</id>
+    <updated>2013-06-21T18:00:00Z</updated>
+    <summary>example-item-description</summary>
+  </entry>
+</feed>
+EOF
+}
+
 make_range () {
 	from="$1"
 	to="$2"
@@ -221,6 +243,12 @@ runs -u
 begin "http: URL and write"
 make_rss20 $httpdir/simple.rss
 add "feed 0 $httpurl/simple.rss"
+runs -uw
+contains $statedir/output.html example-item-title example-item-description
+
+begin "http: URL and write, Atom 1.0"
+make_atom10 $httpdir/simple.atom
+add "feed 0 $httpurl/simple.atom"
 runs -uw
 contains $statedir/output.html example-item-title example-item-description
 

@@ -1470,7 +1470,7 @@ __description__
 			if guid == "":
 				guid = None
 
-			if feed.args.get("allowduplicates", False):
+			if not feed.args.get("allowduplicates", False):
 				is_dup = False
 				for key in config["hideduplicates"]:
 					if key == "id" and guid is not None:

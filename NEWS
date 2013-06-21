@@ -80,6 +80,10 @@ Make "hideduplicates id link" work correctly in the odd corner case
 where an article has both id and link duplicated, but to different other
 articles.
 
+Add a --dump option to pretty-print feedparser's output for a URL.
+The feedparser module used to do this if invoked as a script, but more
+recent versions of feedparser don't support this.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

@@ -17,7 +17,9 @@
 # MA 02110-1301, USA, or see http://www.gnu.org/.
 
 VERSION = "2.15rc1"
+HTTP_AGENT = "rawdog/" + VERSION
 STATE_VERSION = 2
+
 import feedparser, plugins
 from persister import Persistable, Persister
 import os, time, getopt, sys, re, cgi, socket, urllib2, calendar
@@ -393,10 +395,10 @@ class Feed:
 
 		try:
 			return feedparser.parse(self.url,
-				etag = self.etag,
-				modified = self.modified,
-				agent = "rawdog/" + VERSION,
-				handlers = handlers)
+				etag=self.etag,
+				modified=self.modified,
+				agent=HTTP_AGENT,
+				handlers=handlers)
 		except Exception, e:
 			return {
 				"rawdog_exception": e,
@@ -1653,6 +1655,7 @@ Actions (performed in order given):
 -w, --write                  Write out HTML output
 
 Special actions (all other options are ignored if one of these is specified):
+--dump URL                   Show what rawdog's parser returns for URL
 --help                       Display this help and exit
 
 Report bugs to <ats@offog.org>."""
@@ -1706,7 +1709,11 @@ def main(argv):
 	locking = True
 	no_lock_wait = False
 	for o, a in optlist:
-		if o == "--help":
+		if o == "--dump":
+			import pprint
+			pprint.pprint(feedparser.parse(a, agent=HTTP_AGENT))
+			return 0
+		elif o == "--help":
 			usage()
 			return 0
 		elif o in ("-d", "--dir"):

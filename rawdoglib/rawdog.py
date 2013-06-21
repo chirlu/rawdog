@@ -752,7 +752,7 @@ class Config:
 			"tidyhtml" : False,
 			"sortbyfeeddate" : False,
 			"currentonly" : False,
-			"hideduplicates" : "",
+			"hideduplicates" : [],
 			"newfeedperiod" : "3h",
 			"changeconfig": False,
 			"numthreads": 1,

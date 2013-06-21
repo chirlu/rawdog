@@ -139,6 +139,33 @@ make_rss20 () {
 EOF
 }
 
+make_rss20_desc () {
+	cat >"$1" <<EOF
+<rss version="2.0">
+  <channel>
+    <title>example-feed-title</title>
+    <link>http://example.org/</link>
+    <description>example-feed-description</description>
+    <item>
+      <title>example-item-title</title>
+      <link>http://example.org/item</link>
+      <description>
+EOF
+	cat >>"$1"
+	cat >>"$1" <<EOF
+      </description>
+    </item>
+  </channel>
+</rss>
+EOF
+}
+
+write_desc () {
+	make_rss20_desc $httpdir/feed.rss
+	add "feed 0 $httpurl/feed.rss"
+	runs -uw
+}
+
 make_atom10 () {
 	cat >"$1" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
@@ -561,4 +588,41 @@ EOF
 	runs -uw
 	output_range 1 10
 done
+
+begin "shorttag expansion"
+# <br/> <br /> bug fixed 2006-01-07.
+# <br/>/ has a workaround in feedparser for sgmllib.
+write_desc <<EOF
+&lt;b&gt;0&lt;/b&gt;&lt;br/&gt;
+&lt;b&gt;1&lt;/b&gt;&lt;br /&gt;
+&lt;b&gt;2&lt;/b&gt;&lt;br/&gt;/
+EOF
+contains $statedir/output.html "<b>0</b><br>" "<b>1</b><br>" "<b>2</b><br>"
+
+begin "broken processing instruction"
+write_desc <<EOF
+&lt;!doctype html!&gt;
+EOF
+
+begin "relative URIs resolved"
+write_desc <<EOF
+<![CDATA[<p>
+<a href="rel-link">link</a>
+<img src="rel-img">
+</p>]]>
+EOF
+contains $statedir/output.html \
+	"$httpurl/rel-link" \
+	"$httpurl/rel-img"
+
+begin "Javascript removed"
+write_desc <<EOF
+<![CDATA[<p>
+<script type="text/javascript">
+alert('Annoying1');
+</script>
+<span style="background: url(javascript:alert('Annoying2'))">span</a>
+</p>]]>
+EOF
+not_contains $statedir/output.html "Annoying1" "Annoying2"
 

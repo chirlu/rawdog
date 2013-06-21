@@ -719,10 +719,13 @@ class ConfigError(Exception): pass
 class Config:
 	"""The aggregator's configuration."""
 
-	def __init__(self, locking):
+	def __init__(self, locking=True, logfile_name=None):
 		self.locking = locking
 		self.files_loaded = []
 		self.loglock = threading.Lock()
+		self.logfile = None
+		if logfile_name:
+			self.logfile = open(logfile_name, "a")
 		self.reset()
 
 	def reset(self):
@@ -893,10 +896,16 @@ class Config:
 			raise ConfigError("Bad argument lines in config after: " + line)
 
 	def log(self, *args):
-		"""If running in verbose mode, print a status message."""
+		"""Print a status message. If running in verbose mode, write
+		the message to stderr; if using a logfile, write it to the
+		logfile."""
 		if self["verbose"]:
 			with self.loglock:
 				print >>sys.stderr, "".join(map(str, args))
+		if self.logfile is not None:
+			with self.loglock:
+				print >>self.logfile, "".join(map(str, args))
+				self.logfile.flush()
 
 	def bug(self, *args):
 		"""Report detection of a bug in rawdog."""
@@ -1660,7 +1669,7 @@ def main(argv):
 	system_encoding = locale.getpreferredencoding()
 
 	try:
-		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:va:r:NW", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "add=", "remove=", "no-locking", "no-lock-wait"])
+		(optlist, args) = getopt.getopt(argv, "ulwf:c:tTd:vV:a:r:NW", ["update", "list", "write", "update-feed=", "help", "config=", "show-template", "dir=", "show-itemtemplate", "verbose", "log=", "add=", "remove=", "no-locking", "no-lock-wait"])
 	except getopt.GetoptError, s:
 		print s
 		usage()
@@ -1675,6 +1684,7 @@ def main(argv):
 	else:
 		statedir = None
 	verbose = False
+	logfile_name = None
 	locking = True
 	no_lock_wait = False
 	for o, a in optlist:
@@ -1685,6 +1695,8 @@ def main(argv):
 			statedir = a
 		elif o in ("-v", "--verbose"):
 			verbose = True
+		elif o in ("-V", "--log"):
+			logfile_name = a
 		elif o in ("-N", "--no-locking"):
 			locking = False
 		elif o in ("-W", "--no-lock-wait"):
@@ -1701,7 +1713,7 @@ def main(argv):
 
 	sys.path.append(".")
 
-	config = Config(locking)
+	config = Config(locking, logfile_name)
 	def load_config(fn):
 		try:
 			config.load(fn)

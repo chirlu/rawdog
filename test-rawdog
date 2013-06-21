@@ -73,7 +73,7 @@ not_contains () {
 runf () {
 	cmdnum=$(expr $cmdnum + 1)
 	outfile=$statedir/out$cmdnum
-	./rawdog -d $statedir "$@" >$outfile 2>&1
+	./rawdog -d $statedir -V log$cmdnum "$@" >$outfile 2>&1
 }
 
 # Run rawdog, expecting it to exit 0.

@@ -73,6 +73,9 @@ this version, you'll see some duplicate articles on feeds with CP1252
 encoding problems. Tests suggest this doesn't affect many feeds (3 out
 of the 1000-odd in my test setup).
 
+Add a -V option, which is like -v but appends the verbose output to a
+file. This is mostly useful for testing.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

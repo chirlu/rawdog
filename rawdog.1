@@ -38,8 +38,11 @@ Unfortunately, some filesystems don't support file locking; you can use
 this option to disable locking entirely if you're in that situation.
 .TP
 \fB\-v\fP, \fB\-\-verbose\fP
-Print more detailed information about what \fBrawdog\fP is doing while
-it runs.
+Print more detailed information about what \fBrawdog\fP is doing to stderr
+while it runs.
+.TP
+\fB\-V\fP \fIFILE\fP, \fB\-\-log\fP \fIFILE\fP
+As with \fB-V\fP, but write the information to \fIFILE\fP.
 .TP
 \fB\-W\fP, \fB\-\-no\-lock\-wait\fP
 Exit silently if the state file is already locked.

@@ -40,6 +40,7 @@ cleanstate () {
 begin () {
 	echo ">>> Testing $1"
 	cleanstate
+	cmdnum=0
 }
 
 add () {
@@ -70,13 +71,15 @@ not_contains () {
 
 # Run rawdog.
 runf () {
-	./rawdog -d $statedir "$@" >$statedir/out 2>&1
+	cmdnum=$(expr $cmdnum + 1)
+	outfile=$statedir/out$cmdnum
+	./rawdog -d $statedir "$@" >$outfile 2>&1
 }
 
 # Run rawdog, expecting it to exit 0.
 run () {
 	if ! runf "$@"; then
-		cat $statedir/out
+		cat $outfile
 		die "exited non-0"
 	fi
 }
@@ -84,8 +87,8 @@ run () {
 # Run rawdog, expecting no complaints.
 runs () {
 	run "$@"
-	if [ -s $statedir/out ]; then
-		cat $statedir/out
+	if [ -s $outfile ]; then
+		cat $outfile
 		die "expected no output"
 	fi
 }
@@ -95,7 +98,7 @@ rune () {
 	key="$1"
 	shift
 	run "$@"
-	contains "$statedir/out" "$key"
+	contains $outfile "$key"
 }
 
 make_text () {
@@ -218,7 +221,7 @@ runs -uw
 begin "corrupt state file"
 echo this is not a valid state file >$statedir/state
 runf -u
-contains $statedir/out "means the file is corrupt"
+contains $outfile "means the file is corrupt"
 
 begin "corrupt splitstate file"
 make_rss20 $statedir/simple.rss
@@ -227,7 +230,7 @@ add "feed 0 simple.rss"
 runs -u
 echo this is not a valid state file >$(echo $statedir/feeds/*.state)
 runf -u
-contains $statedir/out "means the file is corrupt"
+contains $outfile "means the file is corrupt"
 
 begin "filename"
 make_rss20 $statedir/simple.rss

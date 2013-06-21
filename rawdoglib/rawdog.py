@@ -1486,12 +1486,10 @@ __description__
 						if guid in seen_guids:
 							is_dup = True
 						seen_guids.add(guid)
-						break
 					elif key == "link" and link is not None:
 						if link in seen_links:
 							is_dup = True
 						seen_links.add(link)
-						break
 				if is_dup:
 					dup_count += 1
 					continue

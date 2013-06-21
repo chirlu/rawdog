@@ -76,6 +76,10 @@ of the 1000-odd in my test setup).
 Add a -V option, which is like -v but appends the verbose output to a
 file. This is mostly useful for testing.
 
+Make "hideduplicates id link" work correctly in the odd corner case
+where an article has both id and link duplicated, but to different other
+articles.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

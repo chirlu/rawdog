@@ -638,3 +638,19 @@ write_desc <<EOF
 EOF
 contains $statedir/output.html not-broken
 
+if $knownbad; then
+	begin "escaped slashes in URL"
+	# feedparser issue 407: links with :// escaped get mangled (reported in
+	# rawdog by Joseph Reagle).
+	write_desc <<EOF
+	<![CDATA[
+	<a href="http:&#x2F;&#x2F;example.com&#x2F;0">link</a>
+	<a href="https:&#x2F;&#x2F;example.com&#x2F;1">link</a>
+	<a href="http&0x3A;&#x2F;&#x2F;example.com&#x2F;2">link</a>
+	<a href="https&0x3A;&#x2F;&#x2F;example.com&#x2F;3">link</a>
+	]]>
+EOF
+	contains $statedir/output.html \
+		http://example.com/0 http://example.com/1 \
+		http://example.com/2 http://example.com/3
+fi

@@ -1562,7 +1562,7 @@ if _XML_AVAILABLE:
         
         def startPrefixMapping(self, prefix, uri):
             self.trackNamespace(prefix, uri)
-
+        
         def startElementNS(self, name, qname, attrs):
             namespace, localname = name
             lowernamespace = str(namespace or '').lower()

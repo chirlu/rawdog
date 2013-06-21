@@ -145,7 +145,7 @@ make_atom10 () {
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>example-feed-title</title>
   <link href="http://example.org/"/>
-  <updated>2013-06-21T18:00:00Z</updated>
+  <updated>2013-01-01T18:00:00Z</updated>
   <author>
     <name>example-feed-author</name>
   </author>
@@ -154,8 +154,30 @@ make_atom10 () {
     <title>example-item-title</title>
     <link href="http://example.org/item"/>
     <id>http://example.org/item-id</id>
-    <updated>2013-06-21T18:00:00Z</updated>
+    <updated>2013-01-01T18:00:00Z</updated>
     <summary>example-item-description</summary>
+  </entry>
+</feed>
+EOF
+}
+
+make_single () {
+	cat >"$1" <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>example-feed-title</title>
+  <link href="http://example.org/"/>
+  <updated>2013-01-01T18:00:00Z</updated>
+  <author>
+    <name>example-feed-author</name>
+  </author>
+  <id>http://example.org/feed-id</id>
+  <entry>
+    <title>$2-title</title>
+    <link href="$3"/>
+    <id>$4</id>
+    <updated>2013-01-01T18:00:00Z</updated>
+    <summary>$2-description</summary>
   </entry>
 </feed>
 EOF
@@ -391,6 +413,49 @@ make_n 5 $httpdir/feed.rss
 runs -uw
 output_n 5
 not_output_range 6 10
+
+dupecheck () {
+	add "useids false"
+	add "feed 0 $httpurl/feed.atom"
+	make_single $httpdir/feed.atom item-a \
+		http://example.org/link/x http://example.org/id/0
+	runs -u
+	make_single $httpdir/feed.atom item-b \
+		http://example.org/link/x http://example.org/id/1
+	runs -u
+	make_single $httpdir/feed.atom item-c \
+		http://example.org/link/y http://example.org/id/1
+	runs -uw
+}
+
+begin "hideduplicates none"
+add "hideduplicates none"
+dupecheck
+contains $statedir/output.html item-a-title item-b-title item-c-title
+
+begin "hideduplicates id"
+add "hideduplicates id"
+dupecheck
+contains $statedir/output.html item-a-title item-c-title
+not_contains $statedir/output.html item-b-title
+
+begin "hideduplicates link"
+add "hideduplicates link"
+dupecheck
+contains $statedir/output.html item-b-title item-c-title
+not_contains $statedir/output.html item-a-title
+
+begin "hideduplicates link id"
+add "hideduplicates link id"
+dupecheck
+contains $statedir/output.html item-c-title
+not_contains $statedir/output.html item-a-title item-b-title
+
+begin "allowduplicates"
+add "feeddefaults allowduplicates=true"
+add "hideduplicates link id"
+dupecheck
+contains $statedir/output.html item-a-title item-b-title item-c-title
 
 begin "HTTP basic authentication"
 htpasswd -bc $httpdir/passwd TestUser TestPass 2>/dev/null

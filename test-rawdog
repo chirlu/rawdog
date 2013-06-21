@@ -211,6 +211,10 @@ begin "bad config directive"
 add "foo bar"
 rune "Unknown config command"
 
+begin "empty config file"
+: >$statedir/config
+runs -uw
+
 begin "corrupt state file"
 echo this is not a valid state file >$statedir/state
 runf -u

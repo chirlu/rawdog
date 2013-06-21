@@ -2,6 +2,9 @@
 
 Handles RSS 0.9x, RSS 1.0, RSS 2.0, CDF, Atom 0.3, and Atom 1.0 feeds
 
+Patches for rawdog:
+- fix feedparser issue 390
+
 Visit https://code.google.com/p/feedparser/ for the latest version
 Visit http://packages.python.org/feedparser/ for the latest documentation
 
@@ -2905,7 +2908,9 @@ class _FeedURLHandler(urllib2.HTTPDigestAuthHandler, urllib2.HTTPRedirectHandler
     def http_error_301(self, req, fp, code, msg, hdrs):
         result = urllib2.HTTPRedirectHandler.http_error_301(self, req, fp,
                                                             code, msg, hdrs)
-        result.status = code
+        # rawdog patch: fix feedparser issue 390
+        if not hasattr(result, 'status'):
+            result.status = code
         result.newurl = result.geturl()
         return result
     # The default implementations in urllib2.HTTPRedirectHandler

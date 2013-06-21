@@ -13,8 +13,6 @@ Remove rawdog's copy of feedparser. This means doing away with all our patches:
 Check existing bodges for feedparser bugs -- e.g. upstream feedparser doesn't
 use BeautifulSoup any more.
 
-Check whether setting feedparser options in update will mess up writing.
-
 Can we do without ensure_unicode? Having instrumented it, it looks like it's
 mostly converting strings that feedparser itself has created.
 

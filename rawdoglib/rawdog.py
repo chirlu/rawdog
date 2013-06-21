@@ -1637,6 +1637,7 @@ General options (use only once):
 -d|--dir DIR                 Use DIR instead of ~/.rawdog
 -v, --verbose                Print more detailed status information
 -N, --no-locking             Do not lock the state file
+-V|--log FILE                Append detailed status information to FILE
 -W, --no-lock-wait           Exit silently if state file is locked
 
 Actions (performed in order given):

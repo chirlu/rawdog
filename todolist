@@ -1,3 +1,5 @@
+Show the chain of HTTP statuses, not just the last one.
+
 Show feedparser version in --help.
 
 Add --version.

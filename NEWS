@@ -116,6 +116,8 @@ Fix Debian bug 657206: make fakefinder understand relative links
 Fix Debian bug 650776: make fakefinder not crash if it can't parse the
 URL it was given as HTML (reported by Jonathan Polley).
 
+Don't append an extra newline to the templates when doing -t/-T.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

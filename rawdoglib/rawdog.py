@@ -1452,11 +1452,11 @@ __description__
 
 	def show_template(self, config):
 		"""Show the configured main template."""
-		print self.get_template(config)
+		print self.get_template(config),
 
 	def show_itemtemplate(self, config):
 		"""Show the configured item template."""
-		print self.get_itemtemplate(config)
+		print self.get_itemtemplate(config),
 
 	def write_article(self, f, article, config):
 		"""Write an article to the given file."""

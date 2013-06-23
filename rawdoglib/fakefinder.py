@@ -44,12 +44,12 @@ def feeds(page_url):
 
     found = []
 
+    parser = FeedFinder(page_url)
     try:
-        parser = FeedFinder(page_url)
         parser.feed(urllib.urlopen(page_url).read())
-        found += parser.feeds
     except HTMLParser.HTMLParseError:
         pass
+    found += parser.feeds
 
     found.append(page_url)
 

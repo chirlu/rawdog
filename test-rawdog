@@ -894,11 +894,14 @@ make_html $httpdir/page.html
 rune "Cannot find any feeds" -a $httpurl/page.html
 
 begin "add feed, nonsense in HTML"
-# Debian bug 650776.
-make_html_body $httpdir/page.html <<EOF
+# Debian bug 650776. This will provoke a HTMLParseError.
+make_rss20 $httpdir/feed.rss
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="application/rss+xml" title="RSS" href="feed.rss">
 <![GARBAGE]]>
 EOF
-rune "Cannot find any feeds" -a $httpurl/page.html
+rune "Adding feed" -a $httpurl/page.html
+contains "$statedir/config" $httpurl/feed.rss
 
 begin "add feed, already present"
 make_atom10 $httpdir/feed.atom

@@ -103,8 +103,12 @@ it by hand.
 
 Add Decklin Foster's fakefinder module (from his Debian package
 rawdog_2.13.dfsg.1-1) as the start of a replacement for feedfinder.
-Put fakefinder's license notice into __license__ (for consistency with
-feedparser).
+
+Put fakefinder's license notice into __license__, for consistency with
+feedparser.
+
+Make fakefinder understand HTML-style <link ...> as well as XHTML-style
+<link ... />.
 
 - rawdog 2.14
 

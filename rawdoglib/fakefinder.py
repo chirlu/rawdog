@@ -10,6 +10,7 @@
 
 __license__ = """
 Copyright (c) 2008 Decklin Foster <decklin@red-bean.com>
+Copyright (c) 2013 Adam Sampson <ats@offog.org>
 
 Permission to use, copy, modify, and/or distribute this software for
 any purpose with or without fee is hereby granted, provided that
@@ -38,7 +39,7 @@ class FeedFinder(HTMLParser):
     def __init__(self):
         HTMLParser.__init__(self)
         self.feeds = []
-    def handle_startendtag(self, tag, attrs):
+    def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
         if tag == 'link' and attrs.get('rel') == 'alternate' and \
                 not attrs.get('type') == 'text/html':

@@ -86,9 +86,6 @@ recent versions of feedparser don't support this.
 
 Upgrade feedparser to version 5.1.3.
 
-Patch feedparser to fix issue 390 (misreported status code for
-redirects).
-
 Use a custom urllib2 handler to capture all the HTTP responses that
 feedparser sees when handling redirects. This means rawdog can now see
 both the initial and final status code (rather than the combined one

@@ -571,6 +571,22 @@ add "sortbyfeeddate true"
 runs -w
 equals "03 02 01" "$(entries)"
 
+begin "writing page and item templates"
+make_rss20 $httpdir/simple.rss
+add "feed 0 $httpurl/simple.rss"
+runs -uw
+cp $statedir/output.html $statedir/output.html.orig
+run -t
+cp $outfile $statedir/template
+run -T
+cp $outfile $statedir/item
+add "template template"
+add "itemtemplate item"
+run -w
+if ! cmp $statedir/output.html.orig $statedir/output.html; then
+	die "output different from default templates"
+fi
+
 begin "HTTP basic authentication"
 htpasswd -bc $httpdir/passwd TestUser TestPass 2>/dev/null
 cat >$httpdir/.htaccess <<EOF

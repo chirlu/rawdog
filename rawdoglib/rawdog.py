@@ -1210,6 +1210,15 @@ class Rawdog(Persistable):
 		"""Update rawdog's internal state to match the
 		configuration."""
 
+		# Make sure the splitstate directory exists.
+		if config["splitstate"]:
+			try:
+				os.mkdir("feeds")
+			except OSError:
+				# Most likely it already exists.
+				pass
+
+		# Convert to or from splitstate if necessary.
 		try:
 			u = self.using_splitstate
 		except:

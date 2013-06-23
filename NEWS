@@ -97,6 +97,10 @@ gives a sensible error message for a file: or ftp: URL that gives an
 error, rather than claiming it's a timeout. Plain filenames are now
 turned into file: URLs so you get consistent errors for both.
 
+When splitstate is enabled, make the feeds directory if it doesn't
+already exist. This avoids a confusing error message if you didn't make
+it by hand.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

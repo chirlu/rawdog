@@ -4,8 +4,6 @@ Show feedparser version in --help.
 
 Add --version.
 
-Make statefile directory if not present.
-
 Remove rawdog's copy of feedparser.
 
 Can we do without ensure_unicode? Having instrumented it, it looks like it's

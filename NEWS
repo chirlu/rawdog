@@ -110,6 +110,9 @@ feedparser.
 Make fakefinder understand HTML-style <link ...> as well as XHTML-style
 <link ... />.
 
+Fix Debian bug 657206: make fakefinder understand relative links
+(reported by Peter J. Weisberg).
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

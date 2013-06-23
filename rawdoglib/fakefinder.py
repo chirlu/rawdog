@@ -6,7 +6,7 @@
 # is something we don't recognize. Unlike with the real feedfinder, you
 # *can* add garbage to your config with this if you give it a garbage
 # URI. Also, the first link that appears ends up at the head of the
-# list, so hope it's not the RSS 0.9 one. What do you want for 16 lines?
+# list, so hope it's not the RSS 0.9 one.
 
 __license__ = """
 Copyright (c) 2008 Decklin Foster <decklin@red-bean.com>
@@ -27,20 +27,21 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 """
 
-import urllib
+import urllib, urlparse
 from HTMLParser import HTMLParser
 
 def feeds(uri):
-    parser = FeedFinder()
+    parser = FeedFinder(uri)
     parser.feed(urllib.urlopen(uri).read())
     return parser.feeds + [uri]
 
 class FeedFinder(HTMLParser):
-    def __init__(self):
+    def __init__(self, base_uri):
         HTMLParser.__init__(self)
         self.feeds = []
+        self.base_uri = base_uri
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
         if tag == 'link' and attrs.get('rel') == 'alternate' and \
                 not attrs.get('type') == 'text/html':
-            self.feeds.append(attrs['href'])
+            self.feeds.append(urlparse.urljoin(self.base_uri, attrs['href']))

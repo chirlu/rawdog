@@ -757,6 +757,7 @@ rune "Adding feed" -a $httpurl/feed.rss
 contains "$statedir/config" $httpurl/feed.rss
 
 begin "add feed, relative <link>"
+# Debian bug 657206.
 make_rss20 $httpdir/feed.rss
 make_html_head $httpdir/page.html <<EOF
 <link rel="alternate" type="application/rss+xml" title="RSS" href="feed.rss">

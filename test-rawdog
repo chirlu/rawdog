@@ -511,7 +511,7 @@ checkstatus () {
 	cat >$statedir/plugins/checkstatus.py <<EOF
 import rawdoglib.plugins
 def feed_fetched(rawdog, config, feed, p, error, nf):
-    if p['status'] != $1:
+    if $1 not in [e['status'] for e in p['rawdog_responses']]:
         print "didn't get HTTP $1 response"
 rawdoglib.plugins.attach_hook("feed_fetched", feed_fetched)
 EOF

@@ -347,6 +347,32 @@ class DisableIMProcessor(urllib2.BaseHandler):
 
 	https_request = http_request
 
+class ResponseLogProcessor(urllib2.BaseHandler):
+	"""urllib2 handler that maintains a log of HTTP responses."""
+
+	# Run after anything that's mangling headers (usually 500 or less), but
+	# before HTTPErrorProcessor (1000).
+	handler_order = 900
+
+	def __init__(self):
+		self.log = []
+
+	def http_response(self, req, response):
+		entry = {
+			"url": req.get_full_url(),
+			"status": response.getcode(),
+			}
+		location = response.info().get("Location")
+		if location is not None:
+			entry["location"] = location
+		self.log.append(entry)
+		return response
+
+	https_response = http_response
+
+	def get_log(self):
+		return self.log
+
 non_alphanumeric_re = re.compile(r'<[^>]*>|\&[^\;]*\;|[^a-z0-9]')
 class Feed:
 	"""An RSS feed."""
@@ -373,6 +399,9 @@ class Feed:
 
 		handlers = []
 
+		logger = ResponseLogProcessor()
+		handlers.append(logger)
+
 		proxies = {}
 		for name, value in self.args.items():
 			if name.endswith("_proxy"):
@@ -396,27 +425,38 @@ class Feed:
 		plugins.call_hook("add_urllib2_handlers", rawdog, config, self, handlers)
 
 		try:
-			return feedparser.parse(self.url,
+			result = feedparser.parse(self.url,
 				etag=self.etag,
 				modified=self.modified,
 				agent=HTTP_AGENT,
 				handlers=handlers)
 		except Exception, e:
-			return {
+			result = {
 				"rawdog_exception": e,
 				"rawdog_traceback": sys.exc_info()[2],
 				}
+		result["rawdog_responses"] = logger.get_log()
+		return result
 
 	def update(self, rawdog, now, config, articles, p):
 		"""Add new articles from a feed to the collection.
 		Returns True if any articles were read, False otherwise."""
 
-		status = p.get("status")
-		if status is None:
-			status = 0
+		responses = p.get("rawdog_responses")
+		if len(responses) > 0:
+			last_status = responses[-1]["status"]
+		elif len(p["feed"]) != 0:
+			# Some protocol other than HTTP -- assume it's OK,
+			# since we got some content.
+			last_status = 200
+		else:
+			# Timeout, or empty response from non-HTTP.
+			last_status = 0
+
 		version = p.get("version")
 		if version is None:
 			version = ""
+
 		self.last_update = now
 
 		errors = []
@@ -431,37 +471,53 @@ class Feed:
 			errors.append("")
 			fatal = True
 
-		if status == 0 and len(p["feed"]) == 0:
+		if len(responses) != 0 and responses[0]["status"] == 301:
+			# Permanent redirect(s). Find the new location.
+			i = 0
+			while responses[i]["status"] == 301 and i < len(responses):
+				i += 1
+			location = responses[i - 1].get("location")
+
+			if location is None:
+				errors.append("The feed returned a permanent redirect, but without a new location.")
+			else:
+				errors.append("New URL:     " + location)
+				errors.append("The feed has moved permanently to a new URL.")
+				if config["changeconfig"]:
+					rawdog.change_feed_url(self.url, location, config)
+					errors.append("The config file has been updated automatically.")
+				else:
+					errors.append("You should update its entry in your config file.")
+			errors.append("")
+
+		if last_status == 304:
+			# The feed hasn't changed. Return False to indicate
+			# that we shouldn't do expiry.
+			return False
+		elif last_status in [403, 410]:
+			# The feed is disallowed or gone. The feed should be
+			# unsubscribed.
+			errors.append("The feed has gone.")
+			errors.append("You should remove it from your config file.")
+			errors.append("")
+			fatal = True
+		elif last_status / 100 in [4, 5]:
+			# Some sort of client or server error. The feed may
+			# need unsubscribing.
+			errors.append("The feed returned an error.")
+			errors.append("If this condition persists, you should remove it from your config file.")
+			errors.append("")
+			fatal = True
+		elif (last_status / 100) != 2:
+			# No responses at all, or the last one was a redirect
+			# -- the feed timed out.
 			if config["ignoretimeouts"]:
 				return False
 			else:
 				errors.append("Timeout while reading feed.")
 				errors.append("")
 				fatal = True
-		elif status == 301:
-			# Permanent redirect. The feed URL needs changing.
-			errors.append("New URL:     " + p["url"])
-			errors.append("The feed has moved permanently to a new URL.")
-			if config["changeconfig"]:
-				rawdog.change_feed_url(self.url, p["url"], config)
-				errors.append("The config file has been updated automatically.")
-			else:
-				errors.append("You should update its entry in your config file.")
-			errors.append("")
-		elif status in [403, 410]:
-			# The feed is disallowed or gone. The feed should be unsubscribed.
-			errors.append("The feed has gone.")
-			errors.append("You should remove it from your config file.")
-			errors.append("")
-			fatal = True
-		elif status / 100 in [4, 5]:
-			# Some sort of client or server error. The feed may need unsubscribing.
-			errors.append("The feed returned an error.")
-			errors.append("If this condition persists, you should remove it from your config file.")
-			errors.append("")
-			fatal = True
-
-		if status in (200, 301, 302, 307) and version == "" and len(p["entries"]) == 0:
+		elif version == "" and len(p["entries"]) == 0:
 			# feedparser couldn't detect the type of this feed or
 			# retrieve any entries from it.
 			errors.append("The data retrieved from this URL could not be understood as a feed.")
@@ -474,8 +530,8 @@ class Feed:
 
 		if len(errors) != 0:
 			print >>sys.stderr, "Feed:        " + old_url
-			if status != 0:
-				print >>sys.stderr, "HTTP Status: " + str(status)
+			if last_status != 0:
+				print >>sys.stderr, "HTTP Status: " + str(last_status)
 			for line in errors:
 				print >>sys.stderr, line
 			if fatal:
@@ -483,9 +539,8 @@ class Feed:
 
 		p = ensure_unicode(p, p.get("encoding") or "UTF-8")
 
-		# In the event that the feed hasn't changed, then both channel
-		# and feed will be empty. In this case we return False so that
-		# we know not to expire articles that came from this feed.
+		# No entries means the feed hasn't changed, but for some reason
+		# we didn't get a 304 response. Handle it the same way.
 		if len(p["entries"]) == 0:
 			return False
 

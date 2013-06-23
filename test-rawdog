@@ -290,17 +290,18 @@ make_rss20 $statedir/simple.rss
 add "feed 0 simple.rss"
 runs -u
 
-if $knownbad; then
-	# FIXME: produces timeout error
-	begin "file not found"
-	add "feed 0 simple.rss"
-	rune "404" -u
-fi
+begin "filename not found"
+add "feed 0 missing.rss"
+rune "No such file" -u
 
 begin "file: URL"
 make_rss20 $statedir/simple.rss
 add "feed 0 file:simple.rss"
 runs -u
+
+begin "file: URL not found"
+add "feed 0 file:missing.rss"
+rune "No such file" -u
 
 begin "http: URL and write, RSS 2.0"
 make_rss20 $httpdir/simple.rss

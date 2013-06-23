@@ -1,6 +1,7 @@
 # Anemic replacement for feedfinder (which Debian can't distribute) so
-# that ``rawdog -a'' at least does *something*. Only checks for the
+# that ``rawdog -a'' at least does *something*. Checks for the
 # existence of <link rel='alternate' ... /> in an HTML (or XML) document;
+# then for <a ...> links that look like they might point to feeds;
 # falls back to the given URI otherwise, e.g. if the URI is already a
 # feed (and only contains text/html alternates, in the case of Atom), or
 # is something we don't recognize. The first link that appears ends up at the
@@ -26,6 +27,7 @@ PERFORMANCE OF THIS SOFTWARE.
 """
 
 import feedparser
+import re
 import urllib
 import urlparse
 import HTMLParser
@@ -42,16 +44,12 @@ def is_feed(url):
 def feeds(page_url):
     """Search the given URL for possible feeds, returning a list of them."""
 
-    found = []
-
     parser = FeedFinder(page_url)
     try:
         parser.feed(urllib.urlopen(page_url).read())
     except HTMLParser.HTMLParseError:
         pass
-    found += parser.feeds
-
-    found.append(page_url)
+    found = parser.urls() + [page_url]
 
     # Return only feeds that feedparser can understand.
     return [feed for feed in found if is_feed(feed)]
@@ -59,10 +57,25 @@ def feeds(page_url):
 class FeedFinder(HTMLParser.HTMLParser):
     def __init__(self, base_uri):
         HTMLParser.HTMLParser.__init__(self)
-        self.feeds = []
+        self.found = []
+        self.count = 0
         self.base_uri = base_uri
+
+    def add(self, quality, href):
+        self.found.append((quality, self.count,
+                           urlparse.urljoin(self.base_uri, href)))
+        self.count += 1
+
+    def urls(self):
+        return [link[2] for link in sorted(self.found)]
+
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
+        href = attrs.get('href')
+        if href is None:
+            return
         if tag == 'link' and attrs.get('rel') == 'alternate' and \
                 not attrs.get('type') == 'text/html':
-            self.feeds.append(urlparse.urljoin(self.base_uri, attrs['href']))
+            self.add(10, href)
+        if tag == 'a' and re.search(r'\b(rss|atom|rdf|feeds?)\b', href, re.I):
+            self.add(20, href)

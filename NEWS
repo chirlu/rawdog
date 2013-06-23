@@ -124,6 +124,9 @@ addition to its own.
 Make fakefinder only return URLs that feedparser can parse successfully
 as feeds.
 
+Make fakefinder look for <a> links pointing to URLs with words in them
+that suggest they're probably feeds.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

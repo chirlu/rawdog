@@ -92,6 +92,10 @@ both the initial and final status code (rather than the combined one
 feedparser returns) -- so it can correctly handle redirects to errors,
 and redirects to redirects.
 
+Show URLError exceptions returned by feedparser -- this means rawdog
+gives a sensible error message for a file: or ftp: URL that gives an
+error, rather than claiming it's a timeout.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

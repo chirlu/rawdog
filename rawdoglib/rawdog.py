@@ -491,7 +491,13 @@ class Feed:
 					errors.append("You should update its entry in your config file.")
 			errors.append("")
 
-		if last_status == 304:
+		if isinstance(p.get("bozo_exception"), urllib2.URLError):
+			# feedparser hit a URLError when fetching the feed.
+			errors.append("Error while fetching feed:")
+			errors.append(str(p["bozo_exception"]))
+			errors.append("")
+			fatal = True
+		elif last_status == 304:
 			# The feed hasn't changed. Return False to indicate
 			# that we shouldn't do expiry.
 			return False

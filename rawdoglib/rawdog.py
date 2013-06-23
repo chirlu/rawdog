@@ -1027,15 +1027,17 @@ def add_feed(filename, url, rawdog, config):
 	part_scores = {"comment": -10,
 	               "atom": 2}
 	scored = []
+	i = 0
 	for feed in feeds:
 		score = 0
 		for p, s in part_scores.items():
 			if feed.find(p) != -1:
 				score += s
-		scored.append((-score, feed))
+		scored.append((-score, i, feed))
+		i += 1
 	scored.sort()
 
-	feed = scored[0][1]
+	feed = scored[0][2]
 	if feed in rawdog.feeds:
 		print >>sys.stderr, "Feed " + feed + " is already in the config file"
 		return

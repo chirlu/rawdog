@@ -485,7 +485,7 @@ class Feed:
 		if len(responses) != 0 and responses[0]["status"] == 301:
 			# Permanent redirect(s). Find the new location.
 			i = 0
-			while responses[i]["status"] == 301 and i < len(responses):
+			while i < len(responses) and responses[i]["status"] == 301:
 				i += 1
 			location = responses[i - 1].get("location")
 

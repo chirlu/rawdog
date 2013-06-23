@@ -40,14 +40,15 @@ cleanstate () {
 	cp config $statedir/config
 }
 
+add () {
+	echo "$1" >>$statedir/config
+}
+
 begin () {
 	echo ">>> Testing $1"
 	cleanstate
+	add "showtracebacks true"
 	cmdnum=0
-}
-
-add () {
-	echo "$1" >>$statedir/config
 }
 
 contains () {

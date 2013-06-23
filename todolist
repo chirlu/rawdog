@@ -1,3 +1,15 @@
+Check Debian rawdog bugs; the following can be closed once Debian picks up 2.15:
+- 363472: feeddefaults parsing - fixed
+- 366101: actually a feedparser bug - (probably) fixed
+- 374741: actually a feedparser bug - fixed
+- 383422/684252: don't embed feedparser
+- 410199: template encoding - fixed
+- 468383/603267: new upstream version
+- 601276: fixed: disable BeautifulSoup
+- 650776: fixed: fakefinder HTML parse error handling
+- 651080: fixed: feedparser date change
+- 657206: fixed: fakefinder relative URLs
+
 Show the chain of HTTP statuses, not just the last one.
 
 Show feedparser version in --help.

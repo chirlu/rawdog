@@ -126,6 +126,42 @@ make_html () {
 EOF
 }
 
+make_html_head () {
+	cat >"$1" <<EOF
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+            "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <title>Not a feed</title>
+EOF
+	cat >>"$1"
+	cat >>"$1" <<EOF
+</head>
+<body>
+  <p>This is manifestly not a feed.</p>
+</body>
+</html>
+EOF
+}
+
+make_html_body () {
+	cat >"$1" <<EOF
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+            "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <title>Not a feed</title>
+</head>
+<body>
+  <p>This is manifestly not a feed.</p>
+EOF
+	cat >>"$1"
+	cat >>"$1" <<EOF
+</body>
+</html>
+EOF
+}
+
 make_rss20 () {
 	cat >"$1" <<EOF
 <rss version="2.0">
@@ -714,3 +750,87 @@ EOF
 		http://example.com/0 http://example.com/1 \
 		http://example.com/2 http://example.com/3
 fi
+
+begin "add feed, actually a feed"
+make_rss20 $httpdir/feed.rss
+rune "Adding" -a $httpurl/feed.rss
+contains "$statedir/config" $httpurl/feed.rss
+
+begin "add feed, relative <link>"
+make_rss20 $httpdir/feed.rss
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="application/rss+xml" title="RSS" href="feed.rss">
+EOF
+rune "Adding" -a $httpurl/page.html
+contains "$statedir/config" $httpurl/feed.rss
+
+begin "add feed, absolute <link>"
+make_rss20 $httpdir/feed.rss
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="application/rss+xml" title="RSS" href="$httpurl/feed.rss">
+EOF
+rune "Adding" -a $httpurl/page.html
+contains "$statedir/config" $httpurl/feed.rss
+
+begin "add feed, typical blog"
+# Roughly what blogspot pages have.
+make_atom10 $httpdir/posts
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="application/atom+xml" title="My Blog - Atom" href="$httpurl/posts">
+<link rel="alternate" type="application/atom+xml" title="My Blog - RSS" href="$httpurl/posts?alt=rss">
+<link rel="service.post" type="application/atom+xml" title="My Blog - Atom" href="http://example.org/posts">
+EOF
+rune "Adding" -a $httpurl/page.html
+contains "$statedir/config" $httpurl/posts
+not_contains "$statedir/config" "alt=rss"
+
+begin "add feed, avoid HTML <link>"
+make_html $httpdir/dummy.html
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="text/html" title="Something" href="$httpurl/dummy.html">
+EOF
+rune "Cannot find any feeds" -a $httpurl/page.html
+
+begin "add feed, <a> with obvious URL"
+make_rss20 $httpdir/foo.rss
+make_html_body $httpdir/page.html <<EOF
+<p>Here is our <a href="$httpurl/foo.rss">feed</a>!</p>
+EOF
+rune "Adding" -a $httpurl/page.html
+
+if $knownbad; then
+	begin "add feed, <a> with non-obvious URL"
+	# ... as boingboing.net currently has (old feedfinder doesn't find this; it
+	# finds /atom.xml by brute force).
+	make_rss20 $httpdir/foo
+	make_html_body $httpdir/page.html <<EOF
+	<p>Here is our <a href="$httpurl/foo">RSS feed</a>!</p>
+EOF
+	rune "Adding" -a $httpurl/page.html
+fi
+
+begin "add feed, brute force"
+make_atom10 $httpdir/index.atom
+make_html $httpdir/page.html
+rune "Adding" -a $httpurl/page.html
+
+begin "add feed, prefer Atom over RSS"
+make_rss20 $httpdir/feed.rss
+make_atom10 $httpdir/feed.atom
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="application/rss+xml" title="RSS" href="feed.rss">
+<link rel="alternate" type="application/atom+xml" title="Atom" href="feed.atom">
+EOF
+rune "Adding" -a $httpurl/page.html
+contains "$statedir/config" $httpurl/feed.atom
+
+begin "add feed, prefer entries over comments"
+make_atom10 $httpdir/comments.atom
+make_atom10 $httpdir/entries.atom
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="application/atom+xml" title="Atom Comments" href="comments.atom">
+<link rel="alternate" type="application/atom+xml" title="Atom" href="entries.atom">
+EOF
+rune "Adding" -a $httpurl/page.html
+contains "$statedir/config" $httpurl/entries.atom
+

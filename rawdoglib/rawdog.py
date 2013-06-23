@@ -464,7 +464,8 @@ class Feed:
 		old_url = self.url
 
 		if "rawdog_exception" in p:
-			errors.append("Error fetching or parsing feed: " + str(p["rawdog_exception"]))
+			errors.append("Error fetching or parsing feed:")
+			errors.append(str(p["rawdog_exception"]))
 			if config["showtracebacks"]:
 				from traceback import format_tb
 				errors.append("".join(format_tb(p["rawdog_traceback"])))

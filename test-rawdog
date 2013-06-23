@@ -51,6 +51,12 @@ begin () {
 	cmdnum=0
 }
 
+equals () {
+	if [ "$1" != "$2" ]; then
+		die "expected '$1'; got '$2'"
+	fi
+}
+
 contains () {
 	file="$1"
 	shift
@@ -526,6 +532,44 @@ add "feeddefaults allowduplicates=true"
 add "hideduplicates link id"
 dupecheck
 contains $statedir/output.html item-a-title item-b-title item-c-title
+
+begin "sortbyfeeddate false/true"
+# Debian bug 651080.
+for day in 01 02 03; do
+	cat >$httpdir/$day.atom <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>example-feed-title-${day}</title>
+  <link href="http://example.org/${day}/"/>
+  <updated>2013-01-${day}T18:00:00Z</updated>
+  <author>
+    <name>example-feed-author</name>
+  </author>
+  <id>http://example.org/${day}/feed-id</id>
+  <entry>
+    <title>example-item-title-${day}</title>
+    <link href="http://example.org/${day}/item"/>
+    <id>http://example.org/${day}/item-id</id>
+    <updated>2013-01-${day}01T18:00:00Z</updated>
+    <summary>ENTRY-${day}</summary>
+  </entry>
+</feed>
+EOF
+done
+entries () {
+	grep 'ENTRY' $statedir/output.html | sed 's,.*ENTRY-\(..\).*,\1,' | xargs -n10 echo
+}
+add "feed 0 $httpurl/03.atom"
+runs -u
+add "feed 0 $httpurl/02.atom"
+runs -u
+add "feed 0 $httpurl/01.atom"
+add "sortbyfeeddate false"
+runs -uw
+equals "01 02 03" "$(entries)"
+add "sortbyfeeddate true"
+runs -w
+equals "03 02 01" "$(entries)"
 
 begin "HTTP basic authentication"
 htpasswd -bc $httpdir/passwd TestUser TestPass 2>/dev/null

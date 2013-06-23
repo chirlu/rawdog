@@ -753,7 +753,7 @@ fi
 
 begin "add feed, actually a feed"
 make_rss20 $httpdir/feed.rss
-rune "Adding" -a $httpurl/feed.rss
+rune "Adding feed" -a $httpurl/feed.rss
 contains "$statedir/config" $httpurl/feed.rss
 
 begin "add feed, relative <link>"
@@ -761,7 +761,7 @@ make_rss20 $httpdir/feed.rss
 make_html_head $httpdir/page.html <<EOF
 <link rel="alternate" type="application/rss+xml" title="RSS" href="feed.rss">
 EOF
-rune "Adding" -a $httpurl/page.html
+rune "Adding feed" -a $httpurl/page.html
 contains "$statedir/config" $httpurl/feed.rss
 
 begin "add feed, absolute <link>"
@@ -769,7 +769,7 @@ make_rss20 $httpdir/feed.rss
 make_html_head $httpdir/page.html <<EOF
 <link rel="alternate" type="application/rss+xml" title="RSS" href="$httpurl/feed.rss">
 EOF
-rune "Adding" -a $httpurl/page.html
+rune "Adding feed" -a $httpurl/page.html
 contains "$statedir/config" $httpurl/feed.rss
 
 begin "add feed, typical blog"
@@ -780,7 +780,7 @@ make_html_head $httpdir/page.html <<EOF
 <link rel="alternate" type="application/atom+xml" title="My Blog - RSS" href="$httpurl/posts?alt=rss">
 <link rel="service.post" type="application/atom+xml" title="My Blog - Atom" href="http://example.org/posts">
 EOF
-rune "Adding" -a $httpurl/page.html
+rune "Adding feed" -a $httpurl/page.html
 contains "$statedir/config" $httpurl/posts
 not_contains "$statedir/config" "alt=rss"
 
@@ -796,7 +796,7 @@ make_rss20 $httpdir/foo.rss
 make_html_body $httpdir/page.html <<EOF
 <p>Here is our <a href="$httpurl/foo.rss">feed</a>!</p>
 EOF
-rune "Adding" -a $httpurl/page.html
+rune "Adding feed" -a $httpurl/page.html
 
 if $knownbad; then
 	begin "add feed, <a> with non-obvious URL"
@@ -806,13 +806,22 @@ if $knownbad; then
 	make_html_body $httpdir/page.html <<EOF
 	<p>Here is our <a href="$httpurl/foo">RSS feed</a>!</p>
 EOF
-	rune "Adding" -a $httpurl/page.html
+	rune "Adding feed" -a $httpurl/page.html
 fi
 
 begin "add feed, brute force"
 make_atom10 $httpdir/index.atom
 make_html $httpdir/page.html
-rune "Adding" -a $httpurl/page.html
+rune "Adding feed" -a $httpurl/page.html
+
+begin "add feed, no feeds to be found"
+make_html $httpdir/page.html
+rune "Cannot find any feeds" -a $httpurl/page.html
+
+begin "add feed, already present"
+make_atom10 $httpdir/feed.atom
+add "feed 3h $httpurl/feed.atom"
+rune "already in the config file" -a $httpurl/feed.atom
 
 begin "add feed, prefer Atom over RSS"
 make_rss20 $httpdir/feed.rss
@@ -821,7 +830,7 @@ make_html_head $httpdir/page.html <<EOF
 <link rel="alternate" type="application/rss+xml" title="RSS" href="feed.rss">
 <link rel="alternate" type="application/atom+xml" title="Atom" href="feed.atom">
 EOF
-rune "Adding" -a $httpurl/page.html
+rune "Adding feed" -a $httpurl/page.html
 contains "$statedir/config" $httpurl/feed.atom
 
 begin "add feed, prefer entries over comments"
@@ -831,6 +840,37 @@ make_html_head $httpdir/page.html <<EOF
 <link rel="alternate" type="application/atom+xml" title="Atom Comments" href="comments.atom">
 <link rel="alternate" type="application/atom+xml" title="Atom" href="entries.atom">
 EOF
-rune "Adding" -a $httpurl/page.html
+rune "Adding feed" -a $httpurl/page.html
 contains "$statedir/config" $httpurl/entries.atom
+
+begin "remove feed"
+add "feed 3h $httpurl/0.rss"
+add "feed 3h $httpurl/1.rss"
+add "feed 3h $httpurl/2.rss"
+rune "Removing feed" -r $httpurl/1.rss
+contains "$statedir/config" $httpurl/0.rss $httpurl/2.rss
+not_contains "$statedir/config" $httpurl/1.rss
+
+begin "remove feed with options"
+add "feed 3h $httpurl/0.rss"
+add "   define_foo 0a"
+add "   define_foo 0b"
+add "feed 3h $httpurl/1.rss"
+add "   define_foo 1a"
+add "   define_foo 1b"
+add "feed 3h $httpurl/2.rss"
+add "   define_foo 2a"
+add "   define_foo 2b"
+rune "Removing feed" -r $httpurl/1.rss
+contains "$statedir/config" \
+	$httpurl/0.rss "foo 0a" "foo 0b" \
+	$httpurl/2.rss "foo 2a" "foo 2b"
+not_contains "$statedir/config" \
+	$httpurl/1.rss "foo 1a" "foo 1b"
+
+begin "remove nonexistant feed"
+add "feed 3h $httpurl/0.rss"
+add "feed 3h $httpurl/1.rss"
+add "feed 3h $httpurl/2.rss"
+rune "not in the config file" -r $httpurl/3.rss
 

@@ -819,6 +819,13 @@ begin "add feed, no feeds to be found"
 make_html $httpdir/page.html
 rune "Cannot find any feeds" -a $httpurl/page.html
 
+begin "add feed, nonsense in HTML"
+# Debian bug 650776.
+make_html_body $httpdir/page.html <<EOF
+<![GARBAGE]]>
+EOF
+rune "Cannot find any feeds" -a $httpurl/page.html
+
 begin "add feed, already present"
 make_atom10 $httpdir/feed.atom
 add "feed 3h $httpurl/feed.atom"

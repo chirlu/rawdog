@@ -28,16 +28,25 @@ PERFORMANCE OF THIS SOFTWARE.
 """
 
 import urllib, urlparse
-from HTMLParser import HTMLParser
+import HTMLParser
 
 def feeds(uri):
-    parser = FeedFinder(uri)
-    parser.feed(urllib.urlopen(uri).read())
-    return parser.feeds + [uri]
+    found = []
 
-class FeedFinder(HTMLParser):
+    try:
+        parser = FeedFinder(uri)
+        parser.feed(urllib.urlopen(uri).read())
+        found += parser.feeds
+    except HTMLParser.HTMLParseError:
+        pass
+
+    found.append(uri)
+
+    return found
+
+class FeedFinder(HTMLParser.HTMLParser):
     def __init__(self, base_uri):
-        HTMLParser.__init__(self)
+        HTMLParser.HTMLParser.__init__(self)
         self.feeds = []
         self.base_uri = base_uri
     def handle_starttag(self, tag, attrs):

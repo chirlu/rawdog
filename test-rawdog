@@ -587,6 +587,20 @@ if ! cmp $statedir/output.html.orig $statedir/output.html; then
 	die "output different from default templates"
 fi
 
+begin "item dates"
+# Debian bug 651080.
+run -T
+cp $outfile $statedir/item
+echo "__date__" >>$statedir/item
+make_atom10 $httpdir/feed.atom
+add "feed 0 $httpurl/feed.atom"
+add "sortbyfeeddate true"
+add "timeformat HEADING-%m-%d-%H:%M"
+add "datetimeformat ITEMDATE-%m-%d-%H:%M"
+add "itemtemplate item"
+runs -uw
+contains $statedir/output.html "HEADING-01-01-18:00" "ITEMDATE-01-01-18:00"
+
 begin "HTTP basic authentication"
 htpasswd -bc $httpdir/passwd TestUser TestPass 2>/dev/null
 cat >$httpdir/.htaccess <<EOF

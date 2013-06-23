@@ -424,8 +424,15 @@ class Feed:
 
 		plugins.call_hook("add_urllib2_handlers", rawdog, config, self, handlers)
 
+		url = self.url
+		# Turn plain filenames into file: URLs. (feedparser will open
+		# plain filenames itself, but we want it to open the file with
+		# urllib2 so we get a URLError if something goes wrong.)
+		if not ":" in url:
+			url = "file:" + url
+
 		try:
-			result = feedparser.parse(self.url,
+			result = feedparser.parse(url,
 				etag=self.etag,
 				modified=self.modified,
 				agent=HTTP_AGENT,

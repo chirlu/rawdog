@@ -570,6 +570,45 @@ rune "has been updated automatically" -u
 contains $statedir/config "$httpurl/new.rss"
 runs -u
 
+begin "HTTP 302 to 301"
+# We should only update config if the first redirect is permanent.
+cat >$httpdir/.htaccess <<EOF
+RewriteEngine On
+RewriteRule 0.rss $httpurl/1.rss [L,R=302]
+RewriteRule 1.rss $httpurl/2.rss [L,R=301]
+EOF
+make_rss20 $httpdir/2.rss
+add "changeconfig true"
+add "feed 0 $httpurl/0.rss"
+runs -u
+contains $statedir/config "$httpurl/0.rss"
+
+begin "HTTP 301 to 302"
+cat >$httpdir/.htaccess <<EOF
+RewriteEngine On
+RewriteRule 0.rss $httpurl/1.rss [L,R=301]
+RewriteRule 1.rss $httpurl/2.rss [L,R=302]
+EOF
+make_rss20 $httpdir/2.rss
+add "changeconfig true"
+add "feed 0 $httpurl/0.rss"
+rune "has been updated automatically" -u
+contains $statedir/config "$httpurl/1.rss"
+
+begin "HTTP 301 to 301 to 302"
+# rawdog should follow the 301s but not the 302 to find the new URL.
+cat >$httpdir/.htaccess <<EOF
+RewriteEngine On
+RewriteRule 0.rss $httpurl/1.rss [L,R=301]
+RewriteRule 1.rss $httpurl/2.rss [L,R=301]
+RewriteRule 2.rss $httpurl/3.rss [L,R=302]
+EOF
+make_rss20 $httpdir/3.rss
+add "changeconfig true"
+add "feed 0 $httpurl/0.rss"
+rune "has been updated automatically" -u
+contains $statedir/config "$httpurl/2.rss"
+
 begin "HTTP 410 gone"
 cat >$httpdir/.htaccess <<EOF
 RewriteEngine On

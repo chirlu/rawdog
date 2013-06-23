@@ -3,10 +3,8 @@
 # existence of <link rel='alternate' ... /> in an HTML (or XML) document;
 # falls back to the given URI otherwise, e.g. if the URI is already a
 # feed (and only contains text/html alternates, in the case of Atom), or
-# is something we don't recognize. Unlike with the real feedfinder, you
-# *can* add garbage to your config with this if you give it a garbage
-# URI. Also, the first link that appears ends up at the head of the
-# list, so hope it's not the RSS 0.9 one.
+# is something we don't recognize. The first link that appears ends up at the
+# head of the list, so hope it's not the RSS 0.9 one.
 
 __license__ = """
 Copyright (c) 2008 Decklin Foster <decklin@red-bean.com>
@@ -27,22 +25,36 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 """
 
-import urllib, urlparse
+import feedparser
+import urllib
+import urlparse
 import HTMLParser
 
-def feeds(uri):
+def is_feed(url):
+    """Return true if feedparser can understand the given URL as a feed."""
+
+    p = feedparser.parse(url)
+    version = p.get("version")
+    if version is None:
+        version = ""
+    return (version != "")
+
+def feeds(page_url):
+    """Search the given URL for possible feeds, returning a list of them."""
+
     found = []
 
     try:
-        parser = FeedFinder(uri)
-        parser.feed(urllib.urlopen(uri).read())
+        parser = FeedFinder(page_url)
+        parser.feed(urllib.urlopen(page_url).read())
         found += parser.feeds
     except HTMLParser.HTMLParseError:
         pass
 
-    found.append(uri)
+    found.append(page_url)
 
-    return found
+    # Return only feeds that feedparser can understand.
+    return [feed for feed in found if is_feed(feed)]
 
 class FeedFinder(HTMLParser.HTMLParser):
     def __init__(self, base_uri):

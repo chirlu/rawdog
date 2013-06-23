@@ -121,6 +121,9 @@ Don't append an extra newline to the templates when doing -t/-T.
 Make rawdog use feedfinder/fakefinder's preferred order of feeds in
 addition to its own.
 
+Make fakefinder only return URLs that feedparser can parse successfully
+as feeds.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

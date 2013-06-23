@@ -101,6 +101,9 @@ When splitstate is enabled, make the feeds directory if it doesn't
 already exist. This avoids a confusing error message if you didn't make
 it by hand.
 
+Add Decklin Foster's fakefinder module (from his Debian package
+rawdog_2.13.dfsg.1-1) as the start of a replacement for feedfinder.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

@@ -9,9 +9,6 @@ Remove rawdog's copy of feedparser.
 Can we do without ensure_unicode? Having instrumented it, it looks like it's
 mostly converting strings that feedparser itself has created.
 
-Import fakefinder from Debian's rawdog patch, and extend it to replace
-feedfinder (which has license problems that are unlikely to be solved).
-
 Handle maxage working on article.date/added -- make this a config option? Merge with one of the existing options?
 
 Make maxarticles work as a per-feed option.

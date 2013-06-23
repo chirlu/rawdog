@@ -43,7 +43,10 @@ except:
 try:
 	import feedfinder
 except:
-	feedfinder = None
+	try:
+		import fakefinder as feedfinder
+	except:
+		feedfinder = None
 
 # Turn off content-cleaning, since we want to see an approximation to the
 # original content for hashing. rawdog will sanitise HTML when writing.

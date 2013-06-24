@@ -595,7 +595,7 @@ add "sortbyfeeddate true"
 runs -w
 equals "03 02 01" "$(entries)"
 
-begin "writing page and item templates"
+begin "default templates"
 make_rss20 $httpdir/simple.rss
 add "feed 0 $httpurl/simple.rss"
 runs -uw
@@ -604,8 +604,14 @@ run -t
 cp $outfile $statedir/template
 run -T
 cp $outfile $statedir/item
+run --show-feedlisttemplate
+cp $outfile $statedir/feedlist
+run --show-feeditemtemplate
+cp $outfile $statedir/feeditem
 add "template template"
 add "itemtemplate item"
+add "feedlisttemplate feedlist"
+add "feeditemtemplate feeditem"
 run -w
 if ! cmp $statedir/output.html.orig $statedir/output.html; then
 	die "output different from default templates"
@@ -624,6 +630,26 @@ add "datetimeformat ITEMDATE-%m-%d-%H:%M"
 add "itemtemplate item"
 runs -uw
 contains $statedir/output.html "HEADING-01-01-18:00" "ITEMDATE-01-01-18:00"
+
+begin "feed list templates"
+make_rss20 $httpdir/0.rss
+make_rss20 $httpdir/1.rss
+make_rss20 $httpdir/2.rss
+add "feed 0 $httpurl/0.rss"
+add "feed 0 $httpurl/1.rss"
+add "feed 0 $httpurl/2.rss"
+run --show-feedlisttemplate
+cp $outfile $statedir/feedlist
+echo "FEEDLIST" >>$statedir/feedlist
+run --show-feeditemtemplate
+cp $outfile $statedir/feeditem
+echo "FEEDITEM-__feed_url__" >>$statedir/feeditem
+add "feedlisttemplate feedlist"
+add "feeditemtemplate feeditem"
+run -w
+contains $statedir/output.html \
+	FEEDLIST \
+	FEEDITEM-$httpurl/0.rss FEEDITEM-$httpurl/1.rss FEEDITEM-$httpurl/2.rss
 
 begin "HTTP basic authentication"
 htpasswd -bc $httpdir/passwd TestUser TestPass 2>/dev/null

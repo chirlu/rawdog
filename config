@@ -82,7 +82,7 @@ datetimeformat %H:%M, %A, %d %B
 # __refresh__         The HTML 4 <meta http-equiv="refresh" ...> header
 # __items__           The aggregated items
 # __num_items__       The number of items on the page
-# __feeds__           The listing of feeds
+# __feeds__           The feed list
 # __num_feeds__       The number of feeds listed
 # You can define additional strings using "define" in this config file; for
 # example, if you say "define myname Adam Sampson", then "__myname__" will be
@@ -103,25 +103,45 @@ template default
 # __date__            The item's date as provided by the feed
 # __added__           The date the article was received by rawdog
 # __hash__            A hash of the article (useful for summary pages)
-# __feed_title__      The feed title (as an HTML link, if possible)
-# __feed_title_no_link__
-#                     The feed title (as text)
-# __feed_url__        The feed URL
-# __feed_hash__       A hash of the feed URL (useful for per-feed styles)
+#
+# All of the __feed_X__ strings from feeditemtemplate below will also be
+# expanded here, for the feed that the article came from.
+#
+# You can define additional strings on a per-feed basis by using the
+# "define_X" feed option; see the description of "feed" below for more
+# details.
+#
+# Simple conditional expansion is possible by saying something like
+# "__if_items__ hello __endif__"; the text between the if and endif will
+# only be included if __items__ would expand to something other than
+# the empty string. Ifs can be nested, and __else__ is supported.
+# (This also works for the other templates, but it's most useful here.)
+itemtemplate default
+
+# The template used to generate the feed list (__feeds__ above). Use "rawdog
+# --show-feedlisttemplate" to show the current template. The following strings
+# will be replaced in the output:
+# __feeditems__       The feed items
+feedlisttemplate default
+
+# The template used to generate each item in the feed list. Use "rawdog
+# --show-feeditemtemplate" to show the current template. The following strings
+# will be replaced in the output:
 # __feed_id__         The feed's title with non-alphanumeric characters
 #                     (and HTML markup) removed (useful for per-feed
 #                     styles); you can use the "id" feed option below to
 #                     set a custom ID if you prefer
-# You can define additional strings on a per-feed basis by using the
-# "define_X" feed option; see the description of "feed" below for more
-# details.
-# Simple conditional expansion is possible by saying something like
-# "__if_items__ hello __endif__"; the text between the if and endif will
-# only be included if __items__ would expand to something other than
-# the empty string. Ifs can be nested, and __else__ is supported. (This also
-# works for the "template" option, but it's more useful for item
-# templates.)
-itemtemplate default
+# __feed_hash__       A hash of the feed URL (useful for per-feed styles)
+# __feed_title__      The feed title (as an HTML link, if possible)
+# __feed_title_no_link__
+#                     The feed title (as text)
+# __feed_url__        The feed URL
+# __feed_icon__       An "XML button" linking to the feed URL
+# __feed_last_update__
+#                     The time when the feed was last updated
+# __feed_next_update__
+#                     The time when the feed will next need updating
+feeditemtemplate default
 
 # Where to write the output HTML to. You should place style.css in the same
 # directory. Specify this as "-" to write the HTML to stdout.

@@ -137,6 +137,9 @@ before scanning it for links.
 
 Move rawdog's feed quality heuristic into feedscanner.
 
+Provide templates for the feed list and each item in the feed list
+(based on patch from Arnout Engelen).
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

@@ -815,6 +815,8 @@ class Config:
 			"timeout" : 30,
 			"template" : "default",
 			"itemtemplate" : "default",
+			"feedlisttemplate" : "default",
+			"feeditemtemplate" : "default",
 			"verbose" : False,
 			"ignoretimeouts" : False,
 			"showtracebacks" : False,
@@ -922,6 +924,10 @@ class Config:
 			self["template"] = l[1]
 		elif l[0] == "itemtemplate":
 			self["itemtemplate"] = l[1]
+		elif l[0] == "feedlisttemplate":
+			self["feedlisttemplate"] = l[1]
+		elif l[0] == "feeditemtemplate":
+			self["feeditemtemplate"] = l[1]
 		elif l[0] == "verbose":
 			self["verbose"] = parse_bool(l[1])
 		elif l[0] == "ignoretimeouts":
@@ -1427,6 +1433,33 @@ __description__
 """
 		return template
 
+	def get_feedlisttemplate(self, config):
+		"""Get the template for the feed list."""
+		if config["feedlisttemplate"] != "default":
+			return load_file(config["feedlisttemplate"])
+
+		return """<table id="feeds">
+<tr id="feedsheader">
+<th>Feed</th><th>RSS</th><th>Last fetched</th><th>Next fetched after</th>
+</tr>
+__feeditems__
+</table>
+"""
+
+	def get_feeditemtemplate(self, config):
+		"""Get the template for a feed list item."""
+		if config["feeditemtemplate"] != "default":
+			return load_file(config["feeditemtemplate"])
+
+		return """
+<tr class="feedsrow">
+<td>__feed_title__</td>
+<td>__feed_icon__</td>
+<td>__feed_last_update__</td>
+<td>__feed_next_update__</td>
+</tr>
+"""
+
 	def show_template(self, config):
 		"""Show the configured main template."""
 		print self.get_template(config),
@@ -1434,6 +1467,14 @@ __description__
 	def show_itemtemplate(self, config):
 		"""Show the configured item template."""
 		print self.get_itemtemplate(config),
+
+	def show_feedlisttemplate(self, config):
+		"""Show the configured feed list template."""
+		print self.get_feedlisttemplate(config),
+
+	def show_feeditemtemplate(self, config):
+		"""Show the configured feed list item template."""
+		print self.get_feeditemtemplate(config),
 
 	def write_article(self, f, article, config):
 		"""Write an article to the given file."""
@@ -1449,7 +1490,7 @@ __description__
 		if guid == "":
 			guid = None
 
-		itembits = {}
+		itembits = self.get_feed_bits(config, feed)
 		for name, value in feed.args.items():
 			if name.startswith("define_"):
 				itembits[name[7:]] = sanitise_html(value, "", True, config)
@@ -1488,11 +1529,6 @@ __description__
 		else:
 			itembits["title"] = '<a href="' + string_to_html(link, config) + '">' + title + '</a>'
 
-		itembits["feed_title_no_link"] = detail_to_html(feed_info.get("title_detail"), True, config)
-		itembits["feed_title"] = feed.get_html_link(config)
-		itembits["feed_url"] = string_to_html(feed.url, config)
-		itembits["feed_hash"] = short_hash(feed.url)
-		itembits["feed_id"] = feed.get_id(config)
 		itembits["hash"] = short_hash(article.hash)
 
 		if description is not None:
@@ -1559,6 +1595,41 @@ __description__
 			kept_articles.append(article)
 		return (kept_articles, dup_count)
 
+	def get_feed_bits(self, config, feed):
+		"""Get the bits that are used to describe a feed."""
+
+		bits = {}
+		bits["feed_id"] = feed.get_id(config)
+		bits["feed_hash"] = short_hash(feed.url)
+		bits["feed_title"] = feed.get_html_link(config)
+		bits["feed_title_no_link"] = detail_to_html(feed.feed_info.get("title_detail"), True, config)
+		bits["feed_url"] = string_to_html(feed.url, config)
+		bits["feed_icon"] = '<a class="xmlbutton" href="' + cgi.escape(feed.url) + '">XML</a>'
+		bits["feed_last_update"] = format_time(feed.last_update, config)
+		bits["feed_next_update"] = format_time(feed.last_update + feed.period, config)
+		return bits
+
+	def write_feeditem(self, f, feed, config):
+		"""Write a feed list item."""
+		bits = self.get_feed_bits(config, feed)
+		f.write(fill_template(self.get_feeditemtemplate(config), bits))
+
+	def write_feedlist(self, f, config):
+		"""Write the feed list."""
+		bits = {}
+
+		feeds = [(feed.get_html_name(config).lower(), feed)
+		         for feed in self.feeds.values()]
+		feeds.sort()
+
+		feeditems = StringIO()
+		for key, feed in feeds:
+			self.write_feeditem(feeditems, feed, config)
+		bits["feeditems"] = feeditems.getvalue()
+		feeditems.close()
+
+		f.write(fill_template(self.get_feedlisttemplate(config), bits))
+
 	def get_main_template_bits(self, config):
 		"""Get the bits that are used in the default main template,
 		with the exception of items and num_items."""
@@ -1572,24 +1643,10 @@ __description__
 		bits["refresh"] = """<meta http-equiv="Refresh" """ + 'content="' + str(refresh) + '"' + """>"""
 
 		f = StringIO()
-		print >>f, """<table id="feeds">
-<tr id="feedsheader">
-<th>Feed</th><th>RSS</th><th>Last fetched</th><th>Next fetched after</th>
-</tr>"""
-		feeds = [(feed.get_html_name(config).lower(), feed)
-		         for feed in self.feeds.values()]
-		feeds.sort()
-		for (key, feed) in feeds:
-			print >>f, '<tr class="feedsrow">'
-			print >>f, '<td>' + feed.get_html_link(config) + '</td>'
-			print >>f, '<td><a class="xmlbutton" href="' + cgi.escape(feed.url) + '">XML</a></td>'
-			print >>f, '<td>' + format_time(feed.last_update, config) + '</td>'
-			print >>f, '<td>' + format_time(feed.last_update + feed.period, config) + '</td>'
-			print >>f, '</tr>'
-		print >>f, """</table>"""
+		self.write_feedlist(f, config)
 		bits["feeds"] = f.getvalue()
 		f.close()
-		bits["num_feeds"] = str(len(feeds))
+		bits["num_feeds"] = str(len(self.feeds))
 
 		return bits
 
@@ -1711,6 +1768,8 @@ Actions (performed in order given):
 -r|--remove URL              Remove feed URL from the config file
 -t, --show-template          Print the template currently in use
 -T, --show-itemtemplate      Print the item template currently in use
+--show-feeditemtemplate      Print the feed list item template currently in use
+--show-feedlisttemplate      Print the feed list template currently in use
 -u, --update                 Fetch data from feeds and store it
 -w, --write                  Write out HTML output
 
@@ -1745,6 +1804,8 @@ def main(argv):
 			"remove=",
 			"show-itemtemplate",
 			"show-template",
+			"show-feeditemtemplate",
+			"show-feedlisttemplate",
 			"update",
 			"update-feed=",
 			"verbose",
@@ -1851,6 +1912,10 @@ def main(argv):
 			rawdog.update(config)
 		elif o in ("-w", "--write"):
 			rawdog.write(config)
+		elif o == "--show-feeditemtemplate":
+			rawdog.show_feeditemtemplate(config)
+		elif o == "--show-feedlisttemplate":
+			rawdog.show_feedlisttemplate(config)
 
 	plugins.call_hook("shutdown", rawdog, config)
 

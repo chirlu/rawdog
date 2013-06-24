@@ -139,9 +139,10 @@ Add a note to PLUGINS about making sure plugin storage gets saved.
 
 Use updated_parsed instead of the obsolete modified_parsed when
 extracting the feed-provided date for an item, and fall back to
-published_parsed and then created_parsed if it doesn't exist.
-(feedparser currently does fallback automatically, but it's scheduled to
-be removed at some point, so it's better for rawdog to do it.)
+published_parsed and then created_parsed if it doesn't exist (reported
+by Cristian Rigamonti and Martintxo). feedparser currently does fallback
+automatically, but it's scheduled to be removed at some point, so it's
+better for rawdog to do it.
 
 - rawdog 2.13
 

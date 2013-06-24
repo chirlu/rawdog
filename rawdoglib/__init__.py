@@ -1,1 +1,6 @@
-__all__ = ['fakefinder', 'feedparser', 'rawdog', 'persister']
+__all__ = [
+    'feedparser',
+    'feedscanner',
+    'persister',
+    'rawdog',
+    ]

@@ -29,7 +29,7 @@ import types
 import threading
 import hashlib
 import base64
-import fakefinder
+import feedscanner
 
 try:
 	import tidylib
@@ -1007,7 +1007,7 @@ class AddFeedEditor:
 
 def add_feed(filename, url, rawdog, config):
 	"""Try to add a feed to the config file."""
-	feeds = fakefinder.feeds(url)
+	feeds = feedscanner.feeds(url)
 	if feeds == []:
 		print >>sys.stderr, "Cannot find any feeds in " + url
 		return

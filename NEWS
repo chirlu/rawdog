@@ -106,27 +106,30 @@ Replace feedfinder (which has unfixable unclear licensing) with Decklin
 Foster's fakefinder module, which he wrote as a replacement for it.
 This version is taken from his Debian package rawdog_2.13.dfsg.1-1.
 
-Put fakefinder's license notice into __license__, for consistency with
+Rename fakefinder to feedscanner, on the grounds that it might be
+sensible to spin it off as a separate module eventually.
+
+Put feedscanner's license notice into __license__, for consistency with
 feedparser.
 
-Make fakefinder understand HTML-style <link ...> as well as XHTML-style
+Make feedscanner understand HTML-style <link ...> as well as XHTML-style
 <link ... />.
 
-Fix Debian bug 657206: make fakefinder understand relative links
+Fix Debian bug 657206: make feedscanner understand relative links
 (reported by Peter J. Weisberg).
 
-Fix Debian bug 650776: make fakefinder not crash if it can't parse the
+Fix Debian bug 650776: make feedscanner not crash if it can't parse the
 URL it was given as HTML (reported by Jonathan Polley).
 
 Don't append an extra newline to the templates when doing -t/-T.
 
-Make rawdog use feedfinder/fakefinder's preferred order of feeds in
-addition to its own.
+Make rawdog use feedscanner's preferred order of feeds in addition to
+its own.
 
-Make fakefinder only return URLs that feedparser can parse successfully
+Make feedscanner only return URLs that feedparser can parse successfully
 as feeds.
 
-Make fakefinder look for <a> links pointing to URLs with words in them
+Make feedscanner look for <a> links pointing to URLs with words in them
 that suggest they're probably feeds.
 
 - rawdog 2.14

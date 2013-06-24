@@ -958,6 +958,25 @@ EOF
 rune "Adding feed" -a $httpurl/page.html
 contains "$statedir/config" $httpurl/entries.atom
 
+begin "add feed, keep page order"
+make_atom10 $httpdir/0.atom
+make_atom10 $httpdir/1.atom
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="application/atom+xml" title="Atom" href="0.atom">
+<link rel="alternate" type="application/atom+xml" title="Atom" href="1.atom">
+EOF
+rune "Adding feed" -a $httpurl/page.html
+contains "$statedir/config" $httpurl/0.atom
+
+begin "add feed, ignore broken link"
+make_atom10 $httpdir/1.atom
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="application/atom+xml" title="Atom" href="0.atom">
+<link rel="alternate" type="application/atom+xml" title="Atom" href="1.atom">
+EOF
+rune "Adding feed" -a $httpurl/page.html
+contains "$statedir/config" $httpurl/1.atom
+
 begin "remove feed"
 add "feed 3h $httpurl/0.rss"
 add "feed 3h $httpurl/1.rss"

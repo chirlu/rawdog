@@ -26,6 +26,9 @@ statedir="testauto"
 httpdir="/home/pub/azz/rawdog-test/dir"
 httpurl="http://cartman.at.offog.org/azz/rawdog-test/dir"
 
+# Connections to this host should time out.
+timeouthost="81.91.98.19"
+
 # Run tests that are currently known to fail.
 knownbad=false
 
@@ -426,6 +429,21 @@ runs -u
 begin "HTTP 404"
 add "feed 0 $httpurl/notthere"
 rune "404" -u
+
+begin "HTTP timeout"
+add "timeout 1s"
+add "feed 0 http://$timeouthost/feed.xml"
+rune "Timeout while reading" -u
+
+begin "HTTPS timeout"
+add "timeout 1s"
+add "feed 0 https://$timeouthost/feed.xml"
+rune "Timeout while reading" -u
+
+begin "FTP timeout"
+add "timeout 1s"
+add "feed 0 ftp://$timeouthost/feed.xml"
+rune "Timeout while reading" -u
 
 begin "0 period"
 make_rss20 $httpdir/simple.rss

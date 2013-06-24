@@ -445,6 +445,12 @@ add "timeout 1s"
 add "feed 0 ftp://$timeouthost/feed.xml"
 rune "Timeout while reading" -u
 
+begin "ignoretimeouts true"
+add "timeout 1s"
+add "ignoretimeouts true"
+add "feed 0 http://$timeouthost/feed.xml"
+runs -u
+
 begin "0 period"
 make_rss20 $httpdir/simple.rss
 add "feed 0 $httpurl/simple.rss"

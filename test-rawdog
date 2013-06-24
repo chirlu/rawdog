@@ -899,8 +899,8 @@ rune "Adding feed" -a $httpurl/page.html
 
 if $knownbad; then
 	begin "add feed, <a> with non-obvious URL"
-	# ... as boingboing.net currently has (old feedfinder doesn't find this; it
-	# finds /atom.xml by brute force).
+	# ... as boingboing.net currently has (old feedfinder doesn't find
+	# this; it finds /atom.xml by brute force).
 	make_rss20 $httpdir/foo
 	make_html_body $httpdir/page.html <<EOF
 	<p>Here is our <a href="$httpurl/foo">RSS feed</a>!</p>
@@ -908,10 +908,16 @@ EOF
 	rune "Adding feed" -a $httpurl/page.html
 fi
 
-begin "add feed, brute force"
-make_atom10 $httpdir/index.atom
-make_html $httpdir/page.html
-rune "Adding feed" -a $httpurl/page.html
+if $knownbad; then
+	# Old feedfinder could find this because it tried appending lots of
+	# likely suffixes to URLs. However, this generally isn't needed
+	# nowdays; most of the feeds that it could find that way have proper
+	# <link> elements.
+	begin "add feed, brute force"
+	make_atom10 $httpdir/index.atom
+	make_html $httpdir/page.html
+	rune "Adding feed" -a $httpurl/page.html
+fi
 
 begin "add feed, no feeds to be found"
 make_html $httpdir/page.html

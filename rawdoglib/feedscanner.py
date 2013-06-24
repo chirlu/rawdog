@@ -1,11 +1,17 @@
-# Anemic replacement for feedfinder (which Debian can't distribute) so
-# that ``rawdog -a'' at least does *something*. Checks for the
-# existence of <link rel='alternate' ... /> in an HTML (or XML) document;
-# then for <a ...> links that look like they might point to feeds;
-# falls back to the given URI otherwise, e.g. if the URI is already a
-# feed (and only contains text/html alternates, in the case of Atom), or
-# is something we don't recognize. The first link that appears ends up at the
-# head of the list, so hope it's not the RSS 0.9 one.
+"""Scan a URL's contents to find related feeds
+
+This is a compatible replacement for Aaron Swartz's feedfinder module,
+using feedparser to check whether the URLs it returns are feeds.
+
+It finds links to feeds within the following elements:
+- <link rel="alternate" ...> (standard feed discovery)
+- <a ...>, if the href contains words that suggest it might be a feed
+
+It orders feeds using a quality heuristic: the first result is the most
+likely to be a feed for the given URL.
+
+Required: Python 2.4 or later, feedparser
+"""
 
 __license__ = """
 Copyright (c) 2008 Decklin Foster <decklin@red-bean.com>

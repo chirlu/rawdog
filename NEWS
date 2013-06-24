@@ -102,8 +102,9 @@ When splitstate is enabled, make the feeds directory if it doesn't
 already exist. This avoids a confusing error message if you didn't make
 it by hand.
 
-Add Decklin Foster's fakefinder module (from his Debian package
-rawdog_2.13.dfsg.1-1) as the start of a replacement for feedfinder.
+Replace feedfinder (which has unfixable unclear licensing) with Decklin
+Foster's fakefinder module, which he wrote as a replacement for it.
+This version is taken from his Debian package rawdog_2.13.dfsg.1-1.
 
 Put fakefinder's license notice into __license__, for consistency with
 feedparser.

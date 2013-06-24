@@ -29,6 +29,7 @@ import types
 import threading
 import hashlib
 import base64
+import fakefinder
 
 try:
 	import tidylib
@@ -39,14 +40,6 @@ try:
 	import mx.Tidy as mxtidy
 except:
 	mxtidy = None
-
-try:
-	import feedfinder
-except:
-	try:
-		import fakefinder as feedfinder
-	except:
-		feedfinder = None
 
 # Turn off content-cleaning, since we want to see an approximation to the
 # original content for hashing. rawdog will sanitise HTML when writing.
@@ -1014,10 +1007,7 @@ class AddFeedEditor:
 
 def add_feed(filename, url, rawdog, config):
 	"""Try to add a feed to the config file."""
-	if feedfinder is None:
-		feeds = [url]
-	else:
-		feeds = feedfinder.feeds(url)
+	feeds = fakefinder.feeds(url)
 	if feeds == []:
 		print >>sys.stderr, "Cannot find any feeds in " + url
 		return

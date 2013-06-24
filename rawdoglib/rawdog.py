@@ -501,12 +501,21 @@ class Feed:
 					errors.append("You should update its entry in your config file.")
 			errors.append("")
 
-		if isinstance(p.get("bozo_exception"), urllib2.URLError):
-			# feedparser hit a URLError when fetching the feed.
-			errors.append("Error while fetching feed:")
-			errors.append(str(p["bozo_exception"]))
-			errors.append("")
-			fatal = True
+		bozo_exception = p.get("bozo_exception")
+		if isinstance(bozo_exception, urllib2.URLError):
+			# urllib2 reported an error when fetching the feed.
+			# Check to see if it was a timeout.
+			if not str(bozo_exception).endswith("timed out>"):
+				errors.append("Error while fetching feed:")
+				errors.append(str(bozo_exception))
+				errors.append("")
+				fatal = True
+			elif config["ignoretimeouts"]:
+				return False
+			else:
+				errors.append("Timeout while reading feed.")
+				errors.append("")
+				fatal = True
 		elif last_status == 304:
 			# The feed hasn't changed. Return False to indicate
 			# that we shouldn't do expiry.
@@ -518,22 +527,13 @@ class Feed:
 			errors.append("You should remove it from your config file.")
 			errors.append("")
 			fatal = True
-		elif last_status / 100 in [4, 5]:
+		elif last_status / 100 != 2:
 			# Some sort of client or server error. The feed may
 			# need unsubscribing.
 			errors.append("The feed returned an error.")
 			errors.append("If this condition persists, you should remove it from your config file.")
 			errors.append("")
 			fatal = True
-		elif (last_status / 100) != 2:
-			# No responses at all, or the last one was a redirect
-			# -- the feed timed out.
-			if config["ignoretimeouts"]:
-				return False
-			else:
-				errors.append("Timeout while reading feed.")
-				errors.append("")
-				fatal = True
 		elif version == "" and len(p["entries"]) == 0:
 			# feedparser couldn't detect the type of this feed or
 			# retrieve any entries from it.

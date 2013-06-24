@@ -95,7 +95,8 @@ and redirects to redirects.
 Show URLError exceptions returned by feedparser -- this means rawdog
 gives a sensible error message for a file: or ftp: URL that gives an
 error, rather than claiming it's a timeout. Plain filenames are now
-turned into file: URLs so you get consistent errors for both.
+turned into file: URLs so you get consistent errors for both, and
+timeouts are detected by looking for a timeout exception.
 
 When splitstate is enabled, make the feeds directory if it doesn't
 already exist. This avoids a confusing error message if you didn't make

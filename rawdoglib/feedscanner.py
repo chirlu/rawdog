@@ -47,19 +47,6 @@ def is_feed(url):
         version = ""
     return (version != "")
 
-def feeds(page_url):
-    """Search the given URL for possible feeds, returning a list of them."""
-
-    parser = FeedFinder(page_url)
-    try:
-        parser.feed(urllib.urlopen(page_url).read())
-    except HTMLParser.HTMLParseError:
-        pass
-    found = parser.urls() + [page_url]
-
-    # Return only feeds that feedparser can understand.
-    return [feed for feed in found if is_feed(feed)]
-
 class FeedFinder(HTMLParser.HTMLParser):
     def __init__(self, base_uri):
         HTMLParser.HTMLParser.__init__(self)
@@ -85,3 +72,16 @@ class FeedFinder(HTMLParser.HTMLParser):
             self.add(10, href)
         if tag == 'a' and re.search(r'\b(rss|atom|rdf|feeds?)\b', href, re.I):
             self.add(20, href)
+
+def feeds(page_url):
+    """Search the given URL for possible feeds, returning a list of them."""
+
+    parser = FeedFinder(page_url)
+    try:
+        parser.feed(urllib.urlopen(page_url).read())
+    except HTMLParser.HTMLParseError:
+        pass
+    found = parser.urls() + [page_url]
+
+    # Return only feeds that feedparser can understand.
+    return [feed for feed in found if is_feed(feed)]

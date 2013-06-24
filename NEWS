@@ -135,6 +135,8 @@ that suggest they're probably feeds.
 Make feedscanner check whether the URL it was given is already a feed
 before scanning it for links.
 
+Move rawdog's feed quality heuristic into feedscanner.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

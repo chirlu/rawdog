@@ -54,9 +54,26 @@ class FeedFinder(HTMLParser.HTMLParser):
         self.count = 0
         self.base_uri = base_uri
 
-    def add(self, quality, href):
-        self.found.append((quality, self.count,
-                           urlparse.urljoin(self.base_uri, href)))
+    def add(self, score, href):
+        url = urlparse.urljoin(self.base_uri, href)
+        lower = url.lower()
+
+        # Some sites provide feeds both for entries and comments;
+        # prefer the former.
+        if lower.find("comment") != -1:
+            score -= 50
+
+        # Prefer Atom, then RSS, then RDF (RSS 1).
+        if lower.find("atom") != -1:
+            score += 10
+        elif lower.find("rss2") != -1:
+            score -= 5
+        elif lower.find("rss") != -1:
+            score -= 10
+        elif lower.find("rdf") != -1:
+            score -= 15
+
+        self.found.append((-score, self.count, url))
         self.count += 1
 
     def urls(self):
@@ -69,9 +86,9 @@ class FeedFinder(HTMLParser.HTMLParser):
             return
         if tag == 'link' and attrs.get('rel') == 'alternate' and \
                 not attrs.get('type') == 'text/html':
-            self.add(10, href)
+            self.add(200, href)
         if tag == 'a' and re.search(r'\b(rss|atom|rdf|feeds?)\b', href, re.I):
-            self.add(20, href)
+            self.add(100, href)
 
 def feeds(page_url):
     """Search the given URL for possible feeds, returning a list of them."""

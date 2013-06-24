@@ -76,12 +76,16 @@ class FeedFinder(HTMLParser.HTMLParser):
 def feeds(page_url):
     """Search the given URL for possible feeds, returning a list of them."""
 
+    # If the URL is a feed, there's no need to scan it for links.
+    if is_feed(page_url):
+        return [page_url]
+
     parser = FeedFinder(page_url)
     try:
         parser.feed(urllib.urlopen(page_url).read())
     except HTMLParser.HTMLParseError:
         pass
-    found = parser.urls() + [page_url]
+    found = parser.urls()
 
     # Return only feeds that feedparser can understand.
     return [feed for feed in found if is_feed(feed)]

@@ -140,6 +140,11 @@ Move rawdog's feed quality heuristic into feedscanner.
 Provide templates for the feed list and each item in the feed list
 (based on patch from Arnout Engelen).
 
+persister now detects if the state file is zero-length, and treats it
+the same as if it was missing. This means that if rawdog opens the state
+file for the first time but crashes before it gets a chance to write to
+it, it won't then complain about it being corrupt.
+
 - rawdog 2.14
 
 When adding a new feed from a page that provides several feeds, make a

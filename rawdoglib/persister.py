@@ -91,7 +91,7 @@ class Persisted:
 		self.refcount = 1
 		return self.object
 
-	def _get_lock(self, no_block):
+	def _get_lock(self, fd, no_block):
 		if not self.persister.use_locking:
 			return True
 
@@ -99,7 +99,7 @@ class Persisted:
 			mode = fcntl.LOCK_EX
 			if no_block:
 				mode |= fcntl.LOCK_NB
-			fcntl.lockf(self.file.fileno(), mode)
+			fcntl.lockf(fd, mode)
 		except IOError, e:
 			if no_block and e.errno in (errno.EACCES, errno.EAGAIN):
 				return False
@@ -108,18 +108,21 @@ class Persisted:
 
 	def _open(self, no_block):
 		self.persister.log("Loading state file: ", self.filename)
-		try:
-			self.file = open(self.filename, "r+")
-			if not self._get_lock(no_block):
-				return None
 
+		# This combination of flags isn't available through open(),
+		# as "r" doesn't CREAT and "w" TRUNCs.
+		fd = os.open(self.filename, os.O_RDWR | os.O_CREAT)
+		if not self._get_lock(fd, no_block):
+			return None
+
+		self.file = os.fdopen(fd, "rb+")
+		if os.fstat(fd).st_size > 0:
 			self.object = pickle.load(self.file)
 			self.object.modified(False)
-		except IOError:
-			self.file = open(self.filename, "w+")
-			if not self._get_lock(no_block):
-				return None
-
+		else:
+			# The file is empty -- create a new object.
+			# (It's OK if we crash and leave it empty, because
+			# we'll just detect it again next time.)
 			self.object = self.klass()
 			self.object.modified()
 

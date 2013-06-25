@@ -1,3 +1,7 @@
+persister's locking logic is wrong! If rawdogA is blocked waiting for rawdogB
+to unlock its state file, rawdogB will write changes to the state file which
+rawdogA won't see upon release...
+
 Check Debian rawdog bugs; the following can be closed once Debian picks up 2.15:
 - 363472: feeddefaults parsing - fixed
 - 366101: actually a feedparser bug - (probably) fixed

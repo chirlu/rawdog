@@ -97,6 +97,14 @@ run () {
 	fi
 }
 
+# Run rawdog, expecting it to exit non-0.
+runn () {
+	if runf "$@"; then
+		cat $outfile
+		die "exited 0"
+	fi
+}
+
 # Run rawdog, expecting no complaints.
 runs () {
 	run "$@"
@@ -111,6 +119,15 @@ rune () {
 	key="$1"
 	shift
 	run "$@"
+	contains $outfile "$key"
+}
+
+# Run rawdog, expecting it to exit non-0 with a complaint containing the first
+# arg.
+runne () {
+	key="$1"
+	shift
+	runn "$@"
 	contains $outfile "$key"
 }
 
@@ -318,8 +335,7 @@ runs -uw
 
 begin "corrupt state file"
 echo this is not a valid state file >$statedir/state
-runf -u
-contains $outfile "means the file is corrupt"
+runne "means the file is corrupt" -u
 
 begin "corrupt splitstate file"
 make_rss20 $statedir/simple.rss
@@ -327,8 +343,33 @@ add "splitstate true"
 add "feed 0 simple.rss"
 runs -u
 echo this is not a valid state file >$(echo $statedir/feeds/*.state)
-runf -u
-contains $outfile "means the file is corrupt"
+runne "means the file is corrupt" -u
+
+crashplugin () {
+	# Crash while updating, so we have both state files open.
+	cat >$statedir/plugins/crash.py <<EOF
+import rawdoglib.plugins
+def crash(*args):
+    raise Exception("deliberate")
+rawdoglib.plugins.attach_hook("post_update_feed", crash)
+EOF
+}
+
+for run in first second; do
+	for state in false true; do
+		begin "recover from crash on $run run, splitstate $state"
+		make_rss20 $statedir/simple.rss
+		add "splitstate $state"
+		add "feed 0 simple.rss"
+		if [ "$run" = second ]; then
+			runs -u
+		fi
+		crashplugin
+		runne "Exception: deliberate" -u
+		rm $statedir/plugins/crash.py
+		runs -u
+	done
+done
 
 begin "filename"
 make_rss20 $statedir/simple.rss

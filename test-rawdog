@@ -337,6 +337,10 @@ begin "corrupt state file"
 echo this is not a valid state file >$statedir/state
 runne "means the file is corrupt" -u
 
+begin "empty state file"
+touch $statedir/state
+runne "means the file is corrupt" -u
+
 begin "corrupt splitstate file"
 make_rss20 $statedir/simple.rss
 add "splitstate true"

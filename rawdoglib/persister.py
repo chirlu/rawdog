@@ -43,7 +43,7 @@ class Persisted:
 		self.klass = klass
 		self.filename = filename
 		self.persister = persister
-		self.file = None
+		self.lock_file = None
 		self.object = None
 		self.refcount = 0
 
@@ -91,15 +91,16 @@ class Persisted:
 		self.refcount = 1
 		return self.object
 
-	def _get_lock(self, fd, no_block):
+	def _get_lock(self, no_block):
 		if not self.persister.use_locking:
 			return True
 
+		self.lock_file = open(self.filename + ".lock", "w+")
 		try:
 			mode = fcntl.LOCK_EX
 			if no_block:
 				mode |= fcntl.LOCK_NB
-			fcntl.lockf(fd, mode)
+			fcntl.lockf(self.lock_file.fileno(), mode)
 		except IOError, e:
 			if no_block and e.errno in (errno.EACCES, errno.EAGAIN):
 				return False
@@ -109,22 +110,21 @@ class Persisted:
 	def _open(self, no_block):
 		self.persister.log("Loading state file: ", self.filename)
 
-		# This combination of flags isn't available through open(),
-		# as "r" doesn't CREAT and "w" TRUNCs.
-		fd = os.open(self.filename, os.O_RDWR | os.O_CREAT)
-		if not self._get_lock(fd, no_block):
+		if not self._get_lock(no_block):
 			return None
 
-		self.file = os.fdopen(fd, "rb+")
-		if os.fstat(fd).st_size > 0:
-			self.object = pickle.load(self.file)
-			self.object.modified(False)
-		else:
-			# The file is empty -- create a new object.
-			# (It's OK if we crash and leave it empty, because
-			# we'll just detect it again next time.)
+		try:
+			f = open(self.filename, "rb")
+		except IOError:
+			# File can't be opened.
+			# Create a new object.
 			self.object = self.klass()
 			self.object.modified()
+			return
+
+		self.object = pickle.load(f)
+		self.object.modified(False)
+		f.close()
 
 	def close(self):
 		"""Reduce the reference count of the persisted object, saving
@@ -143,7 +143,8 @@ class Persisted:
 			newfile.close()
 			os.rename(newname, self.filename)
 
-		self.file.close()
+		if self.lock_file is not None:
+			self.lock_file.close()
 		self.persister._remove(self.filename)
 
 class Persister:

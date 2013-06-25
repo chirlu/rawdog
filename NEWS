@@ -140,10 +140,12 @@ Move rawdog's feed quality heuristic into feedscanner.
 Provide templates for the feed list and each item in the feed list
 (based on patch from Arnout Engelen).
 
-persister now detects if the state file is zero-length, and treats it
-the same as if it was missing. This means that if rawdog opens the state
-file for the first time but crashes before it gets a chance to write to
-it, it won't then complain about it being corrupt.
+Rework the locking logic in persister so that it uses a separate lock
+file. This fixes a (mostly) harmless bug: previously if rawdog A was
+waiting for rawdog B to finish, then rawdog A wouldn't see the changes
+rawdog B had written to the state file. More importantly, it means
+rawdog won't leave an empty ("corrupt") state file if it crashes during
+the first update or write.
 
 - rawdog 2.14
 

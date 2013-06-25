@@ -20,6 +20,8 @@ Remove rawdog's copy of feedparser.
 
 Can we do without ensure_unicode? Having instrumented it, it looks like it's
 mostly converting strings that feedparser itself has created.
+... however, it also flattens out wacky classes that feedparser inserts, so
+yes, it's useful.
 
 Handle maxage working on article.date/added -- make this a config option? Merge with one of the existing options?
 

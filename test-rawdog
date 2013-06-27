@@ -19,12 +19,9 @@
 
 statedir="testauto"
 
-# This directory must be exposed through an Apache webserver
-# (once this script creates it).
-# We need to be able to write an .htaccess file into it containing
-# mod_rewrite directives.
-httpdir="/home/pub/azz/rawdog-test/dir"
-httpurl="http://cartman.at.offog.org/azz/rawdog-test/dir"
+# Hostname and port to run the test webserver on.
+httphost="localhost"
+httpport="8431"
 
 # Connections to this host should time out.
 timeouthost="81.91.98.19"
@@ -32,9 +29,18 @@ timeouthost="81.91.98.19"
 # Run tests that are currently known to fail.
 knownbad=false
 
+httpdir="$statedir/pub"
+httpurl="http://$httphost:$httpport"
+
+# Start the webserver, and kill it when this script exits.
+serverpid=""
+trap 'test -n "$serverpid" && kill $serverpid' 0
+python testserver.py "$httphost" "$httpport" "$httpdir" &
+serverpid="$!"
+
 die () {
 	echo "Test failed:" "$@"
-	exit 1
+	#exit 1
 }
 
 cleanstate () {
@@ -424,32 +430,20 @@ rune "could not be understood" -u
 
 for code in 301 302; do
 	begin "HTTP $code redirect to HTML"
-	cat >$httpdir/.htaccess <<EOF
-RewriteEngine On
-RewriteRule old.rss $httpurl/bad.html [L,R=$code]
-EOF
 	make_html $httpdir/bad.html
 	add "changeconfig false"
-	add "feed 0 $httpurl/old.rss"
+	add "feed 0 $httpurl/$code/bad.html"
 	rune "could not be understood" -u
 
 	begin "HTTP $code redirect to plain text"
-	cat >$httpdir/.htaccess <<EOF
-RewriteEngine On
-RewriteRule old.rss $httpurl/bad.txt [L,R=$code]
-EOF
 	make_text $httpdir/bad.txt
 	add "changeconfig false"
-	add "feed 0 $httpurl/old.rss"
+	add "feed 0 $httpurl/$code/bad.txt"
 	rune "could not be understood" -u
 
 	begin "HTTP $code redirect to 404"
-	cat >$httpdir/.htaccess <<EOF
-RewriteEngine On
-RewriteRule old.rss $httpurl/notthere [L,R=$code]
-EOF
 	add "changeconfig false"
-	add "feed 0 $httpurl/old.rss"
+	add "feed 0 $httpurl/$code/404"
 	rune "404" -u
 done
 
@@ -697,15 +691,8 @@ contains $statedir/output.html \
 	FEEDITEM-$httpurl/0.rss FEEDITEM-$httpurl/1.rss FEEDITEM-$httpurl/2.rss
 
 begin "HTTP basic authentication"
-htpasswd -bc $httpdir/passwd TestUser TestPass 2>/dev/null
-cat >$httpdir/.htaccess <<EOF
-AuthType Basic
-AuthName "Test Realm"
-AuthUserFile $httpdir/passwd
-Require valid-user
-EOF
 make_rss20 $httpdir/private.rss
-add "feed 0 $httpurl/private.rss"
+add "feed 0 $httpurl/auth-TestUser-TestPass/private.rss"
 rune "401" -u
 add "  user TestUser"
 add "  password TestPass"
@@ -733,94 +720,58 @@ runs -u
 
 begin "HTTP 302 redirect to 304 not modified"
 # feedparser issue 390.
-cat >$httpdir/.htaccess <<EOF
-RewriteEngine On
-RewriteRule old.rss $httpurl/new.rss [L,R=302]
-EOF
 make_rss20 $httpdir/new.rss
 touch -d yesterday $httpdir/new.rss
-add "feed 0 $httpurl/old.rss"
+add "feed 0 $httpurl/302/new.rss"
 runs -u
 checkstatus 304
 runs -u
 
 begin "HTTP 302 temporary redirect"
-cat >$httpdir/.htaccess <<EOF
-RewriteEngine On
-RewriteRule old.rss $httpurl/new.rss [L,R=302]
-EOF
 make_rss20 $httpdir/new.rss
-add "feed 0 $httpurl/old.rss"
+add "feed 0 $httpurl/302/new.rss"
 runs -u
 
 begin "HTTP 301 permanent redirect, changeconfig false"
-cat >$httpdir/.htaccess <<EOF
-RewriteEngine On
-RewriteRule old.rss $httpurl/new.rss [L,R=301]
-EOF
 make_rss20 $httpdir/new.rss
 add "changeconfig false"
-add "feed 0 $httpurl/old.rss"
+add "feed 0 $httpurl/301/new.rss"
 rune "You should update its entry" -u
-contains $statedir/config "$httpurl/old.rss"
+contains $statedir/config "$httpurl/301/new.rss"
 
 begin "HTTP 301 permanent redirect, changeconfig true"
-cat >$httpdir/.htaccess <<EOF
-RewriteEngine On
-RewriteRule old.rss $httpurl/new.rss [L,R=301]
-EOF
 make_rss20 $httpdir/new.rss
 add "changeconfig true"
-add "feed 0 $httpurl/old.rss"
+add "feed 0 $httpurl/301/new.rss"
 rune "has been updated automatically" -u
 contains $statedir/config "$httpurl/new.rss"
 runs -u
 
 begin "HTTP 302 to 301"
 # We should only update config if the first redirect is permanent.
-cat >$httpdir/.htaccess <<EOF
-RewriteEngine On
-RewriteRule 0.rss $httpurl/1.rss [L,R=302]
-RewriteRule 1.rss $httpurl/2.rss [L,R=301]
-EOF
-make_rss20 $httpdir/2.rss
+make_rss20 $httpdir/feed.rss
 add "changeconfig true"
-add "feed 0 $httpurl/0.rss"
+add "feed 0 $httpurl/302/301/feed.rss"
 runs -u
-contains $statedir/config "$httpurl/0.rss"
+contains $statedir/config "$httpurl/302/301/feed.rss"
 
 begin "HTTP 301 to 302"
-cat >$httpdir/.htaccess <<EOF
-RewriteEngine On
-RewriteRule 0.rss $httpurl/1.rss [L,R=301]
-RewriteRule 1.rss $httpurl/2.rss [L,R=302]
-EOF
-make_rss20 $httpdir/2.rss
+make_rss20 $httpdir/feed.rss
 add "changeconfig true"
-add "feed 0 $httpurl/0.rss"
+add "feed 0 $httpurl/301/302/feed.rss"
 rune "has been updated automatically" -u
-contains $statedir/config "$httpurl/1.rss"
+contains $statedir/config "$httpurl/302/feed.rss"
 
 begin "HTTP 301 to 301 to 302"
 # rawdog should follow the 301s but not the 302 to find the new URL.
-cat >$httpdir/.htaccess <<EOF
-RewriteEngine On
-RewriteRule 0.rss $httpurl/1.rss [L,R=301]
-RewriteRule 1.rss $httpurl/2.rss [L,R=301]
-RewriteRule 2.rss $httpurl/3.rss [L,R=302]
-EOF
-make_rss20 $httpdir/3.rss
+make_rss20 $httpdir/feed.rss
 add "changeconfig true"
-add "feed 0 $httpurl/0.rss"
+add "feed 0 $httpurl/301/301/302/feed.rss"
 rune "has been updated automatically" -u
-contains $statedir/config "$httpurl/2.rss"
+contains $statedir/config "$httpurl/302/feed.rss"
 
 begin "HTTP 410 gone"
-cat >$httpdir/.htaccess <<EOF
-RewriteEngine On
-RewriteRule gone.rss - [L,G]
-EOF
-add "feed 0 $httpurl/gone.rss"
+add "feed 0 $httpurl/410"
 rune "You should remove it" -u
 
 for state in false true; do
@@ -848,10 +799,7 @@ for state in false true; do
 	runs -uw
 	rm $httpdir/old.rss
 	make_range 6 10 $httpdir/new.rss
-	cat >$httpdir/.htaccess <<EOF
-	RewriteEngine On
-	RewriteRule old.rss $httpurl/new.rss [L,R=301]
-EOF
+	echo >$httpdir/.rewrites "/old.rss /301/new.rss"
 	rune "has been updated automatically" -uw
 	# We should still have the original items at this point.
 	output_range 1 10

@@ -34,10 +34,9 @@ fetch), and generally tidy it up.
 Set feedparser behaviour using SANITIZE_HTML etc., rather than by
 directly changing the lists of elements it's looking for.
 
-Add a simple test suite: test-rawdog. This relies on having Apache
-running so that it can set up appropriate HTTP responses, so some
-customisation will be necessary if you're not me (i.e. it's probably not
-very much use to packagers of rawdog yet).
+Add test-rawdog, a simple test suite for rawdog with a built-in
+webserver. You should be able to run this from the rawdog source
+directory to check that much of rawdog is working correctly.
 
 Fix a bug: if you're using splitstate mode, and a feed returns a 301
 permanent redirect, rawdog needs to rename the state file and adjust the

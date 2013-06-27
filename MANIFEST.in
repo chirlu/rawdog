@@ -8,5 +8,6 @@ include rawdog
 include MANIFEST.in
 include rawdog.1
 include test-rawdog
+include testserver.py
 recursive-include rawdoglib *.py
 

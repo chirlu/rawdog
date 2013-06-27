@@ -1,4 +1,4 @@
-# testserver: HTTP server for rawdog's test suite.
+# testserver: servers for rawdog's test suite.
 # Copyright 2013 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
@@ -18,13 +18,27 @@
 
 import BaseHTTPServer
 import SimpleHTTPServer
+import SocketServer
 import base64
 import hashlib
 import os
 import re
 import sys
+import threading
+import time
 
-class TestRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+class TimeoutRequestHandler(SocketServer.BaseRequestHandler):
+    """Request handler for a server that just does nothing for a few
+    seconds, then disconnects. This is used for testing timeout handling."""
+
+    def handle(self):
+        time.sleep(5)
+
+class TimeoutServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+    """Timeout server for rawdog's test suite."""
+    pass
+
+class HTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     """HTTP request handler for rawdog's test suite."""
 
     # do_GET/do_HEAD are copied from SimpleHTTPServer because send_head isn't
@@ -121,7 +135,7 @@ class TestRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         f.write(fmt % args + "\n")
         f.close()
 
-class TestServer(BaseHTTPServer.HTTPServer):
+class HTTPServer(BaseHTTPServer.HTTPServer):
     """HTTP server for rawdog's test suite."""
 
     def __init__(self, base_url, files_dir, *args, **kwargs):
@@ -131,17 +145,22 @@ class TestServer(BaseHTTPServer.HTTPServer):
 
 def main(args):
     if len(args) < 3:
-        print "Usage: testserver.py HOSTNAME PORT FILES-DIR"
+        print "Usage: testserver.py HOSTNAME TIMEOUT-PORT HTTP-PORT FILES-DIR"
         sys.exit(1)
 
     hostname = args[0]
-    port = int(args[1])
-    files_dir = args[2]
+    timeout_port = int(args[1])
+    http_port = int(args[2])
+    files_dir = args[3]
 
-    base_url = "http://" + hostname + ":" + str(port)
+    timeoutd = TimeoutServer((hostname, timeout_port), TimeoutRequestHandler)
+    t = threading.Thread(target=timeoutd.serve_forever)
+    t.daemon = True
+    t.start()
 
-    server = TestServer(base_url, files_dir, (hostname, port), TestRequestHandler)
-    server.serve_forever()
+    base_url = "http://" + hostname + ":" + str(http_port)
+    httpd = HTTPServer(base_url, files_dir, (hostname, http_port), HTTPRequestHandler)
+    httpd.serve_forever()
 
 if __name__ == "__main__":
     main(sys.argv[1:])

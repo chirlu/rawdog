@@ -19,11 +19,15 @@
 
 statedir="testauto"
 
-# Hostname and port to run the test webserver on.
-httphost="localhost"
-httpport="8431"
+# Hostname and ports to run the test server on.
+serverhost="localhost"
+timeoutport="8431"
+httpport="8432"
 
 # Connections to this host should time out.
+# (This is distinct from timeoutport above: if you connect to timeoutport, it
+# will accept the connection but not do anything, whereas this will timeout
+# while connecting.)
 timeouthost="81.91.98.19"
 
 # Run tests that are currently known to fail.
@@ -33,12 +37,12 @@ knownbad=false
 keepgoing=false
 
 httpdir="$statedir/pub"
-httpurl="http://$httphost:$httpport"
+httpurl="http://$serverhost:$httpport"
 
-# Start the webserver, and kill it when this script exits.
+# Start the server, and kill it when this script exits.
 serverpid=""
 trap 'test -n "$serverpid" && kill $serverpid' 0
-python testserver.py "$httphost" "$httpport" "$httpdir" &
+python testserver.py "$serverhost" "$timeoutport" "$httpport" "$httpdir" &
 serverpid="$!"
 
 die () {
@@ -474,25 +478,22 @@ begin "HTTP 404"
 add "feed 0 $httpurl/notthere"
 rune "404" -u
 
-begin "HTTP timeout"
-add "timeout 1s"
-add "feed 0 http://$timeouthost/feed.xml"
-rune "Timeout while reading" -u
+for proto in http https ftp; do
+	begin "$proto: connect timeout"
+	add "timeout 1s"
+	add "feed 0 $proto://$timeouthost/feed.xml"
+	rune "Timeout while reading" -u
 
-begin "HTTPS timeout"
-add "timeout 1s"
-add "feed 0 https://$timeouthost/feed.xml"
-rune "Timeout while reading" -u
-
-begin "FTP timeout"
-add "timeout 1s"
-add "feed 0 ftp://$timeouthost/feed.xml"
-rune "Timeout while reading" -u
+	begin "$proto: response timeout"
+	add "timeout 1s"
+	add "feed 0 $proto://$serverhost:$timeoutport/feed.xml"
+	rune "Timeout while reading" -u
+done
 
 begin "ignoretimeouts true"
 add "timeout 1s"
 add "ignoretimeouts true"
-add "feed 0 http://$timeouthost/feed.xml"
+add "feed 0 http://$serverhost:$timeoutport/feed.xml"
 runs -u
 
 begin "0 period"

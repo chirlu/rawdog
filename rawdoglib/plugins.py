@@ -49,7 +49,7 @@ def load_plugins(dir, config):
 		fn = os.path.join(dir, file)
 		config.log("Loading plugin ", fn)
 		f = open(fn, "r")
-		mod = imp.load_module("plugin%d" % (plugin_count,), f, fn, desc)
+		imp.load_module("plugin%d" % (plugin_count,), f, fn, desc)
 		plugin_count += 1
 		f.close()
 

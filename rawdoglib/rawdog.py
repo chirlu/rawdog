@@ -143,7 +143,7 @@ def sanitise_html(html, baseurl, inline, config):
 def select_detail(details):
 	"""Pick the preferred type of detail from a list of details. (If the
 	argument isn't a list, treat it as a list of one.)"""
-	types = {"text/html": 30,
+	TYPES = {"text/html": 30,
 	         "application/xhtml+xml": 20,
 	         "text/plain": 10}
 
@@ -157,8 +157,8 @@ def select_detail(details):
 		ctype = detail.get("type", None)
 		if ctype is None:
 			continue
-		if types.has_key(ctype):
-			score = types[ctype]
+		if TYPES.has_key(ctype):
+			score = TYPES[ctype]
 		else:
 			score = 0
 		if detail["value"] != "":
@@ -1479,7 +1479,6 @@ __feeditems__
 	def write_article(self, f, article, config):
 		"""Write an article to the given file."""
 		feed = self.feeds[article.feed]
-		feed_info = feed.feed_info
 		entry_info = article.entry_info
 
 		link = entry_info.get("link")

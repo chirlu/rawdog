@@ -824,7 +824,7 @@ EOF
 contains $statedir/output.html \
 	"<b>0</b><br />" \
 	"<b>1</b><br />" \
-	"<b>2</b><br />"
+	"<b>2</b><br />/"
 
 begin "broken processing instruction"
 write_desc <<EOF

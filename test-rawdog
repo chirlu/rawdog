@@ -815,12 +815,16 @@ done
 begin "shorttag expansion"
 # <br/> <br /> bug fixed 2006-01-07.
 # <br/>/ has a workaround in feedparser for sgmllib.
+add "tidyhtml false"
 write_desc <<EOF
 &lt;b&gt;0&lt;/b&gt;&lt;br/&gt;
 &lt;b&gt;1&lt;/b&gt;&lt;br /&gt;
 &lt;b&gt;2&lt;/b&gt;&lt;br/&gt;/
 EOF
-contains $statedir/output.html "<b>0</b><br>" "<b>1</b><br>" "<b>2</b><br>"
+contains $statedir/output.html \
+	"<b>0</b><br />" \
+	"<b>1</b><br />" \
+	"<b>2</b><br />"
 
 begin "broken processing instruction"
 write_desc <<EOF

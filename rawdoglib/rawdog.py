@@ -495,10 +495,12 @@ class Feed:
 			errors.append("")
 
 		bozo_exception = p.get("bozo_exception")
-		if isinstance(bozo_exception, urllib2.URLError):
+		got_urlerror = isinstance(bozo_exception, urllib2.URLError)
+		got_timeout = isinstance(bozo_exception, socket.timeout)
+		if got_urlerror or got_timeout:
 			# urllib2 reported an error when fetching the feed.
 			# Check to see if it was a timeout.
-			if not str(bozo_exception).endswith("timed out>"):
+			if not (got_timeout or str(bozo_exception).endswith("timed out>")):
 				errors.append("Error while fetching feed:")
 				errors.append(str(bozo_exception))
 				errors.append("")

@@ -29,6 +29,9 @@ timeouthost="81.91.98.19"
 # Run tests that are currently known to fail.
 knownbad=false
 
+# Keep going when a test fails.
+keepgoing=false
+
 httpdir="$statedir/pub"
 httpurl="http://$httphost:$httpport"
 
@@ -40,7 +43,9 @@ serverpid="$!"
 
 die () {
 	echo "Test failed:" "$@"
-	#exit 1
+	if ! $keepgoing; then
+		exit 1
+	fi
 }
 
 cleanstate () {

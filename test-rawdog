@@ -667,13 +667,26 @@ run -w
 same $statedir/output.html.orig $statedir/output.html
 
 begin "pre-2.15 template options"
+make_rss20 $httpdir/simple.rss
+add "feed 0 $httpurl/simple.rss"
+runs -uw
+cp $statedir/output.html $statedir/output.html.orig
 run -t
-echo hello world >$statedir/page
+cp $outfile $statedir/page
+run --show-template
+same $outfile $statedir/page
+run -T
+cp $outfile $statedir/item
+run --show-itemtemplate
+same $outfile $statedir/item
 add "template page"
+add "itemtemplate item"
+run -w
+same $statedir/output.html.orig $statedir/output.html
+echo MAGIC1__items__ >$statedir/page
+echo MAGIC2 >$statedir/item
 run -uw
-if ! cmp $statedir/page $statedir/output.html; then
-	die "template not expanded"
-fi
+contains $statedir/output.html MAGIC1 MAGIC2
 
 begin "item dates"
 # Debian bug 651080.

@@ -10,13 +10,85 @@ Remove obsolete code that supported pre-2.6 versions of Python
 (timeoutsocket.py, conditional imports, 0/1 for bools, dicts for sets,
 locking without with, various standard library features).
 
+Tidy up the code formatting in a few places to make it closer to PEP 8.
+
 Make the rawdog(1) man page describe all of rawdog's options, and make
 some other minor improvements to the documentation and help.
 
-Tidy up the code formatting in a few places to make it closer to PEP 8.
-
 Remove the --upgrade option; I think it's highly unlikely that anybody
 still has any rawdog 1 state files around.
+
+Make the code that manages the pool of feed-fetching threads only start
+as many threads as necessary (including none if there's only one feed to
+fetch), and generally tidy it up.
+
+Add test-rawdog, a simple test suite for rawdog with a built-in
+webserver. You should be able to run this from the rawdog source
+directory to check that much of rawdog is working correctly.
+
+Add a -V option, which is like -v but appends the verbose output to a
+file. This is mostly useful for testing.
+
+Significantly rework the Persister class: there's now a Persisted class
+that can act as a context manager for "with" statements, which
+simplifies the code quite a bit, and it correctly handles persisted
+objects being opened multiple times and renamed. persister.py is now
+under the same license as the rest of rawdog (GPLv2+).
+
+Fix a bug: if you're using splitstate mode, and a feed returns a 301
+permanent redirect, rawdog needs to rename the state file and adjust the
+articles in it so they're attached to the feed's new URL. In previous
+versions this didn't work correctly for two reasons: it tried to load
+the existing articles from the new filename, and the resulting file got
+clobbered because it was already being used by --update.
+
+Rework the locking logic in persister so that it uses a separate lock
+file. This fixes a (mostly) harmless bug: previously if rawdog A was
+waiting for rawdog B to finish, then rawdog A wouldn't see the changes
+rawdog B had written to the state file. More importantly, it means
+rawdog won't leave an empty ("corrupt") state file if it crashes during
+the first update or write.
+
+Split state files are now explicitly marked as modified if any articles
+were expired from them. (This won't actually change rawdog's behaviour,
+since articles were only expired if some articles had been seen during
+the update, and that would also have marked the state as modified.)
+
+When splitstate is enabled, make the feeds directory if it doesn't
+already exist. This avoids a confusing error message if you didn't make
+it by hand.
+
+rawdog now complains if feedparser can't detect the type of a feed or
+retrieve any items from it. This usually means that the URL isn't
+actually a feed -- for example, if it's redirecting to an error page.
+
+rawdog can now report more than one error for a feed at once -- e.g.
+a permanent redirection to something that isn't a feed.
+
+Show URLError exceptions returned by feedparser -- this means rawdog
+gives a sensible error message for a file: or ftp: URL that gives an
+error, rather than claiming it's a timeout. Plain filenames are now
+turned into file: URLs so you get consistent errors for both, and
+timeouts are detected by looking for a timeout exception.
+
+Use a custom urllib2 handler to capture all the HTTP responses that
+feedparser sees when handling redirects. This means rawdog can now see
+both the initial and final status code (rather than the combined one
+feedparser returns) -- so it can correctly handle redirects to errors,
+and redirects to redirects.
+
+Make "hideduplicates id link" work correctly in the odd corner case
+where an article has both id and link duplicated, but to different other
+articles.
+
+Upgrade feedparser to version 5.1.3. As a result of the other changes
+below, rawdog's copy of feedparser is now completely unmodified -- so
+it should be safe to remove it and use your system version if you prefer
+(provided it's new enough).
+
+Add a --dump option to pretty-print feedparser's output for a URL.
+The feedparser module used to do this if invoked as a script, but more
+recent versions of feedparser don't support this.
 
 Use a custom urllib2 handler to do HTTP basic authentication, instead of
 a feedparser patch. This also fixes proxy authentication, which I
@@ -27,42 +99,6 @@ feedparser patch. The behaviour is slightly different in that it now
 sends "A-IM: identity" rather than no header at all; this should have
 the same effect, though.
 
-Make the code that manages the pool of feed-fetching threads only start
-as many threads as necessary (including none if there's only one feed to
-fetch), and generally tidy it up.
-
-Set feedparser behaviour using SANITIZE_HTML etc., rather than by
-directly changing the lists of elements it's looking for.
-
-Add test-rawdog, a simple test suite for rawdog with a built-in
-webserver. You should be able to run this from the rawdog source
-directory to check that much of rawdog is working correctly.
-
-Fix a bug: if you're using splitstate mode, and a feed returns a 301
-permanent redirect, rawdog needs to rename the state file and adjust the
-articles in it so they're attached to the feed's new URL. In previous
-versions this didn't work correctly for two reasons: it tried to load
-the existing articles from the new filename, and the resulting file got
-clobbered because it was already being used by --update.
-
-Significantly rework the Persister class: there's now a Persisted class
-that can act as a context manager for "with" statements, which
-simplifies the code quite a bit, and it correctly handles persisted
-objects being opened multiple times and renamed. persister.py is now
-under the same license as the rest of rawdog (GPLv2+).
-
-Split state files are now explicitly marked as modified if any articles
-were expired from them. (This won't actually change rawdog's behaviour,
-since articles were only expired if some articles had been seen during
-the update, and that would also have marked the state as modified.)
-
-rawdog now complains if feedparser can't detect the type of a feed or
-retrieve any items from it. This usually means that the URL isn't
-actually a feed -- for example, if it's redirecting to an error page.
-
-rawdog can now report more than one error for a feed at once -- e.g.
-a permanent redirection to something that isn't a feed.
-
 Remove the feedparser patch that provided "_raw" versions of content
 (before sanitisation) for use in the article hash, and use the normal
 version instead. Since we disable sanitisation at fetch time anyway, the
@@ -72,41 +108,14 @@ this version, you'll see some duplicate articles on feeds with CP1252
 encoding problems. Tests suggest this doesn't affect many feeds (3 out
 of the 1000-odd in my test setup).
 
-Add a -V option, which is like -v but appends the verbose output to a
-file. This is mostly useful for testing.
+Set feedparser behaviour using SANITIZE_HTML etc., rather than by
+directly changing the lists of elements it's looking for.
 
-Make "hideduplicates id link" work correctly in the odd corner case
-where an article has both id and link duplicated, but to different other
-articles.
-
-Add a --dump option to pretty-print feedparser's output for a URL.
-The feedparser module used to do this if invoked as a script, but more
-recent versions of feedparser don't support this.
-
-Upgrade feedparser to version 5.1.3.
-
-Use a custom urllib2 handler to capture all the HTTP responses that
-feedparser sees when handling redirects. This means rawdog can now see
-both the initial and final status code (rather than the combined one
-feedparser returns) -- so it can correctly handle redirects to errors,
-and redirects to redirects.
-
-Show URLError exceptions returned by feedparser -- this means rawdog
-gives a sensible error message for a file: or ftp: URL that gives an
-error, rather than claiming it's a timeout. Plain filenames are now
-turned into file: URLs so you get consistent errors for both, and
-timeouts are detected by looking for a timeout exception.
-
-When splitstate is enabled, make the feeds directory if it doesn't
-already exist. This avoids a confusing error message if you didn't make
-it by hand.
-
-Replace feedfinder (which has unfixable unclear licensing) with Decklin
-Foster's fakefinder module, which he wrote as a replacement for it.
-This version is taken from his Debian package rawdog_2.13.dfsg.1-1.
-
-Rename fakefinder to feedscanner, on the grounds that it might be
-sensible to spin it off as a separate module eventually.
+Replace feedfinder, which has unfixable unclear licensing, with the
+module that Decklin Foster wrote for his Debian package of rawdog
+(specifically rawdog_2.13.dfsg.1-1).  I've renamed it to "feedscanner",
+on the grounds that it may be useful to other projects as well in the
+future.
 
 Put feedscanner's license notice into __license__, for consistency with
 feedparser.
@@ -146,13 +155,6 @@ Add templates for the feed list and each item in the feed list
 (based on patch from Arnout Engelen).
 
 Don't append an extra newline when showing a template.
-
-Rework the locking logic in persister so that it uses a separate lock
-file. This fixes a (mostly) harmless bug: previously if rawdog A was
-waiting for rawdog B to finish, then rawdog A wouldn't see the changes
-rawdog B had written to the state file. More importantly, it means
-rawdog won't leave an empty ("corrupt") state file if it crashes during
-the first update or write.
 
 - rawdog 2.14
 

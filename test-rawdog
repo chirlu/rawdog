@@ -75,6 +75,12 @@ equals () {
 	fi
 }
 
+same () {
+	if ! cmp "$1" "$2"; then
+		die "expected $1 to have the same contents as $2"
+	fi
+}
+
 contains () {
 	file="$1"
 	shift
@@ -658,9 +664,7 @@ add "itemtemplate item"
 add "feedlisttemplate feedlist"
 add "feeditemtemplate feeditem"
 run -w
-if ! cmp $statedir/output.html.orig $statedir/output.html; then
-	die "output different from default templates"
-fi
+same $statedir/output.html.orig $statedir/output.html
 
 begin "pre-2.15 template options"
 run -t

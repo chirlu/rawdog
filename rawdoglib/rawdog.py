@@ -1744,10 +1744,8 @@ Actions (performed in order given):
 -f|--update-feed URL         Force an update on the single feed URL
 -l, --list                   List feeds known at time of last update
 -r|--remove URL              Remove feed URL from the config file
--t, --show-template          Print the page template currently in use
--T, --show-itemtemplate      Print the item template currently in use
---show-feeditemtemplate      Print the feed list item template currently in use
---show-feedlisttemplate      Print the feed list template currently in use
+-s|--show TEMPLATE           Show the contents of a template
+                             (TEMPLATE may be: page item feedlist feeditem)
 -u, --update                 Fetch data from feeds and store it
 -w, --write                  Write out HTML output
 
@@ -1768,7 +1766,7 @@ def main(argv):
 	system_encoding = locale.getpreferredencoding()
 
 	try:
-		SHORTOPTS = "a:c:d:f:lNr:tTuvV:wW"
+		SHORTOPTS = "a:c:d:f:lNr:s:tTuvV:wW"
 		LONGOPTS = [
 			"add=",
 			"config=",
@@ -1780,10 +1778,9 @@ def main(argv):
 			"no-lock-wait",
 			"no-locking",
 			"remove=",
+			"show=",
 			"show-itemtemplate",
 			"show-template",
-			"show-feeditemtemplate",
-			"show-feedlisttemplate",
 			"update",
 			"update-feed=",
 			"verbose",
@@ -1882,6 +1879,8 @@ def main(argv):
 			remove_feed("config", a, config)
 			config.reload()
 			rawdog.sync_from_config(config)
+		elif o in ("-s", "--show"):
+			rawdog.show_template(a, config)
 		elif o in ("-t", "--show-template"):
 			rawdog.show_template("page", config)
 		elif o in ("-T", "--show-itemtemplate"):
@@ -1890,10 +1889,6 @@ def main(argv):
 			rawdog.update(config)
 		elif o in ("-w", "--write"):
 			rawdog.write(config)
-		elif o == "--show-feeditemtemplate":
-			rawdog.show_template("feeditem", config)
-		elif o == "--show-feedlisttemplate":
-			rawdog.show_template("feedlist", config)
 
 	plugins.call_hook("shutdown", rawdog, config)
 

@@ -651,18 +651,13 @@ make_rss20 $httpdir/simple.rss
 add "feed 0 $httpurl/simple.rss"
 runs -uw
 cp $statedir/output.html $statedir/output.html.orig
-run -t
-cp $outfile $statedir/page
-run -T
-cp $outfile $statedir/item
-run --show-feedlisttemplate
-cp $outfile $statedir/feedlist
-run --show-feeditemtemplate
-cp $outfile $statedir/feeditem
-add "pagetemplate page"
-add "itemtemplate item"
-add "feedlisttemplate feedlist"
-add "feeditemtemplate feeditem"
+for template in page item feedlist feeditem; do
+	run -s $template
+	cp $outfile $statedir/$template
+	run --show $template
+	same $outfile $statedir/$template
+	add "${template}template ${template}"
+done
 run -w
 same $statedir/output.html.orig $statedir/output.html
 
@@ -690,7 +685,7 @@ contains $statedir/output.html MAGIC1 MAGIC2
 
 begin "item dates"
 # Debian bug 651080.
-run -T
+run -s item
 cp $outfile $statedir/item
 echo "__date__" >>$statedir/item
 make_atom10 $httpdir/feed.atom
@@ -709,10 +704,10 @@ make_rss20 $httpdir/2.rss
 add "feed 0 $httpurl/0.rss"
 add "feed 0 $httpurl/1.rss"
 add "feed 0 $httpurl/2.rss"
-run --show-feedlisttemplate
+run -s feedlist
 cp $outfile $statedir/feedlist
 echo "FEEDLIST" >>$statedir/feedlist
-run --show-feeditemtemplate
+run -s feeditem
 cp $outfile $statedir/feeditem
 echo "FEEDITEM-__feed_url__" >>$statedir/feeditem
 add "feedlisttemplate feedlist"

@@ -89,13 +89,13 @@ the time of the last update.
 \fB\-r\fP \fIURL\fP, \fB\-\-remove\fP \fIURL\fP
 Remove feed \fIURL\fP from the config file.
 .TP
-\fB\-t\fP, \fB\-\-show\-template\fP
-Print the page template currently in use to stdout.
+\fB\-s\fP \fITEMPLATE\fP, \fB\-\-show\fP \fITEMPLATE\fP
+Print one of the templates currently in use to stdout.
+\fBTEMPLATE\fP may be \fBpage\fP, \fBitem\fP, \fBfeedlist\fP or
+\fBfeeditem\fP.
 This can be used as a starting point if you want to design your own
-template for use with the \fBtemplate\fP option in the config file.
-.TP
-\fB\-T\fP, \fB\-\-show\-itemtemplate\fP
-Print the item template currently in use to stdout.
+template for use with the corresponding \fBtemplate\fP option in the
+config file.
 .TP
 \fB\-u\fP, \fB\-\-update\fP
 Fetch data from the feeds and store it.
@@ -103,12 +103,6 @@ This could take some time if you've got lots of feeds.
 .TP
 \fB\-w\fP, \fB\-\-write\fP
 Write out the HTML output file.
-.TP
-\fB\-\-show\-feeditemtemplate\fP
-Print the feed list item template currently in use to stdout.
-.TP
-\fB\-\-show\-feedlisttemplate\fP
-Print the feed list template currently in use to stdout.
 .SS Special Actions
 If one of these options is specified, \fBrawdog\fP will perform only
 that action, then exit.

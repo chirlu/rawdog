@@ -104,7 +104,6 @@ Add a needs_update() method to Feed; make Rawdog call that on all the feeds
 (when not being forced) and then call update() on each of them that needs it.
 
 For rawdog 3:
-- generalise templating (so the show template option takes a name, etc.)
 - newer Python features
   - use unicode.encode('ascii','xmlcharrefreplace') if possible?
   - "for line in file"

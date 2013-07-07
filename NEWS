@@ -120,8 +120,6 @@ Fix Debian bug 657206: make feedscanner understand relative links
 Fix Debian bug 650776: make feedscanner not crash if it can't parse the
 URL it was given as HTML (reported by Jonathan Polley).
 
-Don't append an extra newline to the templates when doing -t/-T.
-
 Make rawdog use feedscanner's preferred order of feeds in addition to
 its own.
 
@@ -136,13 +134,18 @@ before scanning it for links.
 
 Move rawdog's feed quality heuristic into feedscanner.
 
-Provide templates for the feed list and each item in the feed list
+Simplify the options for dealing with templates: there is now a
+-s/--show command-line option that takes a template name as an argument
+(i.e. you do "rawdog -s item" rather than "rawdog -T"), and the
+"template" config file option is now called "pagetemplate". This
+simplifies the code, and makes it possible to add more templates without
+adding more command-line options. (All the old command-line and
+config-file options are still accepted for backwards compatibility.)
+
+Add templates for the feed list and each item in the feed list
 (based on patch from Arnout Engelen).
 
-Refactor the template-loading/showing code to reduce duplication.
-
-Rename the "template" option to "pagetemplate", for consistency.
-("template" is still accepted for backwards compatibility.)
+Don't append an extra newline when showing a template.
 
 Rework the locking logic in persister so that it uses a separate lock
 file. This fixes a (mostly) harmless bug: previously if rawdog A was

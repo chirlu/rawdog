@@ -75,8 +75,8 @@ timeformat %H:%M
 datetimeformat %H:%M, %A, %d %B
 
 # The page template file to use, or "default" to use the built-in template
-# (which is probably sufficient for most users). Use "rawdog -t" to show the
-# template currently in use as a starting-point for customisation.
+# (which is probably sufficient for most users). Use "rawdog -s page" to show
+# the template currently in use as a starting-point for customisation.
 # The following strings will be replaced in the output:
 # __version__         The rawdog version in use
 # __refresh__         The HTML 4 <meta http-equiv="refresh" ...> header
@@ -89,9 +89,9 @@ datetimeformat %H:%M, %A, %d %B
 # replaced by "Adam Sampson" in the output.
 pagetemplate default
 
-# Similarly, the template used for each item shown. Use "rawdog -T" to
-# show the template currently in use as a starting-point for
-# customisation. The following strings will be replaced in the output:
+# Similarly, the template used for each item shown. Use "rawdog -s item" to
+# show the template currently in use as a starting-point for customisation.
+# The following strings will be replaced in the output:
 # __title__           The item title (as an HTML link, if possible)
 # __title_no_link__   The item title (as text)
 # __url__             The item's URL, or the empty string if it doesn't
@@ -119,14 +119,14 @@ pagetemplate default
 itemtemplate default
 
 # The template used to generate the feed list (__feeds__ above). Use "rawdog
-# --show-feedlisttemplate" to show the current template. The following strings
-# will be replaced in the output:
+# -s feedlist" to show the current template.
+# The following strings will be replaced in the output:
 # __feeditems__       The feed items
 feedlisttemplate default
 
 # The template used to generate each item in the feed list. Use "rawdog
-# --show-feeditemtemplate" to show the current template. The following strings
-# will be replaced in the output:
+# -s feeditem" to show the current template.
+# The following strings will be replaced in the output:
 # __feed_id__         The feed's title with non-alphanumeric characters
 #                     (and HTML markup) removed (useful for per-feed
 #                     styles); you can use the "id" feed option below to

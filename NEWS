@@ -139,6 +139,9 @@ Move rawdog's feed quality heuristic into feedscanner.
 Provide templates for the feed list and each item in the feed list
 (based on patch from Arnout Engelen).
 
+Rename the "template" option to "pagetemplate", for consistency.
+("template" is still accepted for backwards compatibility.)
+
 Rework the locking logic in persister so that it uses a separate lock
 file. This fixes a (mostly) harmless bug: previously if rawdog A was
 waiting for rawdog B to finish, then rawdog A wouldn't see the changes

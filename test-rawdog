@@ -646,20 +646,29 @@ add "feed 0 $httpurl/simple.rss"
 runs -uw
 cp $statedir/output.html $statedir/output.html.orig
 run -t
-cp $outfile $statedir/template
+cp $outfile $statedir/page
 run -T
 cp $outfile $statedir/item
 run --show-feedlisttemplate
 cp $outfile $statedir/feedlist
 run --show-feeditemtemplate
 cp $outfile $statedir/feeditem
-add "template template"
+add "pagetemplate page"
 add "itemtemplate item"
 add "feedlisttemplate feedlist"
 add "feeditemtemplate feeditem"
 run -w
 if ! cmp $statedir/output.html.orig $statedir/output.html; then
 	die "output different from default templates"
+fi
+
+begin "pre-2.15 template options"
+run -t
+echo hello world >$statedir/page
+add "template page"
+run -uw
+if ! cmp $statedir/page $statedir/output.html; then
+	die "template not expanded"
 fi
 
 begin "item dates"

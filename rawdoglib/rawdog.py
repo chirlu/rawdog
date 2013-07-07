@@ -815,7 +815,7 @@ class Config:
 			"userefresh" : False,
 			"showfeeds" : True,
 			"timeout" : 30,
-			"template" : "default",
+			"pagetemplate" : "default",
 			"itemtemplate" : "default",
 			"feedlisttemplate" : "default",
 			"feeditemtemplate" : "default",
@@ -922,8 +922,8 @@ class Config:
 			self["showfeeds"] = parse_bool(l[1])
 		elif l[0] == "timeout":
 			self["timeout"] = parse_time(l[1], "s")
-		elif l[0] == "template":
-			self["template"] = l[1]
+		elif l[0] in ("template", "pagetemplate"):
+			self["pagetemplate"] = l[1]
 		elif l[0] == "itemtemplate":
 			self["itemtemplate"] = l[1]
 		elif l[0] == "feedlisttemplate":
@@ -1374,10 +1374,10 @@ class Rawdog(Persistable):
 		self.modified()
 		config.log("Finished update")
 
-	def get_template(self, config):
+	def get_pagetemplate(self, config):
 		"""Get the main template."""
-		if config["template"] != "default":
-			return load_file(config["template"])
+		if config["pagetemplate"] != "default":
+			return load_file(config["pagetemplate"])
 
 		template = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
    "http://www.w3.org/TR/html4/strict.dtd">
@@ -1462,9 +1462,9 @@ __feeditems__
 </tr>
 """
 
-	def show_template(self, config):
-		"""Show the configured main template."""
-		print self.get_template(config),
+	def show_pagetemplate(self, config):
+		"""Show the configured page template."""
+		print self.get_pagetemplate(config),
 
 	def show_itemtemplate(self, config):
 		"""Show the configured item template."""
@@ -1671,7 +1671,7 @@ __feeditems__
 		f.close()
 		bits["num_items"] = str(len(articles))
 		plugins.call_hook("output_bits", self, config, bits)
-		s = fill_template(self.get_template(config), bits)
+		s = fill_template(self.get_pagetemplate(config), bits)
 		outputfile = config["outputfile"]
 		if outputfile == "-":
 			write_ascii(sys.stdout, s, config)
@@ -1906,7 +1906,7 @@ def main(argv):
 			config.reload()
 			rawdog.sync_from_config(config)
 		elif o in ("-t", "--show-template"):
-			rawdog.show_template(config)
+			rawdog.show_pagetemplate(config)
 		elif o in ("-T", "--show-itemtemplate"):
 			rawdog.show_itemtemplate(config)
 		elif o in ("-u", "--update"):

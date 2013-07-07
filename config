@@ -74,9 +74,9 @@ timeformat %H:%M
 # %Y-%m-%d %H:%M      2004-01-21 18:07 (ISO 8601 format)
 datetimeformat %H:%M, %A, %d %B
 
-# The template file to use, or "default" to use the built-in template
-# (which is probably sufficient for most users). Use "rawdog -t" to show
-# the template currently in use as a starting-point for customisation.
+# The page template file to use, or "default" to use the built-in template
+# (which is probably sufficient for most users). Use "rawdog -t" to show the
+# template currently in use as a starting-point for customisation.
 # The following strings will be replaced in the output:
 # __version__         The rawdog version in use
 # __refresh__         The HTML 4 <meta http-equiv="refresh" ...> header
@@ -87,7 +87,7 @@ datetimeformat %H:%M, %A, %d %B
 # You can define additional strings using "define" in this config file; for
 # example, if you say "define myname Adam Sampson", then "__myname__" will be
 # replaced by "Adam Sampson" in the output.
-template default
+pagetemplate default
 
 # Similarly, the template used for each item shown. Use "rawdog -T" to
 # show the template currently in use as a starting-point for

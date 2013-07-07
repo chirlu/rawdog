@@ -139,6 +139,8 @@ Move rawdog's feed quality heuristic into feedscanner.
 Provide templates for the feed list and each item in the feed list
 (based on patch from Arnout Engelen).
 
+Refactor the template-loading/showing code to reduce duplication.
+
 Rename the "template" option to "pagetemplate", for consistency.
 ("template" is still accepted for backwards compatibility.)
 

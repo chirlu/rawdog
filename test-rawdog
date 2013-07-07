@@ -705,6 +705,31 @@ contains $statedir/output.html \
 	FEEDLIST \
 	FEEDITEM-$httpurl/0.rss FEEDITEM-$httpurl/1.rss FEEDITEM-$httpurl/2.rss
 
+begin "showfeeds true/false"
+make_atom10 $httpdir/simple.atom
+add "feed 0 $httpurl/simple.atom"
+runs -u
+add "showfeeds true"
+runs -w
+contains $statedir/output.html $httpurl/simple.atom
+add "showfeeds false"
+runs -w
+not_contains $statedir/output.html $httpurl/simple.atom
+
+begin "userefresh true/false"
+make_atom10 $httpdir/0.atom
+make_atom10 $httpdir/1.atom
+# It should pick the lowest of these and convert to seconds.
+add "feed 1m $httpurl/0.atom"
+add "feed 2m $httpurl/1.atom"
+runs -u
+add "userefresh true"
+runs -w
+contains $statedir/output.html 'http-equiv="Refresh" content="60"'
+add "userefresh false"
+runs -w
+not_contains $statedir/output.html 'http-equiv="Refresh"'
+
 begin "HTTP basic authentication"
 make_rss20 $httpdir/private.rss
 add "feed 0 $httpurl/auth-TestUser-TestPass/private.rss"

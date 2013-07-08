@@ -1374,7 +1374,7 @@ class Rawdog(Persistable):
 		self.modified()
 		config.log("Finished update")
 
-	def get_template(self, name, config):
+	def get_template(self, config, name="page"):
 		"""Return the contents of a template."""
 
 		filename = config[name + "template"]
@@ -1453,7 +1453,7 @@ __feeditems__
 
 	def show_template(self, name, config):
 		"""Show the contents of a template, as currently configured."""
-		print self.get_template(name, config),
+		print self.get_template(config, name),
 
 	def write_article(self, f, article, config):
 		"""Write an article to the given file."""
@@ -1527,7 +1527,7 @@ __feeditems__
 			itembits["date"] = ""
 
 		plugins.call_hook("output_item_bits", self, config, feed, article, itembits)
-		itemtemplate = self.get_template("item", config)
+		itemtemplate = self.get_template(config, "item")
 		f.write(fill_template(itemtemplate, itembits))
 
 	def write_remove_dups(self, articles, config, now):
@@ -1590,7 +1590,7 @@ __feeditems__
 	def write_feeditem(self, f, feed, config):
 		"""Write a feed list item."""
 		bits = self.get_feed_bits(config, feed)
-		f.write(fill_template(self.get_template("feeditem", config), bits))
+		f.write(fill_template(self.get_template(config, "feeditem"), bits))
 
 	def write_feedlist(self, f, config):
 		"""Write the feed list."""
@@ -1606,7 +1606,7 @@ __feeditems__
 		bits["feeditems"] = feeditems.getvalue()
 		feeditems.close()
 
-		f.write(fill_template(self.get_template("feedlist", config), bits))
+		f.write(fill_template(self.get_template(config, "feedlist"), bits))
 
 	def get_main_template_bits(self, config):
 		"""Get the bits that are used in the default main template,
@@ -1648,7 +1648,7 @@ __feeditems__
 		f.close()
 		bits["num_items"] = str(len(articles))
 		plugins.call_hook("output_bits", self, config, bits)
-		s = fill_template(self.get_template("page", config), bits)
+		s = fill_template(self.get_template(config, "page"), bits)
 		outputfile = config["outputfile"]
 		if outputfile == "-":
 			write_ascii(sys.stdout, s, config)

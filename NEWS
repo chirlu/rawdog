@@ -141,6 +141,9 @@ that suggest they're probably feeds.
 Make feedscanner check whether the URL it was given is already a feed
 before scanning it for links.
 
+Make feedscanner decode the HTML it reads (silently ignoring errors)
+before trying to parse it.
+
 Move rawdog's feed quality heuristic into feedscanner.
 
 Simplify the options for dealing with templates: there is now a

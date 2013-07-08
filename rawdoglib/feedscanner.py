@@ -97,9 +97,15 @@ def feeds(page_url):
     if is_feed(page_url):
         return [page_url]
 
+    f = urllib.urlopen(page_url)
+    # Silently ignore encoding errors -- we don't need to go to the bother of
+    # detecting the encoding properly (like feedparser does).
+    data = f.read().decode("UTF-8", errors="ignore")
+    f.close()
+
     parser = FeedFinder(page_url)
     try:
-        parser.feed(urllib.urlopen(page_url).read())
+        parser.feed(data)
     except HTMLParser.HTMLParseError:
         pass
     found = parser.urls()

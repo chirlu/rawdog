@@ -1052,6 +1052,17 @@ EOF
 rune "Adding feed" -a $httpurl/page.html
 contains "$statedir/config" $httpurl/1.atom
 
+begin "add feed, UTF-8 in attr"
+# This problem showed up in orbitbooks.net's front page. The intent is fine,
+# but it crashes Python 2.7's HTMLParser if it's not properly decoded.
+make_atom10 $httpdir/feed.atom
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="image/gif" title="ø&quot;" href="picture.gif">
+<link rel="alternate" type="application/atom+xml" title="Atom" href="feed.atom">
+EOF
+rune "Adding feed" -a $httpurl/page.html
+contains "$statedir/config" $httpurl/feed.atom
+
 begin "remove feed"
 add "feed 3h $httpurl/0.rss"
 add "feed 3h $httpurl/1.rss"

@@ -148,8 +148,9 @@ Simplify the options for dealing with templates: there is now a
 (i.e. you do "rawdog -s item" rather than "rawdog -T"), and the
 "template" config file option is now called "pagetemplate". This
 simplifies the code, and makes it possible to add more templates without
-adding more command-line options. (All the old command-line and
-config-file options are still accepted for backwards compatibility.)
+adding more command-line options. (For backwards compatibility, all the
+old command-line and config-file options are still accepted, and
+rawdog.get_template(config) will still return the page template.)
 
 Add templates for the feed list and each item in the feed list
 (based on patch from Arnout Engelen).

@@ -77,6 +77,27 @@ class HTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
                 return None
             self.path = m.group(3)
 
+        m = re.match(r'^/digest-([^/-]+)-([^/]+)(/.*)$', self.path)
+        if m:
+            # Require digest authentication. (Not a good implementation!)
+            realm = "rawdog test server"
+            nonce = "0123456789abcdef"
+            a1 = m.group(1) + ":" + realm + ":" + m.group(2)
+            a2 = "GET:" + self.path
+            def h(s):
+                return hashlib.md5(s).hexdigest()
+            response = h(h(a1) + ":" + nonce + ":" + h(a2))
+            mr = re.search(r'response="([^"]*)"',
+                         self.headers.get("Authorization", ""))
+            if mr is None or mr.group(1) != response:
+                self.send_response(401)
+                self.send_header("WWW-Authenticate",
+                                 'Digest realm="%s", nonce="%s"'
+                                     % (realm, nonce))
+                self.end_headers()
+                return None
+            self.path = m.group(3)
+
         m = re.match(r'^/(\d\d\d)(/.*)?$', self.path)
         if m:
             # Request for a particular response code.

@@ -800,6 +800,11 @@ class Config:
 		self.reset()
 
 	def reset(self):
+		# Note that these default values are *not* the same as
+		# in the supplied config file. The idea is that someone
+		# who has an old config file shouldn't notice a difference
+		# in behaviour on upgrade -- so new options generally
+		# default to False here, and True in the sample file.
 		self.config = {
 			"feedslist" : [],
 			"feeddefaults" : {},

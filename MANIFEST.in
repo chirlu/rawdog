@@ -1,13 +1,12 @@
-include README
-include PLUGINS
-include NEWS
 include COPYING
-include config
-include style.css
-include rawdog
 include MANIFEST.in
+include NEWS
+include PLUGINS
+include README
+include config
+include rawdog
 include rawdog.1
+include style.css
 include test-rawdog
 include testserver.py
 recursive-include rawdoglib *.py
-

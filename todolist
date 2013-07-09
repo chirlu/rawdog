@@ -1,3 +1,7 @@
+A common complaint of packagers (e.g. Gentoo #345485) is that you have to
+explicitly install a config file for rawdog to work.
+Build the default config file and stylesheet into rawdog somehow?
+
 Check Debian rawdog bugs; the following can be closed once Debian picks up 2.15:
 - 363472: feeddefaults parsing - fixed
 - 366101: actually a feedparser bug - (probably) fixed

@@ -311,7 +311,7 @@ EOF
 	for i in $(seq $from $to); do
 		cat >>"$file" <<EOF
     <item>
-      <title>range-title-$i</title>
+      <title>range-title-$i-</title>
       <link>http://example.org/item$i</link>
       <description><![CDATA[<p>range-description-$i</p>]]></description>
     </item>
@@ -328,11 +328,11 @@ make_n () {
 }
 
 output_range () {
-	contains $statedir/output.html $(seq -f "range-title-%.f" $1 $2)
+	contains $statedir/output.html $(seq -f "range-title-%.f-" $1 $2)
 }
 
 not_output_range () {
-	not_contains $statedir/output.html $(seq -f "range-title-%.f" $1 $2)
+	not_contains $statedir/output.html $(seq -f "range-title-%.f-" $1 $2)
 }
 
 output_n () {

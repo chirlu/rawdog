@@ -16,6 +16,10 @@
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA, or see http://www.gnu.org/.
 
+# The design of rawdog's plugin API was inspired by Stuart Langridge's
+# Vellum weblog system:
+#   http://www.kryogenix.org/code/vellum/
+
 import os, imp
 
 class Box:

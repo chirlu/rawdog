@@ -338,12 +338,16 @@ make_n () {
 	make_range 1 "$@"
 }
 
+range () {
+	seq -f "range-title-%.f-" $1 $2
+}
+
 output_range () {
-	contains $statedir/output.html $(seq -f "range-title-%.f-" $1 $2)
+	contains $statedir/output.html $(range $1 $2)
 }
 
 not_output_range () {
-	not_contains $statedir/output.html $(seq -f "range-title-%.f-" $1 $2)
+	not_contains $statedir/output.html $(range $1 $2)
 }
 
 output_n () {

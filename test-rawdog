@@ -75,7 +75,16 @@ equals () {
 	fi
 }
 
+exists () {
+	for fn in "$@"; do
+		if ! [ -e "$fn" ]; then
+			die "expected $fn to exist"
+		fi
+	done
+}
+
 same () {
+	exists "$1" "$2"
 	if ! cmp "$1" "$2"; then
 		die "expected $1 to have the same contents as $2"
 	fi
@@ -83,6 +92,7 @@ same () {
 
 contains () {
 	file="$1"
+	exists "$file"
 	shift
 	for key in "$@"; do
 		if ! grep -q "$key" "$file"; then
@@ -94,6 +104,7 @@ contains () {
 
 not_contains () {
 	file="$1"
+	exists "$file"
 	shift
 	for key in "$@"; do
 		if grep -q "$key" "$file"; then

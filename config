@@ -201,7 +201,7 @@ blocklevelhtml true
 # Whether to attempt to turn feed-provided HTML into valid HTML.
 # The most common problem that this solves is a non-closed element in an
 # article causing formatting problems for the rest of the page.
-# For this option to have any effect, you need to have PyTidyLib or mx.Tixy
+# For this option to have any effect, you need to have PyTidyLib or mx.Tidy
 # installed.
 tidyhtml true
 

@@ -25,6 +25,8 @@ fetch), and generally tidy it up.
 Add test-rawdog, a simple test suite for rawdog with a built-in
 webserver. You should be able to run this from the rawdog source
 directory to check that much of rawdog is working correctly.
+(If you have the rawdog plugins repo in a subdirectory called
+"rawdog-plugins", it'll run tests on some of the plugins too.)
 
 Add a -V option, which is like -v but appends the verbose output to a
 file. This is mostly useful for testing.

@@ -100,7 +100,7 @@ def feeds(page_url):
     f = urllib.urlopen(page_url)
     # Silently ignore encoding errors -- we don't need to go to the bother of
     # detecting the encoding properly (like feedparser does).
-    data = f.read().decode("UTF-8", errors="ignore")
+    data = f.read().decode("UTF-8", "ignore")
     f.close()
 
     parser = FeedFinder(page_url)

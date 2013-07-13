@@ -779,7 +779,6 @@ EOF
 
 begin "HTTP 304 not modified"
 make_rss20 $httpdir/feed.rss
-touch -d yesterday $httpdir/feed.rss
 add "feed 0 $httpurl/feed.rss"
 runs -u
 checkstatus 304
@@ -788,7 +787,6 @@ runs -u
 begin "HTTP 302 redirect to 304 not modified"
 # feedparser issue 390.
 make_rss20 $httpdir/new.rss
-touch -d yesterday $httpdir/new.rss
 add "feed 0 $httpurl/302/new.rss"
 runs -u
 checkstatus 304

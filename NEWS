@@ -1,3 +1,5 @@
+- rawdog 2.16
+
 - rawdog 2.15
 
 rawdog now requires Python 2.6 (rather than Python 2.2). This is the

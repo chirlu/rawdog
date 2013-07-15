@@ -3,6 +3,8 @@
 Remove the bundled copy of feedparser, and document that it's now a
 dependency.
 
+Update the package metadata in setup.py.
+
 - rawdog 2.15
 
 rawdog now requires Python 2.6 (rather than Python 2.2). This is the

@@ -13,7 +13,14 @@ setup(name = "rawdog",
 	author = "Adam Sampson",
 	author_email = "ats@offog.org",
 	url = "http://offog.org/code/rawdog.html",
-	license = "GNU GPL v2 or later",
 	scripts = ['rawdog'],
 	data_files = [('share/man/man1', ['rawdog.1'])],
-	packages = ['rawdoglib'])
+	packages = ['rawdoglib'],
+	classifiers = [
+		"Development Status :: 5 - Production/Stable",
+		"Environment :: Console",
+		"License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+		"Operating System :: POSIX",
+		"Programming Language :: Python :: 2",
+		"Topic :: Internet :: WWW/HTTP",
+	])

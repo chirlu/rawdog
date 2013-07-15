@@ -6,7 +6,7 @@ Check Debian rawdog bugs; the following can be closed once Debian picks up 2.15:
 - 363472: feeddefaults parsing - fixed
 - 366101: actually a feedparser bug - (probably) fixed
 - 374741: actually a feedparser bug - fixed
-- 383422/684252: don't embed feedparser
+- 383422/684252: don't embed feedparser - fixed
 - 410199: template encoding - fixed
 - 468383/603267: new upstream version
 - 601276: fixed: disable BeautifulSoup
@@ -19,8 +19,6 @@ Show the chain of HTTP statuses, not just the last one.
 Show feedparser version in --help.
 
 Add --version.
-
-Remove rawdog's copy of feedparser.
 
 Can we do without ensure_unicode? Having instrumented it, it looks like it's
 mostly converting strings that feedparser itself has created.

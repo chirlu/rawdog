@@ -4,16 +4,17 @@ Adam Sampson <ats@offog.org>
 rawdog is an extensible feed aggregator for Unix-like systems, based on
 the Python feedparser module (originally developed by Mark Pilgrim).
 
-rawdog requires Python 2.6 or later. rawdog itself doesn't need any
-additional modules to be installed, but it uses distutils for
-installation, so if you're on a Debian system you'll need to install the
-"python-dev" package first.
+rawdog has the following dependencies:
+
+- Python 2.6 or later (but not Python 3)
+- feedparser 5.1.2 or later
+- PyTidyLib 0.2.1 or later (optional but strongly recommended)
 
 To install rawdog on your system, use distutils -- "python setup.py
-install".  This will install the library modules that rawdog needs, and
-will install the "rawdog" command that you can use to run it. (If you
-want to install to a non-standard prefix, read the help provided by
-"python setup.py install --help".)
+install".  This will install the "rawdog" command and the "rawdoglib"
+Python module that it uses internally.  (If you want to install to a
+non-standard prefix, read the help provided by "python setup.py install
+--help".)
 
 rawdog needs a config file to function. Make the directory ".rawdog" in
 your $HOME directory, copy the provided file "config" into that

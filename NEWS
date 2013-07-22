@@ -1,3 +1,7 @@
+- rawdog 2.17
+
+Fix some misquoted dashes in the man page (spotted by lintian).
+
 - rawdog 2.16
 
 Remove the bundled copy of feedparser, and document that it's now a

@@ -18,10 +18,12 @@
 # MA 02110-1301, USA, or see http://www.gnu.org/.
 
 # Run tests in the C locale, to avoid localised error messages.
-export LC_ALL=C
+default_LC_ALL="C"
+export LC_ALL="$default_LC_ALL"
 
 # Set the timezone to UTC so that local times are reported consistently.
-export TZ=UTC
+default_TZ="UTC"
+export TZ="$default_TZ"
 
 statedir="testauto"
 
@@ -717,6 +719,44 @@ add "datetimeformat ITEMDATE-%m-%d-%H:%M"
 add "itemtemplate item"
 runs -uw
 contains $statedir/output.html "HEADING-01-01-18:00" "ITEMDATE-01-01-18:00"
+
+begin "dates shown in local time"
+echo "__date__" >>$statedir/item
+make_atom10 $httpdir/feed.atom
+add "feed 0 $httpurl/feed.atom"
+add "sortbyfeeddate true"
+add "timeformat HEADING-%m-%d-%H:%M"
+add "datetimeformat ITEMDATE-%m-%d-%H:%M"
+add "itemtemplate item"
+runs -u
+export TZ="GMT+5"
+runs -w
+contains $statedir/output.html "HEADING-01-01-13:00" "ITEMDATE-01-01-13:00"
+export TZ="$default_TZ"
+runs -w
+contains $statedir/output.html "HEADING-01-01-18:00" "ITEMDATE-01-01-18:00"
+
+# This locale won't necessarily be available, so we have to check...
+ja_LC_ALL="ja_JP.utf8"
+if locale -a | grep -q '^'$ja_LC_ALL'$'; then
+	begin "dates shown in Japanese"
+	echo "__date__" >>$statedir/item
+	make_atom10 $httpdir/feed.atom
+	add "feed 0 $httpurl/feed.atom"
+	add "sortbyfeeddate true"
+	add "timeformat HEADING-%A-%c"
+	add "datetimeformat ITEMDATE-%A-%c"
+	add "itemtemplate item"
+	export LC_ALL="$ja_LC_ALL"
+	runs -uw
+	# Japanese for Tuesday, in Unicode.
+	tue="&#28779;&#26332;&#26085;"
+	contains $statedir/output.html "HEADING-$tue-" "ITEMDATE-$tue-"
+	not_contains $statedir/output.html "Tuesday"
+	export LC_ALL="$default_LC_ALL"
+	runs -uw
+	contains $statedir/output.html "HEADING-Tuesday" "ITEMDATE-Tuesday"
+fi
 
 begin "feed list templates"
 make_rss20 $httpdir/0.rss

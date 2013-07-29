@@ -17,13 +17,16 @@
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA, or see http://www.gnu.org/.
 
-# Run tests in the C locale, to avoid localised error messages.
+# Default to the C locale, to avoid localised error messages.
 default_LC_ALL="C"
-export LC_ALL="$default_LC_ALL"
 
-# Set the timezone to UTC so that local times are reported consistently.
+# Try to find generic UTF-8 and Japanese UTF-8 locales. (They may not be
+# installed.)
+utf8_LC_ALL="$(locale -a | grep -i 'utf-\?8' | head -1)"
+ja_LC_ALL="$(locale -a | grep -i ja_JP.utf\-?8 | head -1)"
+
+# Default to UTC so that local times are reported consistently.
 default_TZ="UTC"
-export TZ="$default_TZ"
 
 statedir="testauto"
 
@@ -64,6 +67,9 @@ cleanstate () {
 	rm -fr $statedir $httpdir
 	mkdir -p $statedir $statedir/plugins $httpdir
 	cp config $statedir/config
+
+	export LC_ALL="$default_LC_ALL"
+	export TZ="$default_TZ"
 }
 
 add () {
@@ -736,9 +742,7 @@ export TZ="$default_TZ"
 runs -w
 contains $statedir/output.html "HEADING-01-01-18:00" "ITEMDATE-01-01-18:00"
 
-# This locale won't necessarily be available, so we have to check...
-ja_LC_ALL="ja_JP.utf8"
-if locale -a | grep -q '^'$ja_LC_ALL'$'; then
+if [ -n "$ja_LC_ALL" ]; then
 	begin "dates shown in Japanese"
 	echo "__date__" >$statedir/item
 	make_atom10 $httpdir/feed.atom

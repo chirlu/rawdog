@@ -721,7 +721,7 @@ runs -uw
 contains $statedir/output.html "HEADING-01-01-18:00" "ITEMDATE-01-01-18:00"
 
 begin "dates shown in local time"
-echo "__date__" >>$statedir/item
+echo "__date__" >$statedir/item
 make_atom10 $httpdir/feed.atom
 add "feed 0 $httpurl/feed.atom"
 add "sortbyfeeddate true"
@@ -740,7 +740,7 @@ contains $statedir/output.html "HEADING-01-01-18:00" "ITEMDATE-01-01-18:00"
 ja_LC_ALL="ja_JP.utf8"
 if locale -a | grep -q '^'$ja_LC_ALL'$'; then
 	begin "dates shown in Japanese"
-	echo "__date__" >>$statedir/item
+	echo "__date__" >$statedir/item
 	make_atom10 $httpdir/feed.atom
 	add "feed 0 $httpurl/feed.atom"
 	add "sortbyfeeddate true"

@@ -887,6 +887,11 @@ class Config:
 		elif len(l) != 2:
 			raise ConfigError("Bad line in config: " + line)
 
+		# Load template files immediately, so we produce an error now
+		# rather than later if anything goes wrong.
+		if l[0].endswith("template") and l[1] != "default":
+			load_file(l[1])
+
 		handled_arglines = False
 		if l[0] == "feed":
 			l = l[1].split(None)

@@ -379,6 +379,10 @@ begin "bad config directive"
 add "foo bar"
 rune "Unknown config command"
 
+begin "missing config file"
+rm $statedir/config
+rune "Can't read config file" -u
+
 begin "empty config file"
 : >$statedir/config
 runs -uw

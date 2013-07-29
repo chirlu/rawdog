@@ -17,6 +17,9 @@
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA, or see http://www.gnu.org/.
 
+# Run tests in the C locale, to avoid localised error messages.
+export LC_ALL=C
+
 statedir="testauto"
 
 # Hostname and ports to run the test server on.

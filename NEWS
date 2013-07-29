@@ -2,6 +2,9 @@
 
 Fix some misquoted dashes in the man page (spotted by lintian).
 
+Set LC_ALL=C when running tests, in order to get predictable error
+messages (reported by Etienne Millon).
+
 - rawdog 2.16
 
 Remove the bundled copy of feedparser, and document that it's now a

@@ -20,6 +20,9 @@
 # Run tests in the C locale, to avoid localised error messages.
 export LC_ALL=C
 
+# Set the timezone to UTC so that local times are reported consistently.
+export TZ=UTC
+
 statedir="testauto"
 
 # Hostname and ports to run the test server on.

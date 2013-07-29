@@ -716,6 +716,50 @@ echo MAGIC2 >$statedir/item
 run -uw
 contains $statedir/output.html MAGIC1 MAGIC2
 
+for template in page item feedlist feeditem; do
+	begin "missing ${template} template file"
+	add "${template}template ${template}"
+	rune "Can't read template file" -u
+done
+
+begin "UTF-8 in template, ASCII locale"
+echo "char(ø)" >$statedir/item
+make_atom10 $httpdir/feed.atom
+add "feed 0 $httpurl/feed.atom"
+add "itemtemplate item"
+rune "Character encoding problem" -uw
+
+if [ -n "$utf8_LC_ALL" ]; then
+	begin "UTF-8 in template, UTF-8 locale"
+	echo "char(ø)" >$statedir/item
+	make_atom10 $httpdir/feed.atom
+	add "feed 0 $httpurl/feed.atom"
+	add "itemtemplate item"
+	export LC_ALL="$utf8_LC_ALL"
+	runs -uw
+	contains $statedir/output.html "char(&#248;)"
+fi
+
+begin "UTF-8 in define, ASCII locale"
+make_atom10 $httpdir/feed.atom
+echo "expand(__thing__)" >$statedir/item
+add "itemtemplate item"
+add "feed 0 $httpurl/feed.atom"
+add "  define_thing char(ø)"
+rune "Character encoding problem" -uw
+
+if [ -n "$utf8_LC_ALL" ]; then
+	begin "UTF-8 in define, UTF-8 locale"
+	make_atom10 $httpdir/feed.atom
+	echo "expand(__thing__)" >$statedir/item
+	add "itemtemplate item"
+	add "feed 0 $httpurl/feed.atom"
+	add "  define_thing char(ø)"
+	export LC_ALL="$utf8_LC_ALL"
+	runs -uw
+	contains $statedir/output.html "expand(char(&#248;))"
+fi
+
 begin "item dates"
 # Debian bug 651080.
 run -s item

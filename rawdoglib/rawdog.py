@@ -265,12 +265,24 @@ def fill_template(template, bits):
 
 file_cache = {}
 def load_file(name):
-	"""Read the contents of a file, caching the result so we don't have to
-	read the file multiple times."""
+	"""Read the contents of a template file, caching the result so we don't
+	have to read the file multiple times. The file is assumed to be in the
+	system encoding; the result will be an ASCII string."""
 	if not file_cache.has_key(name):
-		f = open(name)
-		file_cache[name] = f.read()
-		f.close()
+		try:
+			f = open(name)
+			data = f.read()
+			f.close()
+		except IOError:
+			raise ConfigError("Can't read template file: " + name)
+
+		try:
+			data = data.decode(get_system_encoding())
+		except UnicodeDecodeError, e:
+			raise ConfigError("Character encoding problem in template file: " + name + ": " + str(e))
+
+		data = encode_references(data)
+		file_cache[name] = data.encode(get_system_encoding())
 	return file_cache[name]
 
 def write_ascii(f, s, config):
@@ -859,7 +871,12 @@ class Config:
 		try:
 			f = open(filename, "r")
 			for line in f.xreadlines():
-				stripped = line.decode(get_system_encoding()).strip()
+				try:
+					line = line.decode(get_system_encoding())
+				except UnicodeDecodeError, e:
+					raise ConfigError("Character encoding problem in config file: " + filename + ": " + str(e))
+
+				stripped = line.strip()
 				if stripped == "" or stripped[0] == "#":
 					continue
 				if line[0] in string.whitespace:

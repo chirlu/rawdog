@@ -7,6 +7,10 @@ results regardless of locale or timezone (reported by Etienne Millon).
 
 Add tests for date formatting when LC_ALL and TZ are varied.
 
+Give sensible error messages on startup (rather than crashing) if the
+config file or a template file is missing, or contains characters that
+aren't in the system encoding.
+
 - rawdog 2.16
 
 Remove the bundled copy of feedparser, and document that it's now a

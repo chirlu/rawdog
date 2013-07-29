@@ -1,3 +1,6 @@
+Rework the template mechanism so that it keeps strings as Unicode objects until
+output time. This'd reduce a lot of the current encoding complexity.
+
 A common complaint of packagers (e.g. Gentoo #345485) is that you have to
 explicitly install a config file for rawdog to work.
 Build the default config file and stylesheet into rawdog somehow?

@@ -23,7 +23,7 @@ default_LC_ALL="C"
 # Try to find generic UTF-8 and Japanese UTF-8 locales. (They may not be
 # installed.)
 utf8_LC_ALL="$(locale -a | grep -i 'utf-\?8' | head -1)"
-ja_LC_ALL="$(locale -a | grep -i ja_JP.utf\-?8 | head -1)"
+ja_LC_ALL="$(locale -a | grep -i 'ja_JP.utf-\?8' | head -1)"
 
 # Default to UTC so that local times are reported consistently.
 default_TZ="UTC"

@@ -83,10 +83,12 @@ trap 'test -n "$serverpid" && kill $serverpid' 0
 python testserver.py "$serverhost" "$timeoutport" "$httpport" "$httpdir" &
 serverpid="$!"
 
+exitcode=0
 die () {
 	echo "Test failed:" "$@"
+	exitcode=1
 	if ! $keepgoing; then
-		exit 1
+		exit $exitcode
 	fi
 }
 
@@ -1236,3 +1238,5 @@ rune "not in the config file" -r $httpurl/3.rss
 if [ -e rawdog-plugins/test-plugins ]; then
 	. rawdog-plugins/test-plugins
 fi
+
+exit $exitcode

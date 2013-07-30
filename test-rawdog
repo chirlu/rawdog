@@ -50,6 +50,7 @@ Usage: test-rawdog [OPTION]...
 
 -b                           Include tests that are known to fail
 -k                           Keep going when a test fails
+-r COMMAND                   How to invoke rawdog (default: "./rawdog")
 
 Report bugs to <ats@offog.org>.
 EOF
@@ -58,13 +59,17 @@ EOF
 
 knownbad=false
 keepgoing=false
-while getopts bk OPT; do
+rawdog="./rawdog"
+while getopts bkr: OPT; do
 	case "$OPT" in
 	b)
 		knownbad=true
 		;;
 	k)
 		keepgoing=true
+		;;
+	r)
+		rawdog="$OPTARG"
 		;;
 	?)
 		usage
@@ -154,7 +159,7 @@ not_contains () {
 runf () {
 	cmdnum=$(expr $cmdnum + 1)
 	outfile=$statedir/out$cmdnum
-	./rawdog -d $statedir -V log$cmdnum "$@" >$outfile 2>&1
+	$rawdog -d $statedir -V log$cmdnum "$@" >$outfile 2>&1
 }
 
 # Run rawdog, expecting it to exit 0.

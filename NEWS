@@ -11,7 +11,9 @@ Give sensible error messages on startup (rather than crashing) if the
 config file or a template file is missing, or contains characters that
 aren't in the system encoding.
 
-Give test-rawdog some command-line options.
+Give test-rawdog some command-line options; you can now use it to test
+an installed version of rawdog, or rawdog running under a non-default
+Python version.
 
 - rawdog 2.16
 

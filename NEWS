@@ -11,6 +11,8 @@ Give sensible error messages on startup (rather than crashing) if the
 config file or a template file is missing, or contains characters that
 aren't in the system encoding.
 
+Give test-rawdog some command-line options.
+
 - rawdog 2.16
 
 Remove the bundled copy of feedparser, and document that it's now a

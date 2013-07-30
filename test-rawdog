@@ -41,14 +41,36 @@ httpport="8432"
 # while connecting.)
 timeouthost="81.91.98.19"
 
-# Run tests that are currently known to fail.
-knownbad=false
-
-# Keep going when a test fails.
-keepgoing=false
-
 httpdir="$statedir/pub"
 httpurl="http://$serverhost:$httpport"
+
+usage () {
+	cat <<EOF
+Usage: test-rawdog [OPTION]...
+
+-b                           Include tests that are known to fail
+-k                           Keep going when a test fails
+
+Report bugs to <ats@offog.org>.
+EOF
+	exit 1
+}
+
+knownbad=false
+keepgoing=false
+while getopts bk OPT; do
+	case "$OPT" in
+	b)
+		knownbad=true
+		;;
+	k)
+		keepgoing=true
+		;;
+	?)
+		usage
+		;;
+	esac
+done
 
 # Start the server, and kill it when this script exits.
 serverpid=""

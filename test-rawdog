@@ -565,6 +565,23 @@ begin "empty config file"
 : >$statedir/config
 runs -uw
 
+begin "--config and include"
+make_rss20 $httpdir/feed.rss
+add "feed 0 $httpurl/feed.rss"
+runs -uw
+exists $statedir/output.html
+rm $statedir/output.html
+echo "outputfile second.html" >$statedir/config.inc
+runs -c config.inc -w
+exists $statedir/second.html
+not_exists $statedir/output.html
+rm $statedir/second.html
+add "include config.inc"
+runs -w
+exists $statedir/second.html
+not_exists $statedir/output.html
+rm $statedir/second.html
+
 begin "missing state dir"
 runn -d aubergine
 contains $outfile "No aubergine directory"

@@ -871,6 +871,20 @@ make_n 6 $httpdir/feed.rss
 runs -uw
 output_n 6
 
+begin "outputfile"
+make_rss20 $httpdir/feed.rss
+add "feed 0 $httpurl/feed.rss"
+add "outputfile second.html"
+runs -uw
+contains $statedir/second.html example-feed-title
+
+begin "outputfile -"
+make_rss20 $httpdir/feed.rss
+add "feed 0 $httpurl/feed.rss"
+add "outputfile -"
+run -uw
+contains $outfile example-feed-title
+
 begin "maxarticles 10"
 make_n 20 $httpdir/feed.rss
 add "maxarticles 10"

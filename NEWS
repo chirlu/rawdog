@@ -22,7 +22,7 @@ varying locales and timezones; RSS 1.0 support; --dump, -c, -f, -l, -N,
 -v and -W; include; plugin loading; feed format and id options; author
 formatting; template conditionals: broken 301 redirects; useids; content
 vs.  summary; daysections/timesections; removing articles from a feed;
-keeping comments; numthreads; various error messages.
+keeping comments; numthreads; outputfile; various error messages.
 
 Make subclasses of Persistable call Persistable's constructor.
 (Identified by coverage analysis.)

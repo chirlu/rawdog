@@ -466,6 +466,10 @@ begin "unnecessary argument"
 runn aubergine
 contains $outfile "Usage:"
 
+begin "--verbose"
+run -vu
+contains $outfile "Starting update"
+
 begin "listing feeds"
 make_rss20 $httpdir/0.rss
 make_rss20 $httpdir/1.rss

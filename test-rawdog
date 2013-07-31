@@ -1118,6 +1118,14 @@ for state in false true; do
 	output_range 1 10
 done
 
+begin "format=text"
+make_rss20_desc $httpdir/feed.rss <<EOF
+three &lt; four, not HTML
+EOF
+add "feed 0 $httpurl/feed.rss format=text"
+runs -uw
+contains $statedir/output.html "<pre>" "three &lt; four"
+
 begin "shorttag expansion"
 # <br/> <br /> bug fixed 2006-01-07.
 # <br/>/ has a workaround in feedparser for sgmllib.

@@ -18,7 +18,7 @@ Use author URIs retrieved from feeds when formatting author names
 
 Add some more tests to the test suite, having done a coverage analysis
 to work out which features weren't yet being tested: date formatting in
-varying locales and timezones; RSS 1.0 support: -N and -W; plugin
+varying locales and timezones; RSS 1.0 support; -l, -N and -W; plugin
 loading; feed format and id options; author formatting; template
 conditionals: broken 301 redirects; useids; content vs. summary;
 daysections/timesections; various error messages.

@@ -466,6 +466,17 @@ begin "unnecessary argument"
 runn aubergine
 contains $outfile "Usage:"
 
+begin "listing feeds"
+make_rss20 $httpdir/0.rss
+make_rss20 $httpdir/1.rss
+add "feed 0 $httpurl/0.rss"
+add "feed 0 $httpurl/1.rss"
+run -l
+contains $outfile $httpurl/0.rss $httpurl/1.rss
+runs -u
+run -l
+contains $outfile "Title: example-feed-title"
+
 begin "bad config syntax"
 add "foo"
 rune "Bad line in config"

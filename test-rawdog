@@ -1724,6 +1724,15 @@ add "feed 3h $httpurl/1.rss"
 add "feed 3h $httpurl/2.rss"
 rune "not in the config file" -r $httpurl/3.rss
 
+begin "remove feed with splitstate true"
+make_rss20 $httpdir/feed.rss
+add "feed 0 $httpurl/feed.rss"
+add "splitstate true"
+runs -uw
+exists $statedir/feeds/*
+rune "Removing feed" -r $httpurl/feed.rss
+not_exists $statedir/feeds/*
+
 # Run the plugins test suite if it's there.
 if [ -e rawdog-plugins/test-plugins ]; then
 	. rawdog-plugins/test-plugins

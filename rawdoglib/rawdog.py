@@ -1266,8 +1266,7 @@ class Rawdog(Persistable):
 							self.articles[article_hash] = article
 						feedstate.articles = {}
 						feedstate.modified()
-					# FIXME: Have Persisted do this?
-					os.unlink(feed.get_state_filename())
+					persister.delete(feed.get_state_filename())
 			self.modified()
 			self.using_splitstate = config["splitstate"]
 
@@ -1294,10 +1293,7 @@ class Rawdog(Persistable):
 			if url not in seen_feeds:
 				config.log("Removing feed: ", url)
 				if config["splitstate"]:
-					try:
-						os.unlink(self.feeds[url].get_state_filename())
-					except OSError:
-						pass
+					persister.delete(self.feeds[url].get_state_filename())
 				else:
 					for key, article in self.articles.items():
 						if article.feed == url:

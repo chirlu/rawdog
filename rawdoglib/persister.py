@@ -174,3 +174,11 @@ class Persister:
 	def _remove(self, filename):
 		del self.files[filename]
 
+	def delete(self, filename):
+		"""Delete a persisted file, along with its lock file,
+		if they exist."""
+		for fn in (filename, filename + ".lock"):
+			try:
+				os.unlink(fn)
+			except OSError:
+				pass

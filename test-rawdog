@@ -126,6 +126,14 @@ exists () {
 	done
 }
 
+not_exists () {
+	for fn in "$@"; do
+		if [ -e "$fn" ]; then
+			die "expected $fn not to exist"
+		fi
+	done
+}
+
 same () {
 	exists "$1" "$2"
 	if ! cmp "$1" "$2"; then
@@ -483,6 +491,48 @@ EOF
 		runs -u
 	done
 done
+
+begin "with --no-locking"
+make_rss20 $statedir/simple.rss
+add "splitstate true"
+add "feed 0 simple.rss"
+# Stub out lockf so it'll crash if invoked.
+cat >$statedir/plugins/nolock.py <<EOF
+import fcntl
+fcntl.lockf = None
+EOF
+runs --no-locking -uw
+
+begin "with --no-lock-wait"
+make_rss20 $statedir/simple.rss
+add "feed 0 simple.rss"
+runs -u
+cat >$statedir/lock.py <<EOF
+import fcntl
+import time
+f = open("$statedir/state.lock", "w+")
+fcntl.lockf(f.fileno(), fcntl.LOCK_EX)
+ff = open("$statedir/lock.signal", "w")
+ff.close()
+time.sleep(5)
+f.close()
+EOF
+python $statedir/lock.py &
+while [ ! -e $statedir/lock.signal ]; do
+	python -c 'import time; time.sleep(0.1)'
+done
+runs --no-lock-wait -w
+not_exists $statedir/output.html
+# lock.py will keep running, but harmlessly time out after a bit.
+
+cat >$statedir/plugins/wait.py <<EOF
+import rawdoglib.plugins
+import time
+def wait(*args):
+    time.sleep(2)
+    return True
+rawdoglib.plugins.attach_hook("pre_update_feed", wait)
+EOF
 
 begin "filename"
 make_rss20 $statedir/simple.rss

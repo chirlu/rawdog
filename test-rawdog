@@ -870,6 +870,22 @@ for template in page item feedlist feeditem; do
 	rune "Can't read template file" -u
 done
 
+begin "template conditionals"
+make_atom10 $httpdir/feed.atom
+cat >$statedir/item <<EOF
+__if_title__OK-1__endif__
+__if_title__OK-2__else__BAD-2__endif__
+__if_aubergine__BAD-3__endif__
+__if_aubergine__BAD-4__else__OK-4__endif__
+__if_title____if_date__OK-5__endif____endif__
+__if_aubergine____if_date__BAD-6__endif____endif__
+EOF
+add "itemtemplate item"
+add "feed 0 $httpurl/feed.atom"
+runs -uw
+contains $statedir/output.html "OK-1" "OK-2" "OK-4" "OK-5"
+not_contains $statedir/output.html BAD
+
 begin "UTF-8 in template, ASCII locale"
 echo "char(ø)" >$statedir/item
 make_atom10 $httpdir/feed.atom

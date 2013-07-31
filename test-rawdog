@@ -456,7 +456,15 @@ output_n () {
 }
 
 begin "help"
-run --help
+rune "Usage:" --help
+
+begin "unknown option"
+runn --aubergine
+contains $outfile "Usage:"
+
+begin "unnecessary argument"
+runn aubergine
+contains $outfile "Usage:"
 
 begin "bad config syntax"
 add "foo"
@@ -466,6 +474,69 @@ begin "bad config directive"
 add "foo bar"
 rune "Unknown config command"
 
+begin "bad boolean value in config"
+add "sortbyfeeddate aubergine"
+rune "Bad value"
+
+begin "bad time value in config"
+add "timeout aubergine"
+rune "Bad value"
+
+begin "bad integer value in config"
+add "maxarticles aubergine"
+rune "Bad value"
+
+begin "bad inline feed argument"
+add "feed 0 $httpurl/feed.rss aubergine"
+rune "Bad feed argument"
+
+begin "bad feed argument line"
+add "feed 0 $httpurl/feed.rss"
+add "  aubergine"
+rune "Bad argument line"
+
+begin "feed argument line with no feed"
+: >$statedir/config
+add "  allowduplicates true"
+rune "First line in config cannot be an argument"
+
+begin "feeddefaults on one line"
+add "feeddefaults allowduplicates=true"
+runs
+
+begin "feeddefaults argument lines"
+add "feeddefaults"
+add "  allowduplicates true"
+runs
+
+begin "argument lines in the wrong place"
+add "tidyhtml false"
+add "  allowduplicates true"
+rune "Bad argument lines"
+
+begin "feed with no time"
+add "feed"
+rune "Bad line in config"
+
+begin "feed with no URL"
+add "feed 3h"
+rune "Bad line in config"
+
+begin "define with no name"
+add "define"
+rune "Bad line in config"
+
+begin "define with no value"
+add "define thing"
+rune "Bad line in config"
+
+begin "define"
+add "define myvar This is my variable!"
+echo "myvar(__myvar__)" >$statedir/page
+add "pagetemplate page"
+runs -uw
+contains $statedir/output.html "myvar(This is my variable!)"
+
 begin "missing config file"
 rm $statedir/config
 rune "Can't read config file" -u
@@ -473,6 +544,10 @@ rune "Can't read config file" -u
 begin "empty config file"
 : >$statedir/config
 runs -uw
+
+begin "missing state dir"
+runn -d aubergine
+contains $outfile "No aubergine directory"
 
 begin "corrupt state file"
 echo this is not a valid state file >$statedir/state

@@ -21,7 +21,7 @@ to work out which features weren't yet being tested: date formatting in
 varying locales and timezones; RSS 1.0 support: -N and -W; plugin
 loading; feed format and id options; author formatting; template
 conditionals: broken 301 redirects; useids; content vs. summary;
-daysections/timesections.
+daysections/timesections; various error messages.
 
 Make subclasses of Persistable call Persistable's constructor.
 (Identified by coverage analysis.)

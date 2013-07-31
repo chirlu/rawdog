@@ -363,7 +363,7 @@ make_atom10 () {
 EOF
 }
 
-make_atom10_desc () {
+make_atom10_with () {
 	cat >"$1" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
@@ -379,11 +379,9 @@ make_atom10_desc () {
     <link href="http://example.org/item"/>
     <id>http://example.org/item-id</id>
     <updated>2013-01-01T18:00:00Z</updated>
-    <summary>
 EOF
 	cat >>"$1"
 	cat >>"$1" <<EOF
-    </summary>
   </entry>
 </feed>
 EOF
@@ -777,10 +775,10 @@ for state in false true; do
 	add "useids $state"
 	add "hideduplicates none"
 	add "feed 0 $httpurl/feed.atom"
-	echo Original | make_atom10_desc $httpdir/feed.atom
+	echo "<summary>Original</summary>" | make_atom10_with $httpdir/feed.atom
 	runs -uw
 	contains $statedir/output.html Original
-	echo Revised | make_atom10_desc $httpdir/feed.atom
+	echo "<summary>Revised</summary>" | make_atom10_with $httpdir/feed.atom
 	runs -uw
 	contains $statedir/output.html Revised
 	if $state; then
@@ -1118,6 +1116,28 @@ run -w
 contains $statedir/output.html \
 	FEEDLIST \
 	FEEDITEM-$httpurl/0.rss FEEDITEM-$httpurl/1.rss FEEDITEM-$httpurl/2.rss
+
+begin "prefer content over summary"
+make_atom10_with $httpdir/1.atom <<EOF
+<content>Content1</content>
+EOF
+make_atom10_with $httpdir/2.atom <<EOF
+<summary>Summary2</summary>
+EOF
+# Note that feedparser 5.1.3 will do odd things if summary follows content --
+# feedparser issue 412.
+make_atom10_with $httpdir/3.atom <<EOF
+<summary>Summary3</summary>
+<content>Content3</content>
+EOF
+add "useids false"
+add "hideduplicates none"
+add "feed 0 $httpurl/1.atom"
+add "feed 0 $httpurl/2.atom"
+add "feed 0 $httpurl/3.atom"
+runs -uw
+contains $statedir/output.html Content1 Summary2 Content3
+not_contains $statedir/output.html Summary3
 
 begin "showfeeds true/false"
 make_atom10 $httpdir/simple.atom

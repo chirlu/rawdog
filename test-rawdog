@@ -871,6 +871,60 @@ add "sortbyfeeddate true"
 runs -w
 equals "03 02 01" "$(entries)"
 
+for dstate in false true; do
+	for tstate in false true; do
+		begin "daysections $dstate, timesections $tstate"
+		cat >$httpdir/feed.rss <<EOF
+<rss version="2.0">
+  <channel>
+    <title>example-feed-title</title>
+    <link>http://example.org/</link>
+    <description>example-feed-description</description>
+    <item>
+      <pubDate>Thu, 03 Jan 2013 18:00:00 +0000</pubDate>
+      <title>item-1</title>
+      <link>http://example.org/1</link>
+    </item>
+    <item>
+      <pubDate>Wed, 02 Jan 2013 18:00:00 +0000</pubDate>
+      <title>item-2</title>
+      <link>http://example.org/2</link>
+    </item>
+    <item>
+      <pubDate>Tue, 01 Jan 2013 19:00:00 +0000</pubDate>
+      <title>item-3</title>
+      <link>http://example.org/3</link>
+    </item>
+    <item>
+      <pubDate>Tue, 01 Jan 2013 18:00:00 +0000</pubDate>
+      <title>item-4</title>
+      <link>http://example.org/4</link>
+    </item>
+  </channel>
+</rss>
+EOF
+		add "dayformat day(%d)"
+		add "timeformat time(%H)"
+		add "daysections $dstate"
+		add "timesections $tstate"
+		add "sortbyfeeddate true"
+		add "feed 0 $httpurl/feed.rss"
+		runs -uw
+		if $dstate; then
+			contains $statedir/output.html \
+				'day(01)' 'day(02)' 'day(03)'
+		else
+			not_contains $statedir/output.html 'day('
+		fi
+		if $tstate; then
+			contains $statedir/output.html \
+				'time(18)' 'time(19)'
+		else
+			not_contains $statedir/output.html 'time('
+		fi
+	done
+done
+
 begin "default templates"
 make_rss20 $httpdir/simple.rss
 add "feed 0 $httpurl/simple.rss"

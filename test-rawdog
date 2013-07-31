@@ -1724,6 +1724,15 @@ add "feed 3h $httpurl/1.rss"
 add "feed 3h $httpurl/2.rss"
 rune "not in the config file" -r $httpurl/3.rss
 
+begin "remove feed with articles"
+make_rss20 $httpdir/feed.rss
+add "feed 0 $httpurl/feed.rss"
+runs -uw
+contains $statedir/output.html example-item-title
+rune "Removing feed" -r $httpurl/feed.rss
+runs -uw
+not_contains $statedir/output.html example-item-title
+
 begin "remove feed with splitstate true"
 make_rss20 $httpdir/feed.rss
 add "feed 0 $httpurl/feed.rss"

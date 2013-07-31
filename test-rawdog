@@ -690,6 +690,14 @@ add "testb foo"
 run
 contains $outfile saw-a saw-b
 
+begin "numthreads 4"
+for i in 1 2 3 4 5 6 7 8; do
+	make_atom10 $httpdir/${i}.atom
+	add "feed 0 $httpurl/${i}.atom"
+done
+add "numthreads 4"
+runs -uw
+
 begin "filename"
 make_rss20 $statedir/simple.rss
 add "feed 0 simple.rss"

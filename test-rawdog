@@ -958,6 +958,85 @@ if [ -n "$ja_LC_ALL" ]; then
 	contains $statedir/output.html "HEADING-Tuesday" "ITEMDATE-Tuesday"
 fi
 
+begin "item authors"
+cat >$httpdir/feed.atom <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>example-feed-title</title>
+  <link href="http://example.org/"/>
+  <updated>2013-01-01T18:00:00Z</updated>
+  <id>http://example.org/feed-id</id>
+  <entry>
+    <author>
+      <name>author-1</name>
+    </author>
+    <title>example-item-title-1</title>
+    <link href="http://example.org/item/1"/>
+    <id>http://example.org/item-id/1</id>
+    <updated>2013-01-01T18:00:00Z</updated>
+    <summary>example-item-description</summary>
+  </entry>
+  <entry>
+    <author>
+      <name>author-2</name>
+      <email>author2@example.org</email>
+    </author>
+    <title>example-item-title-2</title>
+    <link href="http://example.org/item/2"/>
+    <id>http://example.org/item-id/2</id>
+    <updated>2013-01-01T18:00:00Z</updated>
+    <summary>example-item-description</summary>
+  </entry>
+  <entry>
+    <author>
+      <name>author-3</name>
+      <uri>http://example.org/author3</uri>
+    </author>
+    <title>example-item-title-3</title>
+    <link href="http://example.org/item/3"/>
+    <id>http://example.org/item-id/3</id>
+    <updated>2013-01-01T18:00:00Z</updated>
+    <summary>example-item-description</summary>
+  </entry>
+  <entry>
+    <author>
+      <name>author-4</name>
+      <email>author4@example.org</email>
+      <uri>http://example.org/author4</uri>
+    </author>
+    <title>example-item-title-4</title>
+    <link href="http://example.org/item/4"/>
+    <id>http://example.org/item-id/4</id>
+    <updated>2013-01-01T18:00:00Z</updated>
+    <summary>example-item-description</summary>
+  </entry>
+  <entry>
+    <!-- Not valid Atom -->
+    <author>
+      <uri>http://a5.example.org</uri>
+    </author>
+    <title>example-item-title-5</title>
+    <link href="http://example.org/item/5"/>
+    <id>http://example.org/item-id/5</id>
+    <updated>2013-01-01T18:00:00Z</updated>
+    <summary>example-item-description</summary>
+  </entry>
+</feed>
+EOF
+cat >$statedir/item <<EOF
+author(__author__)
+EOF
+add "feed 0 $httpurl/feed.atom"
+add "itemtemplate item"
+add "tidyhtml false"
+runs -uw
+contains $statedir/output.html \
+	"author(author-1)" \
+	"author(<a href=\"mailto:author2@example.org\">author-2</a>)" \
+	"author(<a href=\"http://example.org/author3\">author-3</a>)" \
+	"author(<a href=\"http://example.org/author4\">author-4</a>)" \
+	"author(<a href=\"http://a5.example.org\">http://a5.example.org</a>)"
+
 begin "feed list templates"
 make_rss20 $httpdir/0.rss
 make_rss20 $httpdir/1.rss

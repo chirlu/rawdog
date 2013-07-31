@@ -198,14 +198,14 @@ def author_to_html(entry, feedurl, config):
 	url = None
 	fallback = "author"
 	if author_detail is not None:
-		if author_detail.has_key("url"):
-			url = author_detail["url"]
+		if author_detail.has_key("href"):
+			url = author_detail["href"]
 		elif author_detail.has_key("email") and author_detail["email"] is not None:
 			url = "mailto:" + author_detail["email"]
 		if author_detail.has_key("email") and author_detail["email"] is not None:
 			fallback = author_detail["email"]
-		elif author_detail.has_key("url") and author_detail["url"] is not None:
-			fallback = author_detail["url"]
+		elif author_detail.has_key("href") and author_detail["href"] is not None:
+			fallback = author_detail["href"]
 
 	if name == "":
 		name = fallback

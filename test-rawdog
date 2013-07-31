@@ -477,6 +477,15 @@ runs -u
 run -l
 contains $outfile "Title: example-feed-title"
 
+begin "updating one feed"
+make_rss20 $httpdir/feed.rss
+add "feed 0 $httpurl/feed.rss"
+runs -u
+runs -f $httpurl/feed.rss
+
+begin "updating nonexistant feed"
+rune "No such feed" -f $httpurl/feed.rss
+
 begin "bad config syntax"
 add "foo"
 rune "Bad line in config"

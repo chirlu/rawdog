@@ -1263,7 +1263,7 @@ for state in false true; do
 	output_range 1 10
 done
 
-begin "format=text"
+begin "feed format text"
 make_rss20_desc $httpdir/feed.rss <<EOF
 three &lt; four, not HTML
 EOF
@@ -1271,6 +1271,16 @@ add "feed 0 $httpurl/feed.rss format=text"
 add "tidyhtml false"
 runs -uw
 contains $statedir/output.html "<pre>three &lt; four"
+
+begin "feed id"
+make_rss20 $httpdir/0.rss
+make_rss20 $httpdir/1.rss
+add "feed 0 $httpurl/0.rss id=blah"
+add "feed 0 $httpurl/1.rss"
+add "itemtemplate item"
+echo "feed-id(__feed_id__)" >$statedir/item
+runs -uw
+contains $statedir/output.html "feed-id(blah)" "feed-id(examplefeedtitle)"
 
 begin "shorttag expansion"
 # <br/> <br /> bug fixed 2006-01-07.

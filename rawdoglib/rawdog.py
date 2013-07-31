@@ -1483,7 +1483,11 @@ __feeditems__
 
 	def show_template(self, name, config):
 		"""Show the contents of a template, as currently configured."""
-		print self.get_template(config, name),
+		try:
+			print self.get_template(config, name),
+		except KeyError:
+			print "Unknown template name: " + a
+			return 1
 
 	def write_article(self, f, article, config):
 		"""Write an article to the given file."""
@@ -1910,11 +1914,7 @@ def main(argv):
 			config.reload()
 			rawdog.sync_from_config(config)
 		elif o in ("-s", "--show"):
-			try:
-				rawdog.show_template(a, config)
-			except KeyError:
-				print "Unknown template name: " + a
-				return 1
+			rawdog.show_template(a, config)
 		elif o in ("-t", "--show-template"):
 			rawdog.show_template("page", config)
 		elif o in ("-T", "--show-itemtemplate"):

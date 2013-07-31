@@ -940,6 +940,10 @@ done
 run -w
 same $statedir/output.html.orig $statedir/output.html
 
+begin "show unknown template"
+runn -s aubergine
+contains $outfile "Unknown template"
+
 begin "pre-2.15 template options"
 make_rss20 $httpdir/simple.rss
 add "feed 0 $httpurl/simple.rss"

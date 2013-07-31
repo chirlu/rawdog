@@ -854,6 +854,7 @@ class Config:
 			}
 
 	def __getitem__(self, key): return self.config[key]
+	def get(self, key, default=None): return self.config.get(key, default)
 	def __setitem__(self, key, value): self.config[key] = value
 
 	def reload(self):
@@ -1406,7 +1407,7 @@ class Rawdog(Persistable):
 	def get_template(self, config, name="page"):
 		"""Return the contents of a template."""
 
-		filename = config[name + "template"]
+		filename = config.get(name + "template", "default")
 		if filename != "default":
 			return load_file(filename)
 
@@ -1478,7 +1479,7 @@ __feeditems__
 </tr>
 """
 		else:
-			raise ValueError("Unknown template name: " + name)
+			raise KeyError("Unknown template name: " + name)
 
 	def show_template(self, name, config):
 		"""Show the contents of a template, as currently configured."""
@@ -1909,7 +1910,11 @@ def main(argv):
 			config.reload()
 			rawdog.sync_from_config(config)
 		elif o in ("-s", "--show"):
-			rawdog.show_template(a, config)
+			try:
+				rawdog.show_template(a, config)
+			except KeyError:
+				print "Unknown template name: " + a
+				return 1
 		elif o in ("-t", "--show-template"):
 			rawdog.show_template("page", config)
 		elif o in ("-T", "--show-itemtemplate"):

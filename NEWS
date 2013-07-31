@@ -26,6 +26,8 @@ daysections/timesections.
 Make subclasses of Persistable call Persistable's constructor.
 (Identified by coverage analysis.)
 
+Don't crash when trying to show a template that doesn't exist.
+
 - rawdog 2.16
 
 Remove the bundled copy of feedparser, and document that it's now a

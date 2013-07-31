@@ -1482,8 +1482,7 @@ __feeditems__
 		try:
 			print self.get_template(config, name),
 		except KeyError:
-			print "Unknown template name: " + a
-			return 1
+			print >>sys.stderr, "Unknown template name: " + a
 
 	def write_article(self, f, article, config):
 		"""Write an article to the given file."""

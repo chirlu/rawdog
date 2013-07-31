@@ -534,6 +534,43 @@ def wait(*args):
 rawdoglib.plugins.attach_hook("pre_update_feed", wait)
 EOF
 
+begin "no plugins dir"
+rm -fr $statedir/plugins
+runs -uw
+
+begin "ignore junk files in plugins dir"
+make_rss20 $statedir/simple.rss
+add "feed 0 simple.rss"
+echo "this is junk" >$statedir/plugins/junk.txt
+cat >$statedir/plugins/.hidden.py <<EOF
+raise Exception("don't run me")
+EOF
+runs -uw
+
+begin "stacking hook functions"
+cat >$statedir/plugins/a.py <<EOF
+import rawdoglib.plugins
+def opt(config, name, value):
+    if name == "testa":
+        print "saw-a"
+        return False
+    return True
+rawdoglib.plugins.attach_hook("config_option", opt)
+EOF
+cat >$statedir/plugins/b.py <<EOF
+import rawdoglib.plugins
+def opt(config, name, value):
+    if name == "testb":
+        print "saw-b"
+        return False
+    return True
+rawdoglib.plugins.attach_hook("config_option", opt)
+EOF
+add "testa foo"
+add "testb foo"
+run
+contains $outfile saw-a saw-b
+
 begin "filename"
 make_rss20 $statedir/simple.rss
 add "feed 0 simple.rss"

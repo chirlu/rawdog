@@ -715,6 +715,11 @@ done
 add "numthreads 4"
 runs -uw
 
+begin "--dump"
+make_atom10 $httpdir/feed.atom
+run --dump $httpurl/feed.atom
+contains $outfile example-feed-title
+
 begin "filename"
 make_rss20 $statedir/simple.rss
 add "feed 0 simple.rss"

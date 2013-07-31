@@ -18,10 +18,10 @@ Use author URIs retrieved from feeds when formatting author names
 
 Add some more tests to the test suite, having done a coverage analysis
 to work out which features weren't yet being tested: date formatting in
-varying locales and timezones; RSS 1.0 support; -c, -f, -l, -N and -W;
-include; plugin loading; feed format and id options; author formatting;
-template conditionals: broken 301 redirects; useids; content vs.
-summary; daysections/timesections; removing articles from a feed;
+varying locales and timezones; RSS 1.0 support; --dump, -c, -f, -l, -N
+and -W; include; plugin loading; feed format and id options; author
+formatting; template conditionals: broken 301 redirects; useids; content
+vs.  summary; daysections/timesections; removing articles from a feed;
 keeping comments; numthreads; various error messages.
 
 Make subclasses of Persistable call Persistable's constructor.

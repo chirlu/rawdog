@@ -713,7 +713,7 @@ class DayWriter:
 	"""Utility class for writing day sections into a series of articles."""
 
 	def __init__(self, file, config):
-		self.lasttime = [-1, -1, -1, -1, -1]
+		self.lasttime = []
 		self.file = file
 		self.counter = 0
 		self.config = config

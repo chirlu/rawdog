@@ -1176,6 +1176,10 @@ add "feed 0 $httpurl/301/301/302/feed.rss"
 rune "has been updated automatically" -u
 contains $statedir/config "$httpurl/302/feed.rss"
 
+begin "HTTP 301 to nowhere"
+add "feed 0 $httpurl/301"
+rune "without a new location" -u
+
 begin "HTTP 410 gone"
 add "feed 0 $httpurl/410"
 rune "You should remove it" -u

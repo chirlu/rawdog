@@ -363,6 +363,32 @@ make_atom10 () {
 EOF
 }
 
+make_atom10_desc () {
+	cat >"$1" <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>example-feed-title</title>
+  <link href="http://example.org/"/>
+  <updated>2013-01-01T18:00:00Z</updated>
+  <author>
+    <name>example-feed-author</name>
+  </author>
+  <id>http://example.org/feed-id</id>
+  <entry>
+    <title>example-item-title</title>
+    <link href="http://example.org/item"/>
+    <id>http://example.org/item-id</id>
+    <updated>2013-01-01T18:00:00Z</updated>
+    <summary>
+EOF
+	cat >>"$1"
+	cat >>"$1" <<EOF
+    </summary>
+  </entry>
+</feed>
+EOF
+}
+
 make_single () {
 	cat >"$1" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
@@ -745,6 +771,26 @@ make_n 5 $httpdir/feed.rss
 runs -uw
 output_n 5
 not_output_range 6 10
+
+for state in false true; do
+	begin "useids $state"
+	add "useids $state"
+	add "hideduplicates none"
+	add "feed 0 $httpurl/feed.atom"
+	echo Original | make_atom10_desc $httpdir/feed.atom
+	runs -uw
+	contains $statedir/output.html Original
+	echo Revised | make_atom10_desc $httpdir/feed.atom
+	runs -uw
+	contains $statedir/output.html Revised
+	if $state; then
+		# Should have updated the existing article
+		not_contains $statedir/output.html Original
+	else
+		# Should have kept both versions
+		contains $statedir/output.html Original
+	fi
+done
 
 dupecheck () {
 	add "useids false"

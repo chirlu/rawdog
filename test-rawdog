@@ -1123,8 +1123,9 @@ make_rss20_desc $httpdir/feed.rss <<EOF
 three &lt; four, not HTML
 EOF
 add "feed 0 $httpurl/feed.rss format=text"
+add "tidyhtml false"
 runs -uw
-contains $statedir/output.html "<pre>" "three &lt; four"
+contains $statedir/output.html "<pre>three &lt; four"
 
 begin "shorttag expansion"
 # <br/> <br /> bug fixed 2006-01-07.

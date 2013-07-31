@@ -17,6 +17,9 @@ Add some more tests to the test suite, having done a coverage analysis
 to work out which features weren't yet being tested: date formatting in
 varying locales and timezones, RSS 1.0 support.
 
+Make subclasses of Persistable call Persistable's constructor.
+(Identified by coverage analysis.)
+
 - rawdog 2.16
 
 Remove the bundled copy of feedparser, and document that it's now a

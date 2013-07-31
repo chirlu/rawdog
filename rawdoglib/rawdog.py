@@ -1148,12 +1148,14 @@ class FeedState(Persistable):
 	"""The collection of articles in a feed."""
 
 	def __init__(self):
+		Persistable.__init__(self)
 		self.articles = {}
 
 class Rawdog(Persistable):
 	"""The aggregator itself."""
 
 	def __init__(self):
+		Persistable.__init__(self)
 		self.feeds = {}
 		self.articles = {}
 		self.plugin_storage = {}

@@ -1726,6 +1726,15 @@ contains "$statedir/config" \
 not_contains "$statedir/config" \
 	$httpurl/1.rss "foo 1a" "foo 1b"
 
+begin "remove feed, preserving comments"
+add "feed 3h $httpurl/0.rss"
+add "   define_foo 0a"
+add "# Keep this comment"
+add "   define_foo 0b"
+rune "Removing feed" -r $httpurl/0.rss
+contains $statedir/config "# Keep this comment"
+not_contains $statedir/config "foo 0a" "foo 0b"
+
 begin "remove nonexistant feed"
 add "feed 3h $httpurl/0.rss"
 add "feed 3h $httpurl/1.rss"

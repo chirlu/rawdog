@@ -470,6 +470,12 @@ begin "--verbose"
 run -vu
 contains $outfile "Starting update"
 
+begin "--verbose overrides config"
+add "verbose false"
+echo "verbose false" >$statedir/config.inc
+run -v -c config.inc -u
+contains $outfile "Starting update"
+
 begin "listing feeds"
 make_rss20 $httpdir/0.rss
 make_rss20 $httpdir/1.rss

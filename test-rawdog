@@ -263,6 +263,32 @@ EOF
 EOF
 }
 
+make_rss10 () {
+	cat >"$1" <<EOF
+<?xml version="1.0"?>
+<rdf:RDF 
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns="http://purl.org/rss/1.0/"
+>
+  <channel rdf:about="http://example.org/feed.rdf">
+    <title>example-feed-title</title>
+    <link>http://example.org/</link>
+    <description>example-feed-description</description>
+    <items>
+      <rdf:Seq>
+        <rdf:li resource="http://example.org/item" />
+      </rdf:Seq>
+    </items>
+  </channel>
+  <item rdf:about="http://example.org/item">
+    <title>example-item-title</title>
+    <link>http://example.org/item</link>
+    <description>example-item-description</description>
+  </item>
+</rss>
+EOF
+}
+
 make_rss20 () {
 	cat >"$1" <<EOF
 <rss version="2.0">
@@ -475,6 +501,12 @@ runs -u
 begin "file: URL not found"
 add "feed 0 file:missing.rss"
 rune "No such file" -u
+
+begin "http: URL and write, RSS 1.0"
+make_rss10 $httpdir/simple.rdf
+add "feed 0 $httpurl/simple.rdf"
+runs -uw
+contains $statedir/output.html example-item-title example-item-description
 
 begin "http: URL and write, RSS 2.0"
 make_rss20 $httpdir/simple.rss
@@ -1153,11 +1185,45 @@ make_atom10 $httpdir/feed.atom
 add "feed 3h $httpurl/feed.atom"
 rune "already in the config file" -a $httpurl/feed.atom
 
-begin "add feed, prefer Atom over RSS"
+begin "add feed, prefer RSS 1.0 over nonsense"
+make_rss10 $httpdir/feed.rdf
+echo "this is nonsense" >$httpdir/feed.rss
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="application/rdf+xml" title="RSS" href="feed.rdf">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="feed.rss">
+EOF
+rune "Adding feed" -a $httpurl/page.html
+contains "$statedir/config" $httpurl/feed.rdf
+
+begin "add feed, prefer RSS 2 over RSS 1.0"
+make_rss10 $httpdir/feed.rdf
 make_rss20 $httpdir/feed.rss
-make_atom10 $httpdir/feed.atom
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="application/rdf+xml" title="RSS" href="feed.rdf">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="feed.rss">
+EOF
+rune "Adding feed" -a $httpurl/page.html
+contains "$statedir/config" $httpurl/feed.rss
+
+begin "add feed, prefer .rss2 over .rss"
+make_rss20 $httpdir/feed.rss
+make_rss20 $httpdir/feed.rss2
 make_html_head $httpdir/page.html <<EOF
 <link rel="alternate" type="application/rss+xml" title="RSS" href="feed.rss">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="feed.rss2">
+EOF
+rune "Adding feed" -a $httpurl/page.html
+contains "$statedir/config" $httpurl/feed.rss2
+
+begin "add feed, prefer Atom over RSS"
+make_rss10 $httpdir/feed.rdf
+make_rss20 $httpdir/feed.rss
+make_rss20 $httpdir/feed.rss2
+make_atom10 $httpdir/feed.atom
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="application/rdf+xml" title="RSS" href="feed.rdf">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="feed.rss">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="feed.rss2">
 <link rel="alternate" type="application/atom+xml" title="Atom" href="feed.atom">
 EOF
 rune "Adding feed" -a $httpurl/page.html

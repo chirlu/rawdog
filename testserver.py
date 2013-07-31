@@ -132,8 +132,10 @@ class HTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             size = os.fstat(f.fileno()).st_size
 
             mime_type = "text/plain"
-            if filename.endswith(".rss"):
+            if filename.endswith(".rss") or filename.endswith(".rss2"):
                 mime_type = "application/rss+xml"
+            elif filename.endswith(".rdf"):
+                mime_type = "application/rdf+xml"
             elif filename.endswith(".atom"):
                 mime_type = "application/atom+xml"
             elif filename.endswith(".html"):

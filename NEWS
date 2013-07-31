@@ -5,8 +5,6 @@ Fix some misquoted dashes in the man page (spotted by lintian).
 Set LC_ALL=C and TZ=UTC when running tests, in order to get predictable
 results regardless of locale or timezone (reported by Etienne Millon).
 
-Add tests for date formatting when LC_ALL and TZ are varied.
-
 Give sensible error messages on startup (rather than crashing) if the
 config file or a template file is missing, or contains characters that
 aren't in the system encoding.
@@ -14,6 +12,10 @@ aren't in the system encoding.
 Give test-rawdog some command-line options; you can now use it to test
 an installed version of rawdog, or rawdog running under a non-default
 Python version.
+
+Add some more tests to the test suite, having done a coverage analysis
+to work out which features weren't yet being tested: date formatting in
+varying locales and timezones, RSS 1.0 support.
 
 - rawdog 2.16
 

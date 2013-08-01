@@ -5,7 +5,7 @@ rawdog is a feed aggregator, capable of producing a personal "river of
 news" or a public "planet" page. It supports all common feed formats,
 including all versions of RSS and Atom. By default, it is run from cron,
 collects articles from a number of feeds, and generates a static HTML
-page listing the newest articles in date order.  It supports per-feed
+page listing the newest articles in date order. It supports per-feed
 customizable update times, and uses ETags, Last-Modified, gzip
 compression, and RFC3229+feed to minimize network bandwidth usage. Its
 behaviour is highly customisable using plugins written in Python.
@@ -17,8 +17,8 @@ rawdog has the following dependencies:
 - PyTidyLib 0.2.1 or later (optional but strongly recommended)
 
 To install rawdog on your system, use distutils -- "python setup.py
-install".  This will install the "rawdog" command and the "rawdoglib"
-Python module that it uses internally.  (If you want to install to a
+install". This will install the "rawdog" command and the "rawdoglib"
+Python module that it uses internally. (If you want to install to a
 non-standard prefix, read the help provided by "python setup.py install
 --help".)
 
@@ -66,7 +66,7 @@ removing the ~/.rawdog/state file (and the ~/.rawdog/feeds/*.state
 files, if you've got the "splitstate" option turned on).
 
 If you don't like the appearance of rawdog, then customise the style.css
-file.  If you come up with one that looks much better than the existing
+file. If you come up with one that looks much better than the existing
 one, please send it to me!
 
 This should, hopefully, be all you need to know. If rawdog breaks in

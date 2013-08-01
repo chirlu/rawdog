@@ -1787,23 +1787,28 @@ add "feed 3h $httpurl/1.rss"
 add "feed 3h $httpurl/2.rss"
 rune "not in the config file" -r $httpurl/3.rss
 
-begin "remove feed with articles"
-make_rss20 $httpdir/feed.rss
-add "feed 0 $httpurl/feed.rss"
-runs -uw
-contains $statedir/output.html example-item-title
-rune "Removing feed" -r $httpurl/feed.rss
-runs -uw
-not_contains $statedir/output.html example-item-title
-
-begin "remove feed with splitstate true"
-make_rss20 $httpdir/feed.rss
-add "feed 0 $httpurl/feed.rss"
-add "splitstate true"
-runs -uw
-exists $statedir/feeds/*
-rune "Removing feed" -r $httpurl/feed.rss
-not_exists $statedir/feeds/*
+for state in false true; do
+	for fetched in false true; do
+		not=$(if ! $fetched; then echo "not "; fi)
+		begin "remove feed, ${not}fetched, splitstate $state"
+		make_rss20 $httpdir/feed.rss
+		add "feed 0 $httpurl/feed.rss"
+		add "splitstate $state"
+		if $fetched; then
+			runs -uw
+			contains $statedir/output.html example-item-title
+			if $state; then
+				exists $statedir/feeds/*
+			fi
+		fi
+		rune "Removing feed" -r $httpurl/feed.rss
+		if $state; then
+			not_exists $statedir/feeds/*
+		fi
+		runs -uw
+		not_contains $statedir/output.html example-item-title
+	done
+done
 
 # Run the plugins test suite if it's there.
 if [ -e rawdog-plugins/test-plugins ]; then

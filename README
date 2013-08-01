@@ -1,8 +1,13 @@
 rawdog: RSS Aggregator Without Delusions Of Grandeur
 Adam Sampson <ats@offog.org>
 
-rawdog is an extensible feed aggregator for Unix-like systems, based on
-the Python feedparser module (originally developed by Mark Pilgrim).
+rawdog is a feed aggregator. It supports most common feed formats,
+including all versions of RSS and Atom using feedparser. It runs from
+cron, collects articles from a number of feeds, and generates a static
+HTML page listing the newest articles in date order. It supports
+per-feed customizable update times, and uses ETags, Last-Modified, gzip
+compression, and RFC3229+feed to minimize network bandwidth usage. Its
+behaviour is highly customisable using plugins written in Python.
 
 rawdog has the following dependencies:
 

@@ -1,5 +1,8 @@
 - rawdog 2.17
 
+Add a one-paragraph description of rawdog to the README file, for use by
+packgers.
+
 Fix some misquoted dashes in the man page (spotted by lintian).
 
 Set LC_ALL=C and TZ=UTC when running tests, in order to get predictable

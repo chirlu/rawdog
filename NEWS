@@ -16,9 +16,6 @@ Give test-rawdog some command-line options; you can now use it to test
 an installed version of rawdog, or rawdog running under a non-default
 Python version.
 
-Use author URIs retrieved from feeds when formatting author names
-(rather than ignoring them; this was the result of a feedparser change).
-
 Add some more tests to the test suite, having done a coverage analysis
 to work out which features weren't yet being tested: date formatting in
 varying locales and timezones; RSS 1.0 support; --dump, -c, -f, -l, -N,
@@ -26,6 +23,9 @@ varying locales and timezones; RSS 1.0 support; --dump, -c, -f, -l, -N,
 formatting; template conditionals: broken 301 redirects; useids; content
 vs.  summary; daysections/timesections; removing articles from a feed;
 keeping comments; numthreads; outputfile; various error messages.
+
+Use author URIs retrieved from feeds when formatting author names
+(rather than ignoring them; this was the result of a feedparser change).
 
 Make subclasses of Persistable call Persistable's constructor.
 (Identified by coverage analysis.)

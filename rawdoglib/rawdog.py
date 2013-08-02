@@ -1239,7 +1239,7 @@ class Rawdog(Persistable):
 		# Convert to or from splitstate if necessary.
 		try:
 			u = self.using_splitstate
-		except:
+		except AttributeError:
 			# We were last run with a version of rawdog that didn't
 			# have this variable -- so we must have a single state
 			# file.

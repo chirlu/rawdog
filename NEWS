@@ -1,5 +1,8 @@
 - rawdog 2.18
 
+Be consistent about catching AttributeError when looking for attributes
+that were added to Rawdog during the 2.x series (spotted by Jakub Wilk).
+
 - rawdog 2.17
 
 Add a one-paragraph description of rawdog to the README file, for use by

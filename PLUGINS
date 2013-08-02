@@ -169,8 +169,19 @@ Called after all items are written.
 
 * bits: a dictionary of template parameters
 
-Called before expanding the main template. This hook can be used to add
+Called before expanding the page template. This hook can be used to add
 extra template parameters.
+
+Note that template parameters should be valid HTML, with entities
+escaped, even if they're URLs or similar. You can use rawdog's
+`rawdoglib.rawdog.string_to_html` function to do this for you:
+
+	the_thing = "This can contain arbitary text & stuff"
+	bits["thing"] = string_to_html(the_thing, config)
+
+It's also good idea for template parameter names to be valid Python
+identifiers, so that plugins that replace the template system with
+something smarter can make them into local variables.
 
 ### output_item_bits(rawdog, config, feed, article, bits)
 
@@ -180,6 +191,9 @@ extra template parameters.
 
 Called before expanding the item template for an article. This hook can
 be used to add extra template parameters.
+
+(See the documentation for `output_bits` for some advice on adding
+template parameters.)
 
 ### pre_update_feed(rawdog, config, feed)
 

@@ -32,7 +32,9 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 """
 
+import cStringIO
 import feedparser
+import gzip
 import re
 import urllib2
 import urlparse
@@ -51,10 +53,21 @@ def fetch_url(url):
     """Fetch the given URL and return the data from it as a Unicode string."""
 
     request = urllib2.Request(url)
+    request.add_header("Accept-Encoding", "gzip")
 
     f = urllib2.urlopen(request)
+    headers = f.info()
     data = f.read()
     f.close()
+
+    # We have to support gzip encoding because some servers will use it
+    # even if you explicitly refuse it in Accept-Encoding.
+    encodings = headers.get("Content-Encoding", "")
+    encodings = [s.strip() for s in encodings.split(",")]
+    if "gzip" in encodings:
+        f = gzip.GzipFile(fileobj=cStringIO.StringIO(data))
+        data = f.read()
+        f.close()
 
     # Silently ignore encoding errors -- we don't need to go to the bother of
     # detecting the encoding properly (like feedparser does).

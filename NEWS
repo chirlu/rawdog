@@ -7,6 +7,10 @@ Add some advice in PLUGINS about escaping template parameters. Willem
 reported that the enclosure plugin didn't do this, and having had a look
 at the others it seems to be a common problem.
 
+Make feedscanner handle "Content-Encoding: gzip" in responses, as
+tumblr.com's webservers will use this even if you explicitly refuse it
+in the request.
+
 - rawdog 2.17
 
 Add a one-paragraph description of rawdog to the README file, for use by

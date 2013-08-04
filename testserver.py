@@ -20,6 +20,8 @@ import BaseHTTPServer
 import SimpleHTTPServer
 import SocketServer
 import base64
+import cStringIO
+import gzip
 import hashlib
 import os
 import re
@@ -108,6 +110,13 @@ class HTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             self.end_headers()
             return None
 
+        encoding = None
+        m = re.match(r'^/(gzip)(/.*)$', self.path)
+        if m:
+            # Request for a content encoding.
+            encoding = m.group(1)
+            self.path = m.group(2)
+
         m = re.match(r'^/([^/]+)$', self.path)
         if m:
             # Request for a file.
@@ -142,6 +151,19 @@ class HTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
                 mime_type = "text/html"
 
             self.send_response(200)
+
+            if encoding:
+                self.send_header("Content-Encoding", encoding)
+                if encoding == "gzip":
+                    data = f.read()
+                    f.close()
+                    f = cStringIO.StringIO()
+                    g = gzip.GzipFile(fileobj=f, mode="wb")
+                    g.write(data)
+                    g.close()
+                    size = f.tell()
+                    f.seek(0)
+
             self.send_header("Content-Length", size)
             self.send_header("Content-Type", mime_type)
             self.send_header("ETag", etag)

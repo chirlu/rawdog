@@ -1747,6 +1747,22 @@ EOF
 rune "Adding feed" -a $httpurl/page.html
 contains "$statedir/config" $httpurl/feed.atom
 
+begin "add feed, gzip-encoded response"
+make_rss20 $httpdir/feed.rss
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="application/rss+xml" title="RSS" href="$httpurl/feed.rss">
+EOF
+rune "Adding feed" -a $httpurl/gzip/page.html
+contains "$statedir/config" $httpurl/feed.rss
+
+begin "add feed, gzip-encoded feed"
+make_rss20 $httpdir/feed.rss
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="application/rss+xml" title="RSS" href="$httpurl/gzip/feed.rss">
+EOF
+rune "Adding feed" -a $httpurl/page.html
+contains "$statedir/config" $httpurl/gzip/feed.rss
+
 begin "remove feed"
 add "feed 3h $httpurl/0.rss"
 add "feed 3h $httpurl/1.rss"

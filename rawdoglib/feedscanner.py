@@ -34,7 +34,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import feedparser
 import re
-import urllib
+import urllib2
 import urlparse
 import HTMLParser
 
@@ -46,6 +46,21 @@ def is_feed(url):
     if version is None:
         version = ""
     return (version != "")
+
+def fetch_url(url):
+    """Fetch the given URL and return the data from it as a Unicode string."""
+
+    request = urllib2.Request(url)
+
+    f = urllib2.urlopen(request)
+    data = f.read()
+    f.close()
+
+    # Silently ignore encoding errors -- we don't need to go to the bother of
+    # detecting the encoding properly (like feedparser does).
+    data = data.decode("UTF-8", "ignore")
+
+    return data
 
 class FeedFinder(HTMLParser.HTMLParser):
     def __init__(self, base_uri):
@@ -97,12 +112,7 @@ def feeds(page_url):
     if is_feed(page_url):
         return [page_url]
 
-    f = urllib.urlopen(page_url)
-    # Silently ignore encoding errors -- we don't need to go to the bother of
-    # detecting the encoding properly (like feedparser does).
-    data = f.read().decode("UTF-8", "ignore")
-    f.close()
-
+    data = fetch_url(page_url)
     parser = FeedFinder(page_url)
     try:
         parser.feed(data)

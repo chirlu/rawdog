@@ -1,3 +1,6 @@
+Add a --change option to change a feed's URL. Problem: getopt can't handle
+parsing this -- so it would mean changing to argparse.
+
 Rework the template mechanism so that it keeps strings as Unicode objects until
 output time. This'd reduce a lot of the current encoding complexity.
 

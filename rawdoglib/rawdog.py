@@ -16,7 +16,7 @@
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA, or see http://www.gnu.org/.
 
-VERSION = "2.18"
+VERSION = "2.19rc1"
 HTTP_AGENT = "rawdog/" + VERSION
 STATE_VERSION = 2
 

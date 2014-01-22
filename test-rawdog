@@ -39,7 +39,7 @@ httpport="8432"
 # (This is distinct from timeoutport above: if you connect to timeoutport, it
 # will accept the connection but not do anything, whereas this will timeout
 # while connecting.)
-timeouthost="81.91.98.19"
+timeouthost=""
 
 httpdir="$statedir/pub"
 httpurl="http://$serverhost:$httpport"
@@ -51,6 +51,7 @@ Usage: test-rawdog [OPTION]...
 -b                           Include tests that are known to fail
 -k                           Keep going when a test fails
 -r COMMAND                   How to invoke rawdog (default: "./rawdog")
+-T HOST                      Host to test connection timeout with
 
 Report bugs to <ats@offog.org>.
 EOF
@@ -60,7 +61,7 @@ EOF
 knownbad=false
 keepgoing=false
 rawdog="./rawdog"
-while getopts bkr: OPT; do
+while getopts bkr:T: OPT; do
 	case "$OPT" in
 	b)
 		knownbad=true
@@ -70,6 +71,9 @@ while getopts bkr: OPT; do
 		;;
 	r)
 		rawdog="$OPTARG"
+		;;
+	T)
+		timeouthost="$OPTARG"
 		;;
 	?)
 		usage
@@ -825,10 +829,12 @@ add "feed 0 $httpurl/notthere"
 rune "404" -u
 
 for proto in http https ftp; do
-	begin "$proto: connect timeout"
-	add "timeout 1s"
-	add "feed 0 $proto://$timeouthost/feed.xml"
-	rune "Timeout while reading" -u
+	if [ -n "$timeouthost" ]; then
+		begin "$proto: connect timeout"
+		add "timeout 1s"
+		add "feed 0 $proto://$timeouthost/feed.xml"
+		rune "Timeout while reading" -u
+	fi
 
 	begin "$proto: response timeout"
 	add "timeout 1s"

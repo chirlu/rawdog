@@ -1,3 +1,7 @@
+Maybe treat these as timeouts too?
+<urlopen error [Errno 113] No route to host>
+<urlopen error [Errno 111] Connection refused>
+
 Add a --change option to change a feed's URL. Problem: getopt can't handle
 parsing this -- so it would mean changing to argparse.
 
@@ -44,8 +48,8 @@ gzip the state file.
 
 Optionally use a better backend: a real transactional database rather than a
 huge file and pickle.
-An alternative approach would be to keep a second lightweight cache of 
-articles that rawdog knows it's already seen -- it would only need to 
+An alternative approach would be to keep a second lightweight cache of
+articles that rawdog knows it's already seen -- it would only need to
 store hashes (or article guids) rather than the full articles.
 Or could use fuzzy comparison against previous articles in the same feed -- do
 this as a plugin.

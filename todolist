@@ -66,8 +66,6 @@ related to that page:
 	<link rel="alternate" title="FSF Events" href="//static.fsf.org/fsforg/rss/events.xml" type="application/rss+xml" />
 ... I'm not sure there's anything that can reasonably be done about that.
 
---change-feed-url option to change feed URL without losing articles
-
 Look at Expires header to automatically select "periods"
 
 - Longer-term future: split features out to plugins

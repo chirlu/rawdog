@@ -3,6 +3,9 @@
 Make test-rawdog not depend on having a host it can test connection
 timeouts against, and add a -T option if you do have one.
 
+Add some more comprehensive tests for the changeconfig option; in
+particular, test it more thoroughly with splitstate both on and off.
+
 - rawdog 2.18
 
 Be consistent about catching AttributeError when looking for attributes

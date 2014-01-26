@@ -1,6 +1,6 @@
 #!/bin/sh
 # test-rawdog: run some basic tests to make sure rawdog's working.
-# Copyright 2013 Adam Sampson <ats@offog.org>
+# Copyright 2013, 2014 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software
@@ -1424,13 +1424,16 @@ add "feed 0 $httpurl/301/new.rss"
 rune "You should update its entry" -u
 contains $statedir/config "$httpurl/301/new.rss"
 
-begin "HTTP 301 permanent redirect, changeconfig true"
-make_rss20 $httpdir/new.rss
-add "changeconfig true"
-add "feed 0 $httpurl/301/new.rss"
-rune "has been updated automatically" -u
-contains $statedir/config "$httpurl/new.rss"
-runs -u
+for state in false true; do
+	begin "HTTP 301 permanent redirect, changeconfig true, splitstate $state"
+	make_rss20 $httpdir/new.rss
+	add "changeconfig true"
+	add "splitstate $state"
+	add "feed 0 $httpurl/301/new.rss"
+	rune "has been updated automatically" -u
+	contains $statedir/config "$httpurl/new.rss"
+	runs -u
+done
 
 begin "HTTP 302 to 301"
 # We should only update config if the first redirect is permanent.
@@ -1479,7 +1482,7 @@ for state in false true; do
 done
 
 for state in false true; do
-	begin "HTTP 301, moving items from existing feed, splitstate $state"
+	begin "changeconfig moving items from existing feed, splitstate $state"
 	make_range 1 5 $httpdir/old.rss
 	add "splitstate $state"
 	add "keepmin 20"
@@ -1494,6 +1497,47 @@ for state in false true; do
 	output_range 1 10
 	runs -uw
 	output_range 1 10
+done
+
+begin "changeconfig for feed from included file"
+make_rss20 $httpdir/feed.rss
+add "changeconfig true"
+add "include config2"
+echo >$statedir/config2 "feed 0 $httpurl/301/feed.rss"
+rune "has been updated automatically" -u
+# FIXME: this behaviour is probably not what the user wanted.
+# rawdog should probably complain that it's trying to change
+# something but hasn't succeeded.
+not_contains $statedir/config "$httpurl/feed.rss"
+contains $statedir/config2 "$httpurl/301/feed.rss"
+not_contains $statedir/config2 "$httpurl/feed.rss"
+
+begin "changeconfig to same URL as existing feed"
+make_rss20 $httpdir/feed.rss
+add "changeconfig true"
+add "feed 0 $httpurl/feed.rss"
+runs -u
+add "feed 0 $httpurl/301/feed.rss"
+rune "already subscribed" -u
+
+for state in false true; do
+	begin "changeconfig to URL of just-removed feed, splitstate $state"
+	make_rss20 $httpdir/feed.rss
+	add "splitstate $state"
+	add "changeconfig true"
+	add "feed 0 $httpurl/feed.rss"
+	runs -u
+	# Simulate the change failing, then succeeding.
+	for i in 1 2; do
+		: >$statedir/config
+		add "splitstate $state"
+		add "changeconfig true"
+		add "feed 0 $httpurl/301/feed.rss"
+		rune "has been updated automatically" -u
+		contains $statedir/config "$httpurl/feed.rss"
+		not_contains $statedir/config "$httpurl/301/feed.rss"
+	done
+	runs -u
 done
 
 begin "feed format text"

@@ -1,5 +1,5 @@
 # persister: persist Python objects safely to pickle files
-# Copyright 2003, 2004, 2005, 2013 Adam Sampson <ats@offog.org>
+# Copyright 2003, 2004, 2005, 2013, 2014 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software
@@ -52,7 +52,15 @@ class Persisted:
 		currently open or not."""
 
 		self.persister._rename(self.filename, new_filename)
-		os.rename(self.filename, new_filename)
+		for ext in ("", ".lock"):
+			try:
+				os.rename(self.filename + ext,
+				          new_filename + ext)
+			except OSError, e:
+				# If the file doesn't exist (yet),
+				# that's OK.
+				if e.errno != errno.ENOENT:
+					raise e
 		self.filename = new_filename
 
 	def __enter__(self):
@@ -177,8 +185,8 @@ class Persister:
 	def delete(self, filename):
 		"""Delete a persisted file, along with its lock file,
 		if they exist."""
-		for fn in (filename, filename + ".lock"):
+		for ext in ("", ".lock"):
 			try:
-				os.unlink(fn)
+				os.unlink(filename + ext)
 			except OSError:
 				pass

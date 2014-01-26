@@ -3,6 +3,11 @@
 Make test-rawdog not depend on having a host it can test connection
 timeouts against, and add a -T option if you do have one.
 
+When renaming a feed's state file in splitstate mode, don't fail if the
+state file doesn't exist -- which can happen if we get a 301 response
+for a feed the first time we fetch it. Also rename the lock file along
+with the state file.
+
 Add some more comprehensive tests for the changeconfig option; in
 particular, test it more thoroughly with splitstate both on and off.
 

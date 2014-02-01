@@ -642,6 +642,18 @@ EOF
 	done
 done
 
+begin "exception raised by feedparser"
+make_rss20 $statedir/feed.rss
+add "feed 0 feed.rss"
+cat >$statedir/plugins/crash.py <<EOF
+import feedparser
+def crash(*args, **kwargs):
+    raise Exception("exception from feedparser")
+feedparser.parse = crash
+EOF
+rune "Error fetching or parsing feed" -u
+contains $outfile "exception from feedparser"
+
 begin "with --no-locking"
 make_rss20 $statedir/simple.rss
 add "splitstate true"

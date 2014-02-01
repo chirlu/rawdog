@@ -1,5 +1,5 @@
 # rawdog: RSS aggregator without delusions of grandeur.
-# Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013 Adam Sampson <ats@offog.org>
+# Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013, 2014 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software
@@ -457,10 +457,14 @@ class Feed:
 		"""Add new articles from a feed to the collection.
 		Returns True if any articles were read, False otherwise."""
 
+		# Note that feedparser might have thrown an exception --
+		# so until we print the error message and return, we
+		# can't assume that p contains any particular field.
+
 		responses = p.get("rawdog_responses")
 		if len(responses) > 0:
 			last_status = responses[-1]["status"]
-		elif len(p["feed"]) != 0:
+		elif len(p.get("feed", [])) != 0:
 			# Some protocol other than HTTP -- assume it's OK,
 			# since we got some content.
 			last_status = 200
@@ -541,7 +545,7 @@ class Feed:
 			errors.append("If this condition persists, you should remove it from your config file.")
 			errors.append("")
 			fatal = True
-		elif version == "" and len(p["entries"]) == 0:
+		elif version == "" and len(p.get("entries", [])) == 0:
 			# feedparser couldn't detect the type of this feed or
 			# retrieve any entries from it.
 			errors.append("The data retrieved from this URL could not be understood as a feed.")
@@ -560,6 +564,9 @@ class Feed:
 				print >>sys.stderr, line
 			if fatal:
 				return False
+
+		# From here, we can assume that we've got a complete feedparser
+		# response.
 
 		p = ensure_unicode(p, p.get("encoding") or "UTF-8")
 

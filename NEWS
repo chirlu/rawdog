@@ -11,6 +11,10 @@ with the state file.
 Add some more comprehensive tests for the changeconfig option; in
 particular, test it more thoroughly with splitstate both on and off.
 
+Don't crash if feedparser raises an exception during an update (i.e.
+assume that any part of feedparser's response might be missing, until
+we've checked that there wasn't an exception).
+
 - rawdog 2.18
 
 Be consistent about catching AttributeError when looking for attributes

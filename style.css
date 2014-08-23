@@ -12,6 +12,11 @@
 	text-decoration: none;
 	margin: 0;
 }
+/* Scale down large images in feeds */
+img {
+	max-width: 100%;
+	height: auto;
+}
 html {
 	margin: 0;
 	padding: 0;

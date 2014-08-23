@@ -687,15 +687,6 @@ runs --no-lock-wait -w
 not_exists $statedir/output.html
 # lock.py will keep running, but harmlessly time out after a bit.
 
-cat >$statedir/plugins/wait.py <<EOF
-import rawdoglib.plugins
-import time
-def wait(*args):
-    time.sleep(2)
-    return True
-rawdoglib.plugins.attach_hook("pre_update_feed", wait)
-EOF
-
 begin "no plugins dir"
 rm -fr $statedir/plugins
 runs -uw

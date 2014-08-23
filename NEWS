@@ -1,3 +1,7 @@
+- rawdog 2.20
+
+Add a test for the maxage option (suggested by joelmo).
+
 - rawdog 2.19
 
 Make test-rawdog not depend on having a host it can test connection

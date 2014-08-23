@@ -443,6 +443,19 @@ make_n () {
 	make_range 1 "$@"
 }
 
+# Make time.time() return a fixed value.
+fake_time () {
+	# A test can use this more than once within the same second, so the
+	# .pyc's timestamp might not change. Ensure it gets deleted.
+	rm -f $statedir/plugins/fake_time.*
+	cat >$statedir/plugins/fake_time.py <<EOF
+import time
+def fake_time():
+    return $1
+time.time = fake_time
+EOF
+}
+
 range () {
 	seq -f "range-title-%.f-" $1 $2
 }
@@ -901,6 +914,20 @@ add "feed 0 $httpurl/feed.rss"
 runs -uw
 output_n 10
 not_output_range 11 20
+
+begin "maxage 30m"
+fake_time 1408794484.0
+make_n 10 $httpdir/feed.rss
+add "maxage 30m"
+add "feed 0 $httpurl/feed.rss"
+runs -uw
+output_n 10
+# This is 45 minutes later than the time above.
+fake_time 1408797184.0
+make_n 20 $httpdir/feed.rss
+runs -uw
+not_output_range 1 10
+output_range 11 20
 
 begin "keepmin 10"
 make_n 20 $httpdir/feed.rss

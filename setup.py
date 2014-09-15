@@ -8,7 +8,7 @@ if sys.version_info < (2, 6) or sys.version_info >= (3,):
 	sys.exit(1)
 
 setup(name = "rawdog",
-	version = "2.20rc1",
+	version = "2.20",
 	description = "RSS Aggregator Without Delusions Of Grandeur",
 	author = "Adam Sampson",
 	author_email = "ats@offog.org",

@@ -1,3 +1,6 @@
+Bug: remove a plugin's .py, but forget to remove its options from config;
+start rawdog, and it dumps all the splitstate files.
+
 Maybe treat these as timeouts too?
 <urlopen error [Errno 113] No route to host>
 <urlopen error [Errno 111] Connection refused>

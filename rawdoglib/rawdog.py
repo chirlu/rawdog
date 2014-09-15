@@ -325,6 +325,25 @@ def ensure_unicode(value, encoding):
 	else:
 		return value
 
+timeout_re = re.compile(r'timed? ?out', re.I)
+def is_timeout_exception(exc):
+	"""Return True if the given exception object suggests that a timeout
+	occurred, else return False."""
+
+	# Since urlopen throws away the original exception object,
+	# we have to look at the stringified form to tell if it was a timeout.
+	# (We're in reasonable company here, since test_ssl.py in the Python
+	# distribution does the same thing!)
+	#
+	# The message we're looking for is something like:
+	# Stock Python 2.7.7 and 2.7.8:
+	#   <urlopen error _ssl.c:495: The handshake operation timed out>
+	# Debian python 2.7.3-4+deb7u1:
+	#   <urlopen error _ssl.c:489: The handshake operation timed out>
+	# Debian python 2.7.8-1:
+	#   <urlopen error ('_ssl.c:563: The handshake operation timed out',)>
+	return (timeout_re.search(str(exc)) is not None)
+
 class BasicAuthProcessor(urllib2.BaseHandler):
 	"""urllib2 handler that does HTTP basic authentication
 	or proxy authentication with a fixed username and password.
@@ -516,7 +535,7 @@ class Feed:
 		if got_urlerror or got_timeout:
 			# urllib2 reported an error when fetching the feed.
 			# Check to see if it was a timeout.
-			if not (got_timeout or str(bozo_exception).endswith("timed out>")):
+			if not (got_timeout or is_timeout_exception(bozo_exception)):
 				errors.append("Error while fetching feed:")
 				errors.append(str(bozo_exception))
 				errors.append("")

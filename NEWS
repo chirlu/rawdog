@@ -4,6 +4,11 @@ Add a test for the maxage option (suggested by joelmo).
 
 Add a rule to style.css to scale down large images.
 
+When looking for SSL timeout exceptions, match any form of "timeout",
+"time out" or "timed out" in the message. This makes rawdog detect SSL
+connection timeouts correctly with Debian's Python 2.7.8 package
+(reported by David Suárez).
+
 - rawdog 2.19
 
 Make test-rawdog not depend on having a host it can test connection

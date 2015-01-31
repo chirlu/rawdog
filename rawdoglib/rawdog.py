@@ -342,7 +342,7 @@ def is_timeout_exception(exc):
 	#   <urlopen error _ssl.c:489: The handshake operation timed out>
 	# Debian python 2.7.8-1:
 	#   <urlopen error ('_ssl.c:563: The handshake operation timed out',)>
-	return (timeout_re.search(str(exc)) is not None)
+	return timeout_re.search(str(exc)) is not None
 
 class BasicAuthProcessor(urllib2.BaseHandler):
 	"""urllib2 handler that does HTTP basic authentication
@@ -416,7 +416,7 @@ class Feed:
 	def needs_update(self, now):
 		"""Return True if it's time to update this feed, or False if
 		its update period has not yet elapsed."""
-		return ((now - self.last_update) >= self.period)
+		return (now - self.last_update) >= self.period
 
 	def get_state_filename(self):
 		return "feeds/%s.state" % (short_hash(self.url),)
@@ -727,7 +727,7 @@ class Article:
 		self.last_seen = now
 
 	def can_expire(self, now, config):
-		return ((now - self.last_seen) > config["expireage"])
+		return (now - self.last_seen) > config["expireage"]
 
 	def get_sort_date(self, config):
 		if config["sortbyfeeddate"]:
@@ -1388,7 +1388,7 @@ class Rawdog(Persistable):
 					del articles[key]
 			config.log("Expired ", count, " articles, leaving ", len(articles))
 
-			return (count > 0)
+			return count > 0
 
 		count = 0
 		for url in update_feeds:

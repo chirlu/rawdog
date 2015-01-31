@@ -15,7 +15,7 @@ Required: Python 2.4 or later, feedparser
 
 __license__ = """
 Copyright (c) 2008 Decklin Foster <decklin@red-bean.com>
-Copyright (c) 2013 Adam Sampson <ats@offog.org>
+Copyright (c) 2013, 2015 Adam Sampson <ats@offog.org>
 
 Permission to use, copy, modify, and/or distribute this software for
 any purpose with or without fee is hereby granted, provided that
@@ -47,7 +47,7 @@ def is_feed(url):
     version = p.get("version")
     if version is None:
         version = ""
-    return (version != "")
+    return version != ""
 
 def fetch_url(url):
     """Fetch the given URL and return the data from it as a Unicode string."""

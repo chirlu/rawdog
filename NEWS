@@ -7,6 +7,8 @@ an error message, but actually crashes.
 Use grep -a when searching for locales in test-rawdog, since some
 locales have non-ASCII names.
 
+Fix some style problems reported by pylint.
+
 - rawdog 2.20
 
 Add a test for the maxage option (suggested by joelmo).

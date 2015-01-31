@@ -3,6 +3,8 @@
 Use grep -a when searching for locales in test-rawdog, since some
 locales have non-ASCII names.
 
+Use local variables in test-rawdog's functions.
+
 - rawdog 2.20
 
 Add a test for the maxage option (suggested by joelmo).

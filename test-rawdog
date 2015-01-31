@@ -123,6 +123,7 @@ equals () {
 }
 
 exists () {
+	local fn
 	for fn in "$@"; do
 		if ! [ -e "$fn" ]; then
 			die "expected $fn to exist"
@@ -131,6 +132,7 @@ exists () {
 }
 
 not_exists () {
+	local fn
 	for fn in "$@"; do
 		if [ -e "$fn" ]; then
 			die "expected $fn not to exist"
@@ -146,7 +148,8 @@ same () {
 }
 
 contains () {
-	file="$1"
+	local key
+	local file="$1"
 	exists "$file"
 	shift
 	for key in "$@"; do
@@ -158,7 +161,8 @@ contains () {
 }
 
 not_contains () {
-	file="$1"
+	local key
+	local file="$1"
 	exists "$file"
 	shift
 	for key in "$@"; do
@@ -203,7 +207,7 @@ runs () {
 
 # Run rawdog, expecting a complaint containing the first arg.
 rune () {
-	key="$1"
+	local key="$1"
 	shift
 	run "$@"
 	contains $outfile "$key"
@@ -212,7 +216,7 @@ rune () {
 # Run rawdog, expecting it to exit non-0 with a complaint containing the first
 # arg.
 runne () {
-	key="$1"
+	local key="$1"
 	shift
 	runn "$@"
 	contains $outfile "$key"
@@ -414,9 +418,10 @@ EOF
 }
 
 make_range () {
-	from="$1"
-	to="$2"
-	file="$3"
+	local i
+	local from="$1"
+	local to="$2"
+	local file="$3"
 	cat >"$file" <<EOF
 <rss version="2.0">
   <channel>

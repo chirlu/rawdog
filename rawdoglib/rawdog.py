@@ -24,14 +24,23 @@ import rawdoglib.feedscanner
 from rawdoglib.persister import Persistable, Persister
 from rawdoglib.plugins import Box, call_hook, load_plugins
 
-import feedparser
-import os, time, getopt, sys, re, cgi, socket, urllib2, calendar
-import string, locale
 from StringIO import StringIO
-import types
-import threading
-import hashlib
 import base64
+import calendar
+import cgi
+import feedparser
+import getopt
+import hashlib
+import locale
+import os
+import re
+import socket
+import string
+import sys
+import threading
+import time
+import types
+import urllib2
 
 try:
 	import tidylib

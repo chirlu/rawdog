@@ -20,7 +20,8 @@
 # Vellum weblog system:
 #   http://www.kryogenix.org/code/vellum/
 
-import os, imp
+import imp
+import os
 
 class Box:
 	"""Utility class that holds a mutable value. Useful for passing

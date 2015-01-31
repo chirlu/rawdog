@@ -1,5 +1,5 @@
 # rawdog: RSS aggregator without delusions of grandeur.
-# Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013, 2014 Adam Sampson <ats@offog.org>
+# Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013, 2014, 2015 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software
@@ -1508,7 +1508,7 @@ __feeditems__
 		try:
 			print self.get_template(config, name),
 		except KeyError:
-			print >>sys.stderr, "Unknown template name: " + a
+			print >>sys.stderr, "Unknown template name: " + name
 
 	def write_article(self, f, article, config):
 		"""Write an article to the given file."""

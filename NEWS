@@ -1,9 +1,11 @@
 - rawdog 2.21
 
+Don't crash when asked to show a non-existant template ("-s foo") -- and
+fix test-rawdog so that it detects when a test is expected to fail with
+an error message, but actually crashes.
+
 Use grep -a when searching for locales in test-rawdog, since some
 locales have non-ASCII names.
-
-Use local variables in test-rawdog's functions.
 
 - rawdog 2.20
 

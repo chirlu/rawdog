@@ -1409,7 +1409,7 @@ class Rawdog(Persistable):
 		count = 0
 		for url in update_feeds:
 			count += 1
-			config.log("Updating feed ", count, " of " , numfeeds, ": ", url)
+			config.log("Updating feed ", count, " of ", numfeeds, ": ", url)
 			feed = self.feeds[url]
 
 			if config["splitstate"]:

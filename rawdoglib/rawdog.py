@@ -1687,7 +1687,7 @@ __feeditems__
 
 		refresh = min([config["expireage"]]
 		              + [feed.period for feed in self.feeds.values()])
-		bits["refresh"] = """<meta http-equiv="Refresh" """ + 'content="' + str(refresh) + '"' + """>"""
+		bits["refresh"] = '<meta http-equiv="Refresh" content="' + str(refresh) + '">'
 
 		f = StringIO()
 		self.write_feedlist(f, config)

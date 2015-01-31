@@ -188,12 +188,24 @@ run () {
 	fi
 }
 
-# Run rawdog, expecting it to exit non-0.
+# Run rawdog, expecting it to crash with an exception message.
+runcrash () {
+	if runf "$@"; then
+		cat $outfile
+		die "exited 0"
+	fi
+
+	contains $outfile "Traceback (most recent call last)"
+}
+
+# Run rawdog, expecting it to exit non-0 (but not crash).
 runn () {
 	if runf "$@"; then
 		cat $outfile
 		die "exited 0"
 	fi
+
+	not_contains $outfile "Traceback (most recent call last)"
 }
 
 # Run rawdog, expecting no complaints.
@@ -654,7 +666,8 @@ def crash(*args):
     raise Exception("deliberate")
 rawdoglib.plugins.attach_hook("post_update_feed", crash)
 EOF
-		runne "Exception: deliberate" -u
+		runcrash -u
+		contains $outfile "Exception: deliberate"
 		rm $statedir/plugins/crash.py
 		runs -u
 	done

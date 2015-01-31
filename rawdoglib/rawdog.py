@@ -1685,11 +1685,8 @@ __feeditems__
 		bits = {"version": VERSION}
 		bits.update(config["defines"])
 
-		refresh = config["expireage"]
-		for feed in self.feeds.values():
-			if feed.period < refresh:
-				refresh = feed.period
-
+		refresh = min([config["expireage"]]
+		              + [feed.period for feed in self.feeds.values()])
 		bits["refresh"] = """<meta http-equiv="Refresh" """ + 'content="' + str(refresh) + '"' + """>"""
 
 		f = StringIO()

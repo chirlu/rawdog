@@ -833,7 +833,8 @@ def parse_feed_args(argparams, arglines):
 			args[name] = parse_time(value)
 	return args
 
-class ConfigError(Exception): pass
+class ConfigError(Exception):
+	pass
 
 class Config:
 	"""The aggregator's configuration."""
@@ -889,9 +890,14 @@ class Config:
 			"useids": False,
 			}
 
-	def __getitem__(self, key): return self.config[key]
-	def get(self, key, default=None): return self.config.get(key, default)
-	def __setitem__(self, key, value): self.config[key] = value
+	def __getitem__(self, key):
+		return self.config[key]
+
+	def get(self, key, default=None):
+		return self.config.get(key, default)
+
+	def __setitem__(self, key, value):
+		self.config[key] = value
 
 	def reload(self):
 		self.log("Reloading config files")
@@ -1681,7 +1687,8 @@ __feeditems__
 
 		refresh = config["expireage"]
 		for feed in self.feeds.values():
-			if feed.period < refresh: refresh = feed.period
+			if feed.period < refresh:
+				refresh = feed.period
 
 		bits["refresh"] = """<meta http-equiv="Refresh" """ + 'content="' + str(refresh) + '"' + """>"""
 

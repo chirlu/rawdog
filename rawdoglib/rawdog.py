@@ -116,11 +116,13 @@ def sanitise_html(html, baseurl, inline, config):
 			html = "<p>" + html
 
 	if config["tidyhtml"]:
-		args = {"numeric_entities": 1,
-		        "output_html": 1,
-		        "output_xhtml": 0,
-		        "output_xml": 0,
-		        "wrap": 0}
+		args = {
+			"numeric_entities": 1,
+			"output_html": 1,
+			"output_xhtml": 0,
+			"output_xml": 0,
+			"wrap": 0,
+			}
 		plugins.call_hook("mxtidy_args", config, args, baseurl, inline)
 		plugins.call_hook("tidy_args", config, args, baseurl, inline)
 		if tidylib is not None:
@@ -143,9 +145,11 @@ def sanitise_html(html, baseurl, inline, config):
 def select_detail(details):
 	"""Pick the preferred type of detail from a list of details. (If the
 	argument isn't a list, treat it as a list of one.)"""
-	TYPES = {"text/html": 30,
-	         "application/xhtml+xml": 20,
-	         "text/plain": 10}
+	TYPES = {
+		"text/html": 30,
+		"application/xhtml+xml": 20,
+		"text/plain": 10,
+		}
 
 	if details is None:
 		return None
@@ -779,7 +783,13 @@ def parse_time(value, default="m"):
 	in seconds. If no unit is specified, use minutes by default; specify
 	the default argument to change this. Raises ValueError if the format
 	isn't recognised."""
-	units = { "s" : 1, "m" : 60, "h" : 3600, "d" : 86400, "w" : 604800 }
+	units = {
+		"s": 1,
+		"m": 60,
+		"h": 3600,
+		"d": 86400,
+		"w": 604800,
+		}
 	for unit, size in units.items():
 		if value.endswith(unit):
 			return int(value[:-len(unit)]) * size
@@ -1666,7 +1676,7 @@ __feeditems__
 	def get_main_template_bits(self, config):
 		"""Get the bits that are used in the default main template,
 		with the exception of items and num_items."""
-		bits = { "version" : VERSION }
+		bits = {"version": VERSION}
 		bits.update(config["defines"])
 
 		refresh = config["expireage"]

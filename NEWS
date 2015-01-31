@@ -1,5 +1,8 @@
 - rawdog 2.21
 
+Use grep -a when searching for locales in test-rawdog, since some
+locales have non-ASCII names.
+
 - rawdog 2.20
 
 Add a test for the maxage option (suggested by joelmo).

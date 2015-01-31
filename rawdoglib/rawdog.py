@@ -20,8 +20,11 @@ VERSION = "2.21rc1"
 HTTP_AGENT = "rawdog/" + VERSION
 STATE_VERSION = 2
 
-import feedparser, plugins
-from persister import Persistable, Persister
+import rawdoglib.feedscanner
+from rawdoglib.persister import Persistable, Persister
+from rawdoglib.plugins import Box, call_hook, load_plugins
+
+import feedparser
 import os, time, getopt, sys, re, cgi, socket, urllib2, calendar
 import string, locale
 from StringIO import StringIO
@@ -29,7 +32,6 @@ import types
 import threading
 import hashlib
 import base64
-import feedscanner
 
 try:
 	import tidylib
@@ -123,8 +125,8 @@ def sanitise_html(html, baseurl, inline, config):
 			"output_xml": 0,
 			"wrap": 0,
 			}
-		plugins.call_hook("mxtidy_args", config, args, baseurl, inline)
-		plugins.call_hook("tidy_args", config, args, baseurl, inline)
+		call_hook("mxtidy_args", config, args, baseurl, inline)
+		call_hook("tidy_args", config, args, baseurl, inline)
 		if tidylib is not None:
 			# Disable PyTidyLib's somewhat unhelpful defaults.
 			tidylib.BASE_OPTIONS = {}
@@ -138,8 +140,8 @@ def sanitise_html(html, baseurl, inline, config):
 		              : output.rfind("</body>")].strip()
 
 	html = html.decode("UTF-8")
-	box = plugins.Box(html)
-	plugins.call_hook("clean_html", config, box, baseurl, inline)
+	box = Box(html)
+	call_hook("clean_html", config, box, baseurl, inline)
 	return box.value
 
 def select_detail(details):
@@ -232,8 +234,8 @@ def fill_template(template, bits):
 	including sections bracketed by __if_x__ .. [__else__ ..]
 	__endif__ if bits["x"] is not "". If not bits.has_key("x"),
 	__x__ expands to ""."""
-	result = plugins.Box()
-	plugins.call_hook("fill_template", template, bits, result)
+	result = Box()
+	call_hook("fill_template", template, bits, result)
 	if result.value is not None:
 		return result.value
 
@@ -453,7 +455,7 @@ class Feed:
 			# being published by the feed, we have to turn it off.
 			handlers.append(DisableIMProcessor())
 
-		plugins.call_hook("add_urllib2_handlers", rawdog, config, self, handlers)
+		call_hook("add_urllib2_handlers", rawdog, config, self, handlers)
 
 		url = self.url
 		# Turn plain filenames into file: URLs. (feedparser will open
@@ -577,7 +579,7 @@ class Feed:
 			fatal = True
 
 		old_error = "\n".join(errors)
-		plugins.call_hook("feed_fetched", rawdog, config, self, p, old_error, not fatal)
+		call_hook("feed_fetched", rawdog, config, self, p, old_error, not fatal)
 
 		if len(errors) != 0:
 			print >>sys.stderr, "Feed:        " + old_url
@@ -616,8 +618,8 @@ class Feed:
 		sequence = 0
 		for entry_info in p["entries"]:
 			article = Article(feed, entry_info, now, sequence)
-			ignore = plugins.Box(False)
-			plugins.call_hook("article_seen", rawdog, config, article, ignore)
+			ignore = Box(False)
+			call_hook("article_seen", rawdog, config, article, ignore)
 			if ignore.value:
 				continue
 			seen_articles.add(article.hash)
@@ -633,10 +635,10 @@ class Feed:
 
 			if existing_article is not None:
 				existing_article.update_from(article, now)
-				plugins.call_hook("article_updated", rawdog, config, existing_article, now)
+				call_hook("article_updated", rawdog, config, existing_article, now)
 			else:
 				articles[article.hash] = article
-				plugins.call_hook("article_added", rawdog, config, article, now)
+				call_hook("article_added", rawdog, config, article, now)
 
 		if config["currentonly"]:
 			for (hash, a) in articles.items():
@@ -969,7 +971,7 @@ class Config:
 			self["defines"][l[0]] = l[1]
 		elif l[0] == "plugindirs":
 			for dir in parse_list(l[1]):
-				plugins.load_plugins(dir, self)
+				load_plugins(dir, self)
 		elif l[0] == "outputfile":
 			self["outputfile"] = l[1]
 		elif l[0] == "maxarticles":
@@ -1032,9 +1034,9 @@ class Config:
 			self["useids"] = parse_bool(l[1])
 		elif l[0] == "include":
 			self.load(l[1], False)
-		elif plugins.call_hook("config_option_arglines", self, l[0], l[1], arglines):
+		elif call_hook("config_option_arglines", self, l[0], l[1], arglines):
 			handled_arglines = True
-		elif plugins.call_hook("config_option", self, l[0], l[1]):
+		elif call_hook("config_option", self, l[0], l[1]):
 			pass
 		else:
 			raise ConfigError("Unknown config command: " + l[0])
@@ -1085,7 +1087,7 @@ class AddFeedEditor:
 
 def add_feed(filename, url, rawdog, config):
 	"""Try to add a feed to the config file."""
-	feeds = feedscanner.feeds(url)
+	feeds = rawdoglib.feedscanner.feeds(url)
 	if feeds == []:
 		print >>sys.stderr, "Cannot find any feeds in " + url
 		return
@@ -1164,7 +1166,7 @@ class FeedFetcher:
 
 			config.log("[", num, "] Fetching feed: ", job)
 			feed = rawdog.feeds[job]
-			plugins.call_hook("pre_update_feed", rawdog, config, feed)
+			call_hook("pre_update_feed", rawdog, config, feed)
 			result = feed.fetch(rawdog, config)
 
 			with self.lock:
@@ -1398,7 +1400,7 @@ class Rawdog(Persistable):
 				    and self.feeds.has_key(url)
 				    and article.can_expire(now, config)
 				    and feedcounts[url] > self.feeds[url].get_keepmin(config)):
-					plugins.call_hook("article_expired", self, config, article, now)
+					call_hook("article_expired", self, config, article, now)
 					count += 1
 					feedcounts[url] -= 1
 					del articles[key]
@@ -1420,10 +1422,10 @@ class Rawdog(Persistable):
 				articles = self.articles
 
 			content = fetched[url]
-			plugins.call_hook("mid_update_feed", self, config, feed, content)
+			call_hook("mid_update_feed", self, config, feed, content)
 			rc = feed.update(self, now, config, articles, content)
 			url = feed.url
-			plugins.call_hook("post_update_feed", self, config, feed, rc)
+			call_hook("post_update_feed", self, config, feed, rc)
 			if rc:
 				seen_some_items.add(url)
 				if config["splitstate"]:
@@ -1597,7 +1599,7 @@ __feeditems__
 		else:
 			itembits["date"] = ""
 
-		plugins.call_hook("output_item_bits", self, config, feed, article, itembits)
+		call_hook("output_item_bits", self, config, feed, article, itembits)
 		itemtemplate = self.get_template(config, "item")
 		f.write(fill_template(itemtemplate, itembits))
 
@@ -1701,22 +1703,22 @@ __feeditems__
 		"""Write a regular rawdog HTML output file."""
 		f = StringIO()
 		dw = DayWriter(f, config)
-		plugins.call_hook("output_items_begin", self, config, f)
+		call_hook("output_items_begin", self, config, f)
 
 		for article in articles:
-			if not plugins.call_hook("output_items_heading", self, config, f, article, article_dates[article]):
+			if not call_hook("output_items_heading", self, config, f, article, article_dates[article]):
 				dw.time(article_dates[article])
 
 			self.write_article(f, article, config)
 
 		dw.close()
-		plugins.call_hook("output_items_end", self, config, f)
+		call_hook("output_items_end", self, config, f)
 
 		bits = self.get_main_template_bits(config)
 		bits["items"] = f.getvalue()
 		f.close()
 		bits["num_items"] = str(len(articles))
-		plugins.call_hook("output_bits", self, config, bits)
+		call_hook("output_bits", self, config, bits)
 		s = fill_template(self.get_template(config, "page"), bits)
 		outputfile = config["outputfile"]
 		if outputfile == "-":
@@ -1745,7 +1747,7 @@ __feeditems__
 			article_list = list_articles(self.articles)
 		numarticles = len(article_list)
 
-		if not plugins.call_hook("output_sort_articles", self, config, article_list):
+		if not call_hook("output_sort_articles", self, config, article_list):
 			article_list.sort()
 
 		if config["maxarticles"] != 0:
@@ -1780,16 +1782,16 @@ __feeditems__
 				articles.append(a)
 				article_dates[a] = -date
 
-		plugins.call_hook("output_write", self, config, articles)
+		call_hook("output_write", self, config, articles)
 
-		if not plugins.call_hook("output_sorted_filter", self, config, articles):
+		if not call_hook("output_sorted_filter", self, config, articles):
 			(articles, dup_count) = self.write_remove_dups(articles, config, now)
 		else:
 			dup_count = 0
 
 		config.log("Selected ", len(articles), " of ", numarticles, " articles to write; ignored ", dup_count, " duplicates")
 
-		if not plugins.call_hook("output_write_files", self, config, articles, article_dates):
+		if not call_hook("output_write_files", self, config, articles, article_dates):
 			self.write_output_file(articles, article_dates, config)
 
 		config.log("Finished write")
@@ -1930,7 +1932,7 @@ def main(argv):
 
 	rawdog.sync_from_config(config)
 
-	plugins.call_hook("startup", rawdog, config)
+	call_hook("startup", rawdog, config)
 
 	for o, a in optlist:
 		if o in ("-a", "--add"):
@@ -1959,7 +1961,7 @@ def main(argv):
 		elif o in ("-w", "--write"):
 			rawdog.write(config)
 
-	plugins.call_hook("shutdown", rawdog, config)
+	call_hook("shutdown", rawdog, config)
 
 	rawdog_p.close()
 

@@ -81,7 +81,10 @@ def safe_ftime(format, t):
 
 def format_time(secs, config):
 	"""Format a time and date nicely."""
-	t = time.localtime(secs)
+	try:
+		t = time.localtime(secs)
+	except ValueError, e:
+		return u"(bad time %s; %s)" % (repr(secs), str(e))
 	format = config["datetimeformat"]
 	if format is None:
 		format = config["timeformat"] + ", " + config["dayformat"]
@@ -775,7 +778,11 @@ class DayWriter:
 		self.counter += 1
 
 	def time(self, s):
-		tm = time.localtime(s)
+		try:
+			tm = time.localtime(s)
+		except ValueError:
+			# e.g. "timestamp out of range for platform time_t"
+			return
 		if tm[:3] != self.lasttime[:3] and self.config["daysections"]:
 			self.close(0)
 			self.start_day(tm)

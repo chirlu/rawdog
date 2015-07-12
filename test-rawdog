@@ -1298,10 +1298,15 @@ if [ -n "$ja_LC_ALL" ]; then
 	contains $statedir/output.html "HEADING-Tuesday" "ITEMDATE-Tuesday"
 fi
 
-begin "two-digit year with timezone"
-# As of 2015-07, feedparser treats the time zone as the year number in the date
-# below -- seen in the real world in <http://zeptobars.ru/en/rss>.
-# But time.strftime doesn't know how to format dates in the year 300 AD!
+begin "strange dates in feeds"
+# Python's time.strftime can't handle all possible dates, and the range of
+# dates that Python can work with in time_t format varies between platforms.
+# rawdog won't be able to display dates that Python can't handle, but it
+# should at least not crash if feedparser decides to present them
+# (for example, if feedparser misparses a timezone as a feed).
+echo "__date__" >$statedir/item
+add "itemtemplate item"
+add "sortbyfeeddate true"
 cat >$httpdir/feed.rss <<EOF
 <rss version="2.0">
   <channel>
@@ -1309,26 +1314,29 @@ cat >$httpdir/feed.rss <<EOF
     <link>http://example.org/</link>
     <description>example-feed-description</description>
     <item>
-      <title>example-item-title</title>
+      <title>Date in 300 outside 32-bit time_t range</title>
       <link>http://example.org/item</link>
+      <pubDate>Mon, 1 Jan 0300 01:23:45 +0000</pubDate>
+    </item>
+    <item>
+      <title>Date in 1750 using Julian calendar</title>
+      <link>http://example.org/item</link>
+      <pubDate>Mon, 1 Jan 1750 01:23:45 +0000</pubDate>
+    </item>
+    <item>
+      <title>Date in 1969 with negative time_t</title>
+      <link>http://example.org/item</link>
+      <pubDate>Wed, 1 Jan 1969 01:23:45 +0000</pubDate>
+    </item>
+    <item>
+      <title>Date in 2015 that feedparser 5.2.0 misparses as 300</title>
+      <link>http://zeptobars.ru/en/rss</link>
       <pubDate>Fri, 20 Mar 15 17:32:14 +0300</pubDate>
     </item>
   </channel>
 </rss>
 EOF
 add "feed 0 $httpurl/feed.rss"
-runs -uw
-
-begin "year before 1000"
-make_atom10 $httpdir/feed.atom
-add "feed 0 $httpurl/feed.atom"
-cat >$statedir/plugins/mangle.py <<EOF
-import rawdoglib.plugins
-def seen(rawdog, config, article, ignore):
-    # 25th July 385
-    article.date = -50000000000
-rawdoglib.plugins.attach_hook("article_seen", seen)
-EOF
 runs -uw
 
 begin "item authors"

@@ -17,6 +17,11 @@ Since feedparser's date parser is pretty liberal, it can occasionally
 interpret an invalid date incorrectly (e.g. treating a time zone as a
 year number).
 
+When an error occurs while parsing the config file, exit with a non-zero
+return code, rather than continuing with an incomplete config. This has
+always been the intended behaviour, but rawdog 2.13 accidentally removed
+the check.
+
 - rawdog 2.20
 
 Add a test for the maxage option (suggested by joelmo).

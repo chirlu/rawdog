@@ -532,37 +532,56 @@ rune "No such feed" -f $httpurl/feed.rss
 
 begin "bad config syntax"
 add "foo"
-rune "Bad line in config"
+runne "Bad line in config"
+
+begin "config error is fatal"
+add "foo"
+cat >$statedir/plugins/crash.py <<EOF
+import rawdoglib.plugins
+def startup(rawdog, config):
+    raise Exception("crash")
+rawdoglib.plugins.attach_hook("startup", startup)
+EOF
+runne "Bad line in config"
+
+begin "config error in --config"
+echo "foo" >$statedir/extra.conf
+runne "Bad line in config" --config extra.conf
+
+begin "config error in include"
+echo "foo" >$statedir/extra.conf
+add "include extra.conf"
+runne "Bad line in config"
 
 begin "bad config directive"
 add "foo bar"
-rune "Unknown config command"
+runne "Unknown config command"
 
 begin "bad boolean value in config"
 add "sortbyfeeddate aubergine"
-rune "Bad value"
+runne "Bad value"
 
 begin "bad time value in config"
 add "timeout aubergine"
-rune "Bad value"
+runne "Bad value"
 
 begin "bad integer value in config"
 add "maxarticles aubergine"
-rune "Bad value"
+runne "Bad value"
 
 begin "bad inline feed argument"
 add "feed 0 $httpurl/feed.rss aubergine"
-rune "Bad feed argument"
+runne "Bad feed argument"
 
 begin "bad feed argument line"
 add "feed 0 $httpurl/feed.rss"
 add "  aubergine"
-rune "Bad argument line"
+runne "Bad argument line"
 
 begin "feed argument line with no feed"
 : >$statedir/config
 add "  allowduplicates true"
-rune "First line in config cannot be an argument"
+runne "First line in config cannot be an argument"
 
 begin "feeddefaults on one line"
 add "feeddefaults allowduplicates=true"
@@ -576,23 +595,23 @@ runs
 begin "argument lines in the wrong place"
 add "tidyhtml false"
 add "  allowduplicates true"
-rune "Bad argument lines"
+runne "Bad argument lines"
 
 begin "feed with no time"
 add "feed"
-rune "Bad line in config"
+runne "Bad line in config"
 
 begin "feed with no URL"
 add "feed 3h"
-rune "Bad line in config"
+runne "Bad line in config"
 
 begin "define with no name"
 add "define"
-rune "Bad line in config"
+runne "Bad line in config"
 
 begin "define with no value"
 add "define thing"
-rune "Bad line in config"
+runne "Bad line in config"
 
 begin "define"
 add "define myvar This is my variable!"
@@ -603,7 +622,7 @@ contains $statedir/output.html "myvar(This is my variable!)"
 
 begin "missing config file"
 rm $statedir/config
-rune "Can't read config file" -u
+runne "Can't read config file" -u
 
 begin "empty config file"
 : >$statedir/config
@@ -1172,7 +1191,7 @@ contains $statedir/output.html MAGIC1 MAGIC2
 for template in page item feedlist feeditem; do
 	begin "missing ${template} template file"
 	add "${template}template ${template}"
-	rune "Can't read template file" -u
+	runne "Can't read template file" -u
 done
 
 begin "template conditionals"
@@ -1196,7 +1215,7 @@ echo "char(ø)" >$statedir/item
 make_atom10 $httpdir/feed.atom
 add "feed 0 $httpurl/feed.atom"
 add "itemtemplate item"
-rune "Character encoding problem" -uw
+runne "Character encoding problem" -uw
 
 if [ -n "$utf8_LC_ALL" ]; then
 	begin "UTF-8 in template, UTF-8 locale"
@@ -1215,7 +1234,7 @@ echo "expand(__thing__)" >$statedir/item
 add "itemtemplate item"
 add "feed 0 $httpurl/feed.atom"
 add "  define_thing char(ø)"
-rune "Character encoding problem" -uw
+runne "Character encoding problem" -uw
 
 if [ -n "$utf8_LC_ALL" ]; then
 	begin "UTF-8 in define, UTF-8 locale"

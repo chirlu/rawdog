@@ -1927,7 +1927,10 @@ def main(argv):
 			return 1
 		if verbose:
 			config["verbose"] = True
-	load_config("config")
+		return 0
+	rc = load_config("config")
+	if rc != 0:
+		return rc
 
 	global persister
 	persister = Persister(config)
@@ -1952,7 +1955,9 @@ def main(argv):
 			config.reload()
 			rawdog.sync_from_config(config)
 		elif o in ("-c", "--config"):
-			load_config(a)
+			rc = load_config(a)
+			if rc != 0:
+				return rc
 			rawdog.sync_from_config(config)
 		elif o in ("-f", "--update-feed"):
 			rawdog.update(config, a)

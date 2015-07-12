@@ -24,7 +24,7 @@ import rawdoglib.feedscanner
 from rawdoglib.persister import Persistable, Persister
 from rawdoglib.plugins import Box, call_hook, load_plugins
 
-from StringIO import StringIO
+from cStringIO import StringIO
 import base64
 import calendar
 import cgi

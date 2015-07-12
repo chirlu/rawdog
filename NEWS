@@ -9,6 +9,9 @@ locales have non-ASCII names.
 
 Fix some style problems reported by pylint.
 
+Use cStringIO rather than StringIO in all modules (rather than some
+using one and some using the other).
+
 - rawdog 2.20
 
 Add a test for the maxage option (suggested by joelmo).

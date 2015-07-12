@@ -1279,6 +1279,39 @@ if [ -n "$ja_LC_ALL" ]; then
 	contains $statedir/output.html "HEADING-Tuesday" "ITEMDATE-Tuesday"
 fi
 
+begin "two-digit year with timezone"
+# As of 2015-07, feedparser treats the time zone as the year number in the date
+# below -- seen in the real world in <http://zeptobars.ru/en/rss>.
+# But time.strftime doesn't know how to format dates in the year 300 AD!
+cat >$httpdir/feed.rss <<EOF
+<rss version="2.0">
+  <channel>
+    <title>example-feed-title</title>
+    <link>http://example.org/</link>
+    <description>example-feed-description</description>
+    <item>
+      <title>example-item-title</title>
+      <link>http://example.org/item</link>
+      <pubDate>Fri, 20 Mar 15 17:32:14 +0300</pubDate>
+    </item>
+  </channel>
+</rss>
+EOF
+add "feed 0 $httpurl/feed.rss"
+runs -uw
+
+begin "year before 1000"
+make_atom10 $httpdir/feed.atom
+add "feed 0 $httpurl/feed.atom"
+cat >$statedir/plugins/mangle.py <<EOF
+import rawdoglib.plugins
+def seen(rawdog, config, article, ignore):
+    # 25th July 385
+    article.date = -50000000000
+rawdoglib.plugins.attach_hook("article_seen", seen)
+EOF
+runs -uw
+
 begin "item authors"
 cat >$httpdir/feed.atom <<EOF
 <?xml version="1.0" encoding="utf-8"?>

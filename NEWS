@@ -12,6 +12,11 @@ Fix some style problems reported by pylint.
 Use cStringIO rather than StringIO in all modules (rather than some
 using one and some using the other).
 
+Don't crash when feedparser returns a date that Python can't format.
+Since feedparser's date parser is pretty liberal, it can occasionally
+interpret an invalid date incorrectly (e.g. treating a time zone as a
+year number).
+
 - rawdog 2.20
 
 Add a test for the maxage option (suggested by joelmo).

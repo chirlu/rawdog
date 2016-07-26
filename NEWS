@@ -5,6 +5,8 @@ location is an absolute URI (as the HTTP/1.1 specification says it
 should be). Some broken servers return a relative path, or junk, and in
 those cases rawdog shouldn't update the URL in the config file.
 
+Fix some more style problems reported by pylint.
+
 - rawdog 2.21
 
 Don't crash when asked to show a non-existant template ("-s foo") -- and

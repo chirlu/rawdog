@@ -1,5 +1,5 @@
 # plugins: handle add-on modules for rawdog.
-# Copyright 2004, 2005, 2013 Adam Sampson <ats@offog.org>
+# Copyright 2004, 2005, 2013, 2016 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software
@@ -75,4 +75,3 @@ def call_hook(hookname, *args):
 		if not func(*args):
 			return True
 	return False
-

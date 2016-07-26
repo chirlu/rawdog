@@ -1303,7 +1303,7 @@ begin "strange dates in feeds"
 # dates that Python can work with in time_t format varies between platforms.
 # rawdog won't be able to display dates that Python can't handle, but it
 # should at least not crash if feedparser decides to present them
-# (for example, if feedparser misparses a timezone as a feed).
+# (for example, if feedparser misparses a timezone as a year).
 echo "__date__" >$statedir/item
 add "itemtemplate item"
 add "sortbyfeeddate true"

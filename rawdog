@@ -18,7 +18,9 @@
 # MA 02110-1301, USA, or see http://www.gnu.org/.
 
 from rawdoglib.rawdog import main
-import sys, os
+
+import os
+import sys
 
 def launch():
 	sys.exit(main(sys.argv[1:]))

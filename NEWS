@@ -1,3 +1,5 @@
+- rawdog 2.22
+
 - rawdog 2.21
 
 Don't crash when asked to show a non-existant template ("-s foo") -- and

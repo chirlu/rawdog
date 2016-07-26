@@ -1,5 +1,5 @@
 # rawdog: RSS aggregator without delusions of grandeur.
-# Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013, 2014, 2015 Adam Sampson <ats@offog.org>
+# Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013, 2014, 2015, 2016 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software
@@ -16,7 +16,7 @@
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA, or see http://www.gnu.org/.
 
-VERSION = "2.21"
+VERSION = "2.22rc1"
 HTTP_AGENT = "rawdog/" + VERSION
 STATE_VERSION = 2
 

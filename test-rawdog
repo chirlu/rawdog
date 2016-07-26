@@ -1,6 +1,6 @@
 #!/bin/sh
 # test-rawdog: run some basic tests to make sure rawdog's working.
-# Copyright 2013, 2014, 2015 Adam Sampson <ats@offog.org>
+# Copyright 2013, 2014, 2015, 2016 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software
@@ -1569,6 +1569,14 @@ contains $statedir/config "$httpurl/302/feed.rss"
 begin "HTTP 301 to nowhere"
 add "feed 0 $httpurl/301"
 rune "without a new location" -u
+
+for badurl in "/" "http:" "://example.org" "://example.org:80,example.org/"; do
+	begin "HTTP 301 to invalid Location $badurl"
+	add "changeconfig true"
+	add "feed 0 $httpurl/301/=$badurl"
+	rune "invalid new location" -u
+	contains $statedir/config "$httpurl/301/=$badurl"
+done
 
 begin "HTTP 410 gone"
 add "feed 0 $httpurl/410"

@@ -41,6 +41,7 @@ import threading
 import time
 import types
 import urllib2
+import urlparse
 
 try:
 	import tidylib
@@ -538,7 +539,22 @@ class Feed:
 				i += 1
 			location = responses[i - 1].get("location")
 
-			if location is None:
+			# According to RFC 2616, the Location header should be
+			# an absolute URI. This doesn't stop the occasional
+			# server sending something like "Location: /" or
+			# "Location: //foo/bar". It's usually a sign of
+			# brokenness, so fail rather than trying to interpret
+			# it liberally.
+			valid_uri = True
+			if location is not None:
+				parsed = urlparse.urlparse(location)
+				if parsed.scheme == "" or parsed.netloc == "":
+					valid_uri = False
+
+			if not valid_uri:
+				errors.append("New URL:     " + location)
+				errors.append("The feed returned a permanent redirect, but with an invalid new location.")
+			elif location is None:
 				errors.append("The feed returned a permanent redirect, but without a new location.")
 			else:
 				errors.append("New URL:     " + location)

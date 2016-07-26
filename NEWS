@@ -1,5 +1,10 @@
 - rawdog 2.22
 
+When handling an HTTP 301 redirect response, check whether the new
+location is an absolute URI (as the HTTP/1.1 specification says it
+should be). Some broken servers return a relative path, or junk, and in
+those cases rawdog shouldn't update the URL in the config file.
+
 - rawdog 2.21
 
 Don't crash when asked to show a non-existant template ("-s foo") -- and

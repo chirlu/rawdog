@@ -1,5 +1,5 @@
 # testserver: servers for rawdog's test suite.
-# Copyright 2013 Adam Sampson <ats@offog.org>
+# Copyright 2013, 2016 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software
@@ -104,9 +104,16 @@ class HTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         if m:
             # Request for a particular response code.
             code = int(m.group(1))
+            dest = m.group(2)
             self.send_response(code)
-            if m.group(2):
-                self.send_header("Location", self.server.base_url + m.group(2))
+            if dest:
+                if dest.startswith("/="):
+                    # Provide an exact value for Location (to simulate an
+                    # invalid response).
+                    dest = dest[2:]
+                else:
+                    dest = self.server.base_url + dest
+                self.send_header("Location", dest)
             self.end_headers()
             return None
 

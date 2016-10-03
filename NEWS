@@ -7,6 +7,11 @@ those cases rawdog shouldn't update the URL in the config file.
 
 Fix some more style problems reported by pylint.
 
+Specify the input and output character encodings for pytidylib
+explicitly. tidylib 5 has changed the defaults from ASCII to UTF-8;
+rawdog relies on it being ASCII in order to generate ASCII output
+(reported by Lucas Nussbaum).
+
 - rawdog 2.21
 
 Don't crash when asked to show a non-existant template ("-s foo") -- and

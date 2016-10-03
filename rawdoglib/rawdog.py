@@ -136,6 +136,8 @@ def sanitise_html(html, baseurl, inline, config):
 	if config["tidyhtml"]:
 		args = {
 			"numeric_entities": 1,
+			"input_encoding": "ascii",
+			"output_encoding": "ascii",
 			"output_html": 1,
 			"output_xhtml": 0,
 			"output_xml": 0,

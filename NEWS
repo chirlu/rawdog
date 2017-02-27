@@ -1,3 +1,5 @@
+- rawdog 2.23
+
 - rawdog 2.22
 
 When handling an HTTP 301 redirect response, check whether the new

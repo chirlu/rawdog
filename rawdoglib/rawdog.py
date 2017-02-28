@@ -562,8 +562,7 @@ class Feed:
 				errors.append("New URL:     " + location)
 				errors.append("The feed has moved permanently to a new URL.")
 				if config["changeconfig"]:
-					rawdog.change_feed_url(self.url, location, config)
-					errors.append("The config file has been updated automatically.")
+					rawdog.change_feed_url(self.url, location, config, errors.append)
 				else:
 					errors.append("You should update its entry in your config file.")
 			errors.append("")
@@ -1262,13 +1261,13 @@ class Rawdog(Persistable):
 			version = 1
 		return version == STATE_VERSION
 
-	def change_feed_url(self, oldurl, newurl, config):
+	def change_feed_url(self, oldurl, newurl, config, error_fn):
 		"""Change the URL of a feed."""
 
 		assert self.feeds.has_key(oldurl)
 		if self.feeds.has_key(newurl):
-			print >>sys.stderr, "Error: New feed URL is already subscribed; please remove the old one"
-			print >>sys.stderr, "from the config file by hand."
+			error_fn("Error: New feed URL is already subscribed; please remove the old one")
+			error_fn("from the config file by hand.")
 			return
 
 		edit_file("config", ChangeFeedEditor(oldurl, newurl).edit)
@@ -1293,7 +1292,7 @@ class Rawdog(Persistable):
 				if article.feed == oldurl:
 					article.feed = newurl
 
-		print >>sys.stderr, "Feed URL automatically changed."
+		error_fn("The config file has been updated automatically.")
 
 	def list(self, config):
 		"""List the configured feeds."""

@@ -1,5 +1,9 @@
 - rawdog 2.23
 
+When automatically updating the config file in response to an HTTP
+redirect fails, produce a more sensible error message (including the URL
+of the feed in question).
+
 - rawdog 2.22
 
 When handling an HTTP 301 redirect response, check whether the new

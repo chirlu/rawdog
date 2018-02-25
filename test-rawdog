@@ -1,6 +1,6 @@
 #!/bin/sh
 # test-rawdog: run some basic tests to make sure rawdog's working.
-# Copyright 2013, 2014, 2015, 2016 Adam Sampson <ats@offog.org>
+# Copyright 2013, 2014, 2015, 2016, 2018 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software
@@ -786,6 +786,24 @@ begin "--dump"
 make_atom10 $httpdir/feed.atom
 run --dump $httpurl/feed.atom
 contains $outfile example-feed-title
+
+begin "--find, successful"
+make_atom10 $httpdir/feed1.atom
+make_atom10 $httpdir/feed2.atom
+make_html_head $httpdir/page.html <<EOF
+<link rel="alternate" type="application/atom+xml" title="one" href="$httpurl/feed1.atom">
+<link rel="alternate" type="application/atom+xml" title="two" href="$httpurl/feed2.atom">
+EOF
+run --find $httpurl/page.html
+contains $outfile $httpurl/feed1.atom
+contains $outfile $httpurl/feed2.atom
+
+begin "--find, unsuccessful"
+make_html_head $httpdir/page.html <<EOF
+(no feeds in this file)
+EOF
+runn --find $httpurl/page.html
+not_contains $outfile '/'
 
 begin "filename"
 make_rss20 $statedir/simple.rss

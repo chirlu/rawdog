@@ -4,6 +4,9 @@ When automatically updating the config file in response to an HTTP
 redirect fails, produce a more sensible error message (including the URL
 of the feed in question).
 
+Add the --find option, which shows what feedscanner returns for a given
+URL (as --dump does for feedparser).
+
 - rawdog 2.22
 
 When handling an HTTP 301 redirect response, check whether the new

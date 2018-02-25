@@ -1,5 +1,5 @@
 # rawdog: RSS aggregator without delusions of grandeur.
-# Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013, 2014, 2015, 2016, 2017 Adam Sampson <ats@offog.org>
+# Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013, 2014, 2015, 2016, 2017, 2018 Adam Sampson <ats@offog.org>
 #
 # rawdog is free software; you can redistribute and/or modify it
 # under the terms of that license as published by the Free Software
@@ -1858,6 +1858,7 @@ Actions (performed in order given):
 
 Special actions (all other options are ignored if one of these is specified):
 --dump URL                   Show what rawdog's parser returns for URL
+--find URL                   Show what rawdog's feed finder returns for URL
 --help                       Display this help and exit
 
 Report bugs to <ats@offog.org>."""
@@ -1879,6 +1880,7 @@ def main(argv):
 			"config=",
 			"dir=",
 			"dump=",
+			"find=",
 			"help",
 			"list",
 			"log=",
@@ -1915,6 +1917,13 @@ def main(argv):
 		if o == "--dump":
 			import pprint
 			pprint.pprint(feedparser.parse(a, agent=HTTP_AGENT))
+			return 0
+		elif o == "--find":
+			feeds = rawdoglib.feedscanner.feeds(a)
+			if len(feeds) == 0:
+				return 1
+			for url in feeds:
+				print url
 			return 0
 		elif o == "--help":
 			usage()

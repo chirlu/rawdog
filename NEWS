@@ -7,6 +7,9 @@ of the feed in question).
 Add the --find option, which shows what feedscanner returns for a given
 URL (as --dump does for feedparser).
 
+The location of BASE_OPTIONS has changed in pytidylib 0.3.2; rather than
+trying to change it, override the corresponding options explicitly.
+
 - rawdog 2.22
 
 When handling an HTTP 301 redirect response, check whether the new

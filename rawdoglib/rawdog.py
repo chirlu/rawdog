@@ -134,20 +134,27 @@ def sanitise_html(html, baseurl, inline, config):
 			html = "<p>" + html
 
 	if config["tidyhtml"]:
+		# This must include: options where the default value in tidy
+		# has changed at some point, and pytidylib's BASE_OPTIONS which
+		# it would otherwise set if we didn't specify them.
 		args = {
 			"numeric_entities": 1,
+			# In tidy 0.99 these are ASCII; in tidy 5, UTF-8.
 			"input_encoding": "ascii",
 			"output_encoding": "ascii",
 			"output_html": 1,
 			"output_xhtml": 0,
 			"output_xml": 0,
+			"indent": 0,
+			"tidy-mark": 0,
+			"alt-text": "",
+			"doctype": "strict",
+			"force-output": 1,
 			"wrap": 0,
 			}
 		call_hook("mxtidy_args", config, args, baseurl, inline)
 		call_hook("tidy_args", config, args, baseurl, inline)
 		if tidylib is not None:
-			# Disable PyTidyLib's somewhat unhelpful defaults.
-			tidylib.BASE_OPTIONS = {}
 			output = tidylib.tidy_document(html, args)[0]
 		elif mxtidy is not None:
 			output = mxtidy.tidy(html, None, None, **args)[2]

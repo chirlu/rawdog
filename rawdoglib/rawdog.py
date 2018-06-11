@@ -150,7 +150,9 @@ def sanitise_html(html, baseurl, inline, config):
 			"alt-text": "",
 			"doctype": "strict",
 			"force-output": 1,
-			"wrap": 0,
+			# In tidy 0.99, wrap=0 means don't wrap.
+			# In tidy 5, wrap=0 means wrap to width 0.
+			"wrap": 68,
 			}
 		call_hook("mxtidy_args", config, args, baseurl, inline)
 		call_hook("tidy_args", config, args, baseurl, inline)

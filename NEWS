@@ -9,6 +9,8 @@ URL (as --dump does for feedparser).
 
 The location of BASE_OPTIONS has changed in pytidylib 0.3.2; rather than
 trying to change it, override the corresponding options explicitly.
+The meaning of tidylib's wrap option has also changed, so set a sensible
+default value.
 
 - rawdog 2.22
 

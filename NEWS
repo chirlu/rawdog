@@ -1,5 +1,9 @@
 - rawdog 2.23
 
+rawdog now requires Python 2.7. Python 2.6 doesn't build with current
+toolchains, and hasn't been included in Debian for several releases, so
+I can't test against it any more.
+
 When automatically updating the config file in response to an HTTP
 redirect fails, produce a more sensible error message (including the URL
 of the feed in question).

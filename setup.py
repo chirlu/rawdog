@@ -3,8 +3,8 @@
 from distutils.core import setup
 import sys
 
-if sys.version_info < (2, 6) or sys.version_info >= (3,):
-	print("rawdog requires Python 2.6 or later, and not Python 3.")
+if sys.version_info < (2, 7) or sys.version_info >= (3,):
+	print("rawdog requires Python 2.7 or later, and not Python 3.")
 	sys.exit(1)
 
 setup(name="rawdog",

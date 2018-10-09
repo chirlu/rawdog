@@ -53,15 +53,15 @@ try:
 except:
 	mxtidy = None
 
-# Turn off content-cleaning, since we want to see an approximation to the
-# original content for hashing. rawdog will sanitise HTML when writing.
-feedparser.RESOLVE_RELATIVE_URIS = 0
-feedparser.SANITIZE_HTML = 0
-
-# Disable microformat support, because it tends to return poor-quality data
-# (e.g. identifying inappropriate things as enclosures), and it relies on
-# BeautifulSoup which is unable to parse many feeds.
-feedparser.PARSE_MICROFORMATS = 0
+# The sanitisation code was restructured in feedparser 5.3.
+try:
+	_resolveRelativeURIs = feedparser.urls._resolveRelativeURIs
+except AttributeError:
+	_resolveRelativeURIs = feedparser._resolveRelativeURIs
+try:
+	_HTMLSanitizer = feedparser.sanitizer._HTMLSanitizer
+except AttributeError:
+	_HTMLSanitizer = feedparser._HTMLSanitizer
 
 # This is initialised in main().
 persister = None
@@ -119,8 +119,8 @@ def sanitise_html(html, baseurl, inline, config):
 	# "<!doctype html!>"); just remove them all.
 	html = re.sub(r'<![^>]*>', '', html)
 
-	html = feedparser._resolveRelativeURIs(html, baseurl, "UTF-8", type)
-	p = feedparser._HTMLSanitizer("UTF-8", type)
+	html = _resolveRelativeURIs(html, baseurl, "UTF-8", type)
+	p = _HTMLSanitizer("UTF-8", type)
 	p.feed(html)
 	html = p.output()
 
@@ -491,12 +491,29 @@ class Feed:
 		if not ":" in url:
 			url = "file:" + url
 
+		parse_args = {
+			"etag": self.etag,
+			"modified": self.modified,
+			"agent": HTTP_AGENT,
+			"handlers": handlers,
+			}
+		# Turn off content-cleaning, as we need the original content
+		# for hashing and we'll do this ourselves afterwards.
+		if hasattr(feedparser, "api"):
+			# feedparser >= 5.3
+			parse_args["sanitize_html"] = False
+			parse_args["resolve_relative_uris"] = False
+		else:
+			# feedparser < 5.3
+			feedparser.RESOLVE_RELATIVE_URIS = 0
+			feedparser.SANITIZE_HTML = 0
+			# Microformat support (removed in 5.3) tends to return
+			# poor-quality data, and relies on BeautifulSoup which
+			# is unable to parse many feeds.
+			feedparser.PARSE_MICROFORMATS = 0
+
 		try:
-			result = feedparser.parse(url,
-				etag=self.etag,
-				modified=self.modified,
-				agent=HTTP_AGENT,
-				handlers=handlers)
+			result = feedparser.parse(url, **parse_args)
 		except Exception, e:
 			result = {
 				"rawdog_exception": e,

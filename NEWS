@@ -16,6 +16,10 @@ trying to change it, override the corresponding options explicitly.
 The meaning of tidylib's wrap option has also changed, so set a sensible
 default value.
 
+Support the current development version of feedparser (which will
+presumably be the 5.3 release eventually), which has been restructured
+into multiple modules.
+
 - rawdog 2.22
 
 When handling an HTTP 301 redirect response, check whether the new

@@ -363,6 +363,12 @@ def is_timeout_exception(exc):
 	"""Return True if the given exception object suggests that a timeout
 	occurred, else return False."""
 
+	if exc is None:
+		return False
+
+	if isinstance(exc, socket.timeout):
+		return True
+
 	# Since urlopen throws away the original exception object,
 	# we have to look at the stringified form to tell if it was a timeout.
 	# (We're in reasonable company here, since test_ssl.py in the Python
@@ -514,12 +520,30 @@ class Feed:
 
 		try:
 			result = feedparser.parse(url, **parse_args)
+
+			# Older versions of feedparser return some kinds of
+			# download errors in bozo_exception rather than raising
+			# them from feedparser.parse. Normalise this.
+			e = result.get("bozo_exception")
+			if is_timeout_exception(e):
+				result = {"rawdog_timeout": e}
+			elif isinstance(e, urllib2.URLError):
+				result = {"rawdog_exception": e}
 		except Exception, e:
-			result = {
-				"rawdog_exception": e,
-				"rawdog_traceback": sys.exc_info()[2],
-				}
+			if is_timeout_exception(e):
+				result = {"rawdog_timeout": e}
+			else:
+				result = {
+					"rawdog_exception": e,
+					"rawdog_traceback": sys.exc_info()[2],
+					}
 		result["rawdog_responses"] = logger.get_log()
+
+		# For compatibility with old hooks, include an empty "feed"
+		# if a timeout occurred.
+		if "rawdog_timeout" in result:
+			result["feed"] = []
+
 		return result
 
 	def update(self, rawdog, now, config, articles, p):
@@ -550,15 +574,6 @@ class Feed:
 		errors = []
 		fatal = False
 		old_url = self.url
-
-		if "rawdog_exception" in p:
-			errors.append("Error fetching or parsing feed:")
-			errors.append(str(p["rawdog_exception"]))
-			if config["showtracebacks"]:
-				from traceback import format_tb
-				errors.append("".join(format_tb(p["rawdog_traceback"])))
-			errors.append("")
-			fatal = True
 
 		if len(responses) != 0 and responses[0]["status"] == 301:
 			# Permanent redirect(s). Find the new location.
@@ -593,23 +608,21 @@ class Feed:
 					errors.append("You should update its entry in your config file.")
 			errors.append("")
 
-		bozo_exception = p.get("bozo_exception")
-		got_urlerror = isinstance(bozo_exception, urllib2.URLError)
-		got_timeout = isinstance(bozo_exception, socket.timeout)
-		if got_urlerror or got_timeout:
-			# urllib2 reported an error when fetching the feed.
-			# Check to see if it was a timeout.
-			if not (got_timeout or is_timeout_exception(bozo_exception)):
-				errors.append("Error while fetching feed:")
-				errors.append(str(bozo_exception))
-				errors.append("")
-				fatal = True
-			elif config["ignoretimeouts"]:
+		if "rawdog_timeout" in p:
+			if config["ignoretimeouts"]:
 				return False
 			else:
 				errors.append("Timeout while reading feed.")
 				errors.append("")
 				fatal = True
+		elif "rawdog_exception" in p:
+			errors.append("Error fetching or parsing feed:")
+			errors.append(str(p["rawdog_exception"]))
+			if config["showtracebacks"] and "rawdog_traceback" in p:
+				from traceback import format_tb
+				errors.append("".join(format_tb(p["rawdog_traceback"])))
+			errors.append("")
+			fatal = True
 		elif last_status == 304:
 			# The feed hasn't changed. Return False to indicate
 			# that we shouldn't do expiry.

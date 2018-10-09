@@ -18,7 +18,16 @@ default value.
 
 Support the current development version of feedparser (which will
 presumably be the 5.3 release eventually), which has been restructured
-into multiple modules.
+into multiple modules, and raises network exceptions (e.g. timeouts)
+directly from feedparser.parse rather than putting them in
+bozo_exception.
+
+rawdog's exception-handling code has been cleaned up as a result of the
+above, and should work consistently for old and new versions of
+feedparser. In the feedparser result dict, "bozo_exception" is now
+converted to "rawdog_exception" for network errors, and "rawdog_timeout"
+is set if a timeout exception occurred. For compatibility with existing
+plugins, an empty "feed" is also provided on a timeout.
 
 - rawdog 2.22
 

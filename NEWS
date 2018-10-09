@@ -29,6 +29,9 @@ converted to "rawdog_exception" for network errors, and "rawdog_timeout"
 is set if a timeout exception occurred. For compatibility with existing
 plugins, an empty "feed" is also provided on a timeout.
 
+Update COPYING and the GPL v2 license notices to the FSF's current
+recommended text.
+
 - rawdog 2.22
 
 When handling an HTTP 301 redirect response, check whether the new

@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-VERSION = "2.23rc1"
+VERSION = "2.23"
 HTTP_AGENT = "rawdog/" + VERSION
 STATE_VERSION = 2
 

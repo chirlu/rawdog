@@ -5,6 +5,8 @@ rawdog's User-Agent rather than the default one. As some blogging
 services block requests with the default Python User-Agent, this makes
 scanning a bit more effective.
 
+Use the Python 3-style print function (supported since Python 2.6).
+
 - rawdog 2.23
 
 rawdog now requires Python 2.7. Python 2.6 doesn't build with current

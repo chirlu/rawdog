@@ -750,19 +750,21 @@ runs -uw
 
 begin "stacking hook functions"
 cat >$statedir/plugins/a.py <<EOF
+from __future__ import print_function
 import rawdoglib.plugins
 def opt(config, name, value):
     if name == "testa":
-        print "saw-a"
+        print("saw-a")
         return False
     return True
 rawdoglib.plugins.attach_hook("config_option", opt)
 EOF
 cat >$statedir/plugins/b.py <<EOF
+from __future__ import print_function
 import rawdoglib.plugins
 def opt(config, name, value):
     if name == "testb":
-        print "saw-b"
+        print("saw-b")
         return False
     return True
 rawdoglib.plugins.attach_hook("config_option", opt)
@@ -1513,10 +1515,11 @@ runs -u
 # code.
 checkstatus () {
 	cat >$statedir/plugins/checkstatus.py <<EOF
+from __future__ import print_function
 import rawdoglib.plugins
 def feed_fetched(rawdog, config, feed, p, error, nf):
     if $1 not in [e['status'] for e in p['rawdog_responses']]:
-        print "didn't get HTTP $1 response"
+        print("didn't get HTTP $1 response")
 rawdoglib.plugins.attach_hook("feed_fetched", feed_fetched)
 EOF
 }

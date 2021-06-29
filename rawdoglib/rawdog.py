@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 VERSION = "2.24rc1"
 HTTP_AGENT = "rawdog/" + VERSION
 STATE_VERSION = 2
@@ -651,11 +653,11 @@ class Feed:
 		call_hook("feed_fetched", rawdog, config, self, p, old_error, not fatal)
 
 		if len(errors) != 0:
-			print >>sys.stderr, "Feed:        " + old_url
+			config.warn("Feed:        ", old_url)
 			if last_status != 0:
-				print >>sys.stderr, "HTTP Status: " + str(last_status)
+				config.warn("HTTP Status: ", last_status)
 			for line in errors:
-				print >>sys.stderr, line
+				config.warn(line)
 			if fatal:
 				return False
 
@@ -820,15 +822,15 @@ class DayWriter:
 		self.config = config
 
 	def start_day(self, tm):
-		print >>self.file, '<div class="day">'
+		self.file.write('<div class="day">\n')
 		day = safe_ftime(self.config["dayformat"], tm)
-		print >>self.file, '<h2>' + day + '</h2>'
+		self.file.write('<h2>' + day + '</h2>\n')
 		self.counter += 1
 
 	def start_time(self, tm):
-		print >>self.file, '<div class="time">'
+		self.file.write('<div class="time">\n')
 		clock = safe_ftime(self.config["timeformat"], tm)
-		print >>self.file, '<h3>' + clock + '</h3>'
+		self.file.write('<h3>' + clock + '</h3>\n')
 		self.counter += 1
 
 	def time(self, s):
@@ -850,7 +852,7 @@ class DayWriter:
 
 	def close(self, n=0):
 		while self.counter > n:
-			print >>self.file, "</div>"
+			self.file.write('</div>\n')
 			self.counter -= 1
 
 def parse_time(value, default="m"):
@@ -1117,24 +1119,29 @@ class Config:
 		if arglines != [] and not handled_arglines:
 			raise ConfigError("Bad argument lines in config after: " + line)
 
+	def warn(self, *args):
+		"""Print a warning message to stderr (even in non-verbose
+		mode)."""
+		with self.loglock:
+			sys.stderr.write("".join(map(str, args)) + "\n")
+
 	def log(self, *args):
 		"""Print a status message. If running in verbose mode, write
 		the message to stderr; if using a logfile, write it to the
 		logfile."""
 		if self["verbose"]:
-			with self.loglock:
-				print >>sys.stderr, "".join(map(str, args))
+			self.warn(*args)
 		if self.logfile is not None:
 			with self.loglock:
-				print >>self.logfile, "".join(map(str, args))
+				self.logfile.write("".join(map(str, args)) + "\n")
 				self.logfile.flush()
 
 	def bug(self, *args):
 		"""Report detection of a bug in rawdog."""
-		print >>sys.stderr, "Internal error detected in rawdog:"
-		print >>sys.stderr, "".join(map(str, args))
-		print >>sys.stderr, "This could be caused by a bug in rawdog itself or in a plugin."
-		print >>sys.stderr, "Please send this error message and your config file to the rawdog author."
+		self.warn("Internal error detected in rawdog:")
+		self.warn(*args)
+		self.warn("This could be caused by a bug in rawdog itself or in a plugin.")
+		self.warn("Please send this error message and your config file to the rawdog author.")
 
 def edit_file(filename, editfunc):
 	"""Edit a file in place: for each line in the input file, call
@@ -1162,15 +1169,15 @@ def add_feed(filename, url, rawdog, config):
 	"""Try to add a feed to the config file."""
 	feeds = rawdoglib.feedscanner.feeds(url, agent=HTTP_AGENT)
 	if feeds == []:
-		print >>sys.stderr, "Cannot find any feeds in " + url
+		config.warn("Cannot find any feeds in ", url)
 		return
 
 	feed = feeds[0]
 	if feed in rawdog.feeds:
-		print >>sys.stderr, "Feed " + feed + " is already in the config file"
+		config.warn("Feed ", feed, " is already in the config file")
 		return
 
-	print >>sys.stderr, "Adding feed " + feed
+	config.warn("Adding feed ", feed)
 	feedline = "feed %s %s\n" % (config["newfeedperiod"], feed)
 	edit_file(filename, AddFeedEditor(feedline).edit)
 
@@ -1210,9 +1217,9 @@ class RemoveFeedEditor:
 def remove_feed(filename, url, config):
 	"""Try to remove a feed from the config file."""
 	if url not in [f[0] for f in config["feedslist"]]:
-		print >>sys.stderr, "Feed " + url + " is not in the config file"
+		config.warn("Feed ", url, " is not in the config file")
 	else:
-		print >>sys.stderr, "Removing feed " + url
+		config.warn("Removing feed ", url)
 		edit_file(filename, RemoveFeedEditor(url).edit)
 
 class FeedFetcher:
@@ -1335,11 +1342,11 @@ class Rawdog(Persistable):
 		"""List the configured feeds."""
 		for url, feed in self.feeds.items():
 			feed_info = feed.feed_info
-			print url
-			print "  ID:", feed.get_id(config)
-			print "  Hash:", short_hash(url)
-			print "  Title:", feed.get_html_name(config)
-			print "  Link:", feed_info.get("link")
+			print(url)
+			print("  ID:", feed.get_id(config))
+			print("  Hash:", short_hash(url))
+			print("  Title:", feed.get_html_name(config))
+			print("  Link:", feed_info.get("link"))
 
 	def sync_from_config(self, config):
 		"""Update rawdog's internal state to match the
@@ -1434,7 +1441,7 @@ class Rawdog(Persistable):
 			self.feeds[feedurl].etag = None
 			self.feeds[feedurl].modified = None
 		else:
-			print "No such feed: " + feedurl
+			config.warn("No such feed: ", feedurl)
 			update_feeds = []
 
 		numfeeds = len(update_feeds)
@@ -1597,9 +1604,9 @@ __feeditems__
 	def show_template(self, name, config):
 		"""Show the contents of a template, as currently configured."""
 		try:
-			print self.get_template(config, name),
+			sys.stdout.write(self.get_template(config, name))
 		except KeyError:
-			print >>sys.stderr, "Unknown template name: " + name
+			config.warn("Unknown template name: ", name)
 
 	def write_article(self, f, article, config):
 		"""Write an article to the given file."""
@@ -1871,7 +1878,7 @@ __feeditems__
 
 def usage():
 	"""Display usage information."""
-	print """rawdog, version """ + VERSION + """
+	print("""rawdog, version """ + VERSION + """
 Usage: rawdog [OPTION]...
 
 General options (use only once):
@@ -1898,7 +1905,7 @@ Special actions (all other options are ignored if one of these is specified):
 --find URL                   Show what rawdog's feed finder returns for URL
 --help                       Display this help and exit
 
-Report bugs to <ats@offog.org>."""
+Report bugs to <ats@offog.org>.""")
 
 def main(argv):
 	"""The command-line interface to the aggregator."""
@@ -1934,7 +1941,7 @@ def main(argv):
 			]
 		(optlist, args) = getopt.getopt(argv, SHORTOPTS, LONGOPTS)
 	except getopt.GetoptError, s:
-		print s
+		print(s)
 		usage()
 		return 1
 
@@ -1960,7 +1967,7 @@ def main(argv):
 			if len(feeds) == 0:
 				return 1
 			for url in feeds:
-				print url
+				print(url)
 			return 0
 		elif o == "--help":
 			usage()
@@ -1976,13 +1983,13 @@ def main(argv):
 		elif o in ("-W", "--no-lock-wait"):
 			no_lock_wait = True
 	if statedir is None:
-		print "$HOME not set and state dir not explicitly specified; please use -d/--dir"
+		print("$HOME not set and state dir not explicitly specified; please use -d/--dir")
 		return 1
 
 	try:
 		os.chdir(statedir)
 	except OSError:
-		print "No " + statedir + " directory"
+		print("No " + statedir + " directory")
 		return 1
 
 	sys.path.append(".")
@@ -1992,8 +1999,8 @@ def main(argv):
 		try:
 			config.load(fn)
 		except ConfigError, err:
-			print >>sys.stderr, "In " + fn + ":"
-			print >>sys.stderr, err
+			config.warn("In ", fn, ":")
+			config.warn(err)
 			return 1
 		if verbose:
 			config["verbose"] = True
@@ -2010,9 +2017,9 @@ def main(argv):
 	if rawdog is None:
 		return 0
 	if not rawdog.check_state_version():
-		print "The state file " + statedir + "/state was created by an older"
-		print "version of rawdog, and cannot be read by this version."
-		print "Removing the state file will fix it."
+		print("The state file " + statedir + "/state was created by an older")
+		print("version of rawdog, and cannot be read by this version.")
+		print("Removing the state file will fix it.")
 		return 1
 
 	rawdog.sync_from_config(config)

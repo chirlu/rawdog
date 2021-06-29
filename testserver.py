@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import BaseHTTPServer
 import SimpleHTTPServer
 import SocketServer
@@ -195,7 +197,7 @@ class HTTPServer(BaseHTTPServer.HTTPServer):
 
 def main(args):
     if len(args) < 3:
-        print "Usage: testserver.py HOSTNAME TIMEOUT-PORT HTTP-PORT FILES-DIR"
+        print("Usage: testserver.py HOSTNAME TIMEOUT-PORT HTTP-PORT FILES-DIR")
         sys.exit(1)
 
     hostname = args[0]

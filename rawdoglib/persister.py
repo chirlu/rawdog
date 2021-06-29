@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import cPickle as pickle
 import errno
 import fcntl
@@ -90,8 +92,8 @@ class Persisted:
 		except KeyboardInterrupt:
 			sys.exit(1)
 		except:
-			print "An error occurred while reading state from " + os.path.abspath(self.filename) + "."
-			print "This usually means the file is corrupt, and removing it will fix the problem."
+			print("An error occurred while reading state from " + os.path.abspath(self.filename) + ".")
+			print("This usually means the file is corrupt, and removing it will fix the problem.")
 			sys.exit(1)
 
 		self.refcount = 1

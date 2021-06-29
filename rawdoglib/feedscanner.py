@@ -15,7 +15,7 @@ Required: Python 2.4 or later, feedparser
 
 __license__ = """
 Copyright (c) 2008 Decklin Foster <decklin@red-bean.com>
-Copyright (c) 2013, 2015 Adam Sampson <ats@offog.org>
+Copyright (c) 2013, 2015, 2021 Adam Sampson <ats@offog.org>
 
 Permission to use, copy, modify, and/or distribute this software for
 any purpose with or without fee is hereby granted, provided that
@@ -40,19 +40,22 @@ import urllib2
 import urlparse
 import HTMLParser
 
-def is_feed(url):
+HTTP_AGENT = "feedscanner/1.0"
+
+def is_feed(url, agent=HTTP_AGENT):
     """Return true if feedparser can understand the given URL as a feed."""
 
-    p = feedparser.parse(url)
+    p = feedparser.parse(url, agent=agent)
     version = p.get("version")
     if version is None:
         version = ""
     return version != ""
 
-def fetch_url(url):
+def fetch_url(url, agent=HTTP_AGENT):
     """Fetch the given URL and return the data from it as a Unicode string."""
 
     request = urllib2.Request(url)
+    request.add_header("User-Agent", agent)
     request.add_header("Accept-Encoding", "gzip")
 
     f = urllib2.urlopen(request)
@@ -118,14 +121,15 @@ class FeedFinder(HTMLParser.HTMLParser):
         if tag == 'a' and re.search(r'\b(rss|atom|rdf|feeds?)\b', href, re.I):
             self.add(100, href)
 
-def feeds(page_url):
-    """Search the given URL for possible feeds, returning a list of them."""
+def feeds(page_url, agent=HTTP_AGENT):
+    """Search the given URL for possible feeds, returning a list of them.
+    agent is the User-Agent for HTTP requests."""
 
     # If the URL is a feed, there's no need to scan it for links.
-    if is_feed(page_url):
+    if is_feed(page_url, agent):
         return [page_url]
 
-    data = fetch_url(page_url)
+    data = fetch_url(page_url, agent)
     parser = FeedFinder(page_url)
     try:
         parser.feed(data)
@@ -134,4 +138,4 @@ def feeds(page_url):
     found = parser.urls()
 
     # Return only feeds that feedparser can understand.
-    return [feed for feed in found if is_feed(feed)]
+    return [feed for feed in found if is_feed(feed, agent)]

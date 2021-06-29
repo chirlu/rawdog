@@ -1,5 +1,10 @@
 - rawdog 2.24
 
+feedscanner now sets User-Agent explicitly, so rawdog --add/--find use
+rawdog's User-Agent rather than the default one. As some blogging
+services block requests with the default Python User-Agent, this makes
+scanning a bit more effective.
+
 - rawdog 2.23
 
 rawdog now requires Python 2.7. Python 2.6 doesn't build with current

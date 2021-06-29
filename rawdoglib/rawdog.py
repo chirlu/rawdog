@@ -1,5 +1,5 @@
 # rawdog: RSS aggregator without delusions of grandeur.
-# Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019 Adam Sampson <ats@offog.org>
+# Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2021 Adam Sampson <ats@offog.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1160,7 +1160,7 @@ class AddFeedEditor:
 
 def add_feed(filename, url, rawdog, config):
 	"""Try to add a feed to the config file."""
-	feeds = rawdoglib.feedscanner.feeds(url)
+	feeds = rawdoglib.feedscanner.feeds(url, agent=HTTP_AGENT)
 	if feeds == []:
 		print >>sys.stderr, "Cannot find any feeds in " + url
 		return
@@ -1956,7 +1956,7 @@ def main(argv):
 			pprint.pprint(feedparser.parse(a, agent=HTTP_AGENT))
 			return 0
 		elif o == "--find":
-			feeds = rawdoglib.feedscanner.feeds(a)
+			feeds = rawdoglib.feedscanner.feeds(a, agent=HTTP_AGENT)
 			if len(feeds) == 0:
 				return 1
 			for url in feeds:

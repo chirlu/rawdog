@@ -22,54 +22,54 @@ import imp
 import os
 
 class Box:
-	"""Utility class that holds a mutable value. Useful for passing
-	immutable types by reference."""
-	def __init__(self, value=None):
-		self.value = value
+    """Utility class that holds a mutable value. Useful for passing
+    immutable types by reference."""
+    def __init__(self, value=None):
+        self.value = value
 
 plugin_count = 0
 
 def load_plugins(dir, config):
-	global plugin_count
+    global plugin_count
 
-	try:
-		files = os.listdir(dir)
-	except OSError:
-		# Ignore directories that can't be read.
-		return
+    try:
+        files = os.listdir(dir)
+    except OSError:
+        # Ignore directories that can't be read.
+        return
 
-	for file in files:
-		if file == "" or file[0] == ".":
-			continue
+    for file in files:
+        if file == "" or file[0] == ".":
+            continue
 
-		desc = None
-		for d in imp.get_suffixes():
-			if file.endswith(d[0]) and d[2] == imp.PY_SOURCE:
-				desc = d
-		if desc is None:
-			continue
+        desc = None
+        for d in imp.get_suffixes():
+            if file.endswith(d[0]) and d[2] == imp.PY_SOURCE:
+                desc = d
+        if desc is None:
+            continue
 
-		fn = os.path.join(dir, file)
-		config.log("Loading plugin ", fn)
-		f = open(fn, "r")
-		imp.load_module("plugin%d" % (plugin_count,), f, fn, desc)
-		plugin_count += 1
-		f.close()
+        fn = os.path.join(dir, file)
+        config.log("Loading plugin ", fn)
+        f = open(fn, "r")
+        imp.load_module("plugin%d" % (plugin_count,), f, fn, desc)
+        plugin_count += 1
+        f.close()
 
 attached = {}
 
 def attach_hook(hookname, func):
-	"""Attach a function to a hook. The function should take the
-	appropriate arguments for the hook, and should return either True or
-	False to indicate whether further functions should be processed."""
-	attached.setdefault(hookname, []).append(func)
+    """Attach a function to a hook. The function should take the
+    appropriate arguments for the hook, and should return either True or
+    False to indicate whether further functions should be processed."""
+    attached.setdefault(hookname, []).append(func)
 
 def call_hook(hookname, *args):
-	"""Call all the functions attached to a hook with the given
-	arguments, in the order they were added, stopping if a hook function
-	returns False. Returns True if any hook function returned False (i.e.
-	returns True if any hook function handled the request)."""
-	for func in attached.get(hookname, []):
-		if not func(*args):
-			return True
-	return False
+    """Call all the functions attached to a hook with the given
+    arguments, in the order they were added, stopping if a hook function
+    returns False. Returns True if any hook function returned False (i.e.
+    returns True if any hook function handled the request)."""
+    for func in attached.get(hookname, []):
+        if not func(*args):
+            return True
+    return False

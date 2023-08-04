@@ -14,13 +14,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from __future__ import print_function
 
-import cPickle as pickle
+import pickle
 import errno
 import fcntl
 import os
 import sys
+
 
 class Persistable:
     """An object which can be persisted."""
@@ -34,6 +34,7 @@ class Persistable:
 
     def is_modified(self):
         return self._modified
+
 
 class Persisted:
     """Context manager for a persistent object.  The object being persisted
@@ -56,7 +57,7 @@ class Persisted:
             try:
                 os.rename(self.filename + ext,
                           new_filename + ext)
-            except OSError, e:
+            except OSError as e:
                 # If the file doesn't exist (yet),
                 # that's OK.
                 if e.errno != errno.ENOENT:
@@ -109,7 +110,7 @@ class Persisted:
             if no_block:
                 mode |= fcntl.LOCK_NB
             fcntl.lockf(self.lock_file.fileno(), mode)
-        except IOError, e:
+        except IOError as e:
             if no_block and e.errno in (errno.EACCES, errno.EAGAIN):
                 return False
             raise e
@@ -146,7 +147,7 @@ class Persisted:
         if self.object.is_modified():
             self.persister.log("Saving state file: ", self.filename)
             newname = "%s.new-%d" % (self.filename, os.getpid())
-            newfile = open(newname, "w")
+            newfile = open(newname, "wb")
             pickle.dump(self.object, newfile, pickle.HIGHEST_PROTOCOL)
             newfile.close()
             os.rename(newname, self.filename)
@@ -154,6 +155,7 @@ class Persisted:
         if self.lock_file is not None:
             self.lock_file.close()
         self.persister._remove(self.filename)
+
 
 class Persister:
     """Manage the collection of persisted files."""

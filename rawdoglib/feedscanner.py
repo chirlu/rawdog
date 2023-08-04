@@ -16,6 +16,7 @@ Required: Python 2.4 or later, feedparser
 __license__ = """
 Copyright (c) 2008 Decklin Foster <decklin@red-bean.com>
 Copyright (c) 2013, 2015, 2021 Adam Sampson <ats@offog.org>
+Copyright (C) 2023 Kunal Mehta <legoktm@debian.org>
 
 Permission to use, copy, modify, and/or distribute this software for
 any purpose with or without fee is hereby granted, provided that
@@ -32,15 +33,15 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 """
 
-import cStringIO
-import feedparser
-import gzip
+import html.parser
 import re
-import urllib2
-import urlparse
-import HTMLParser
+from urllib.parse import urljoin
+
+import feedparser
+import requests
 
 HTTP_AGENT = "feedscanner/1.0"
+
 
 def is_feed(url, agent=HTTP_AGENT):
     """Return true if feedparser can understand the given URL as a feed."""
@@ -51,42 +52,23 @@ def is_feed(url, agent=HTTP_AGENT):
         version = ""
     return version != ""
 
-def fetch_url(url, agent=HTTP_AGENT):
+
+def fetch_url(url: str, agent=HTTP_AGENT) -> str:
     """Fetch the given URL and return the data from it as a Unicode string."""
+    req = requests.get(url, headers={"user-agent": agent})
+    req.raise_for_status()
+    return req.text
 
-    request = urllib2.Request(url)
-    request.add_header("User-Agent", agent)
-    request.add_header("Accept-Encoding", "gzip")
 
-    f = urllib2.urlopen(request)
-    headers = f.info()
-    data = f.read()
-    f.close()
-
-    # We have to support gzip encoding because some servers will use it
-    # even if you explicitly refuse it in Accept-Encoding.
-    encodings = headers.get("Content-Encoding", "")
-    encodings = [s.strip() for s in encodings.split(",")]
-    if "gzip" in encodings:
-        f = gzip.GzipFile(fileobj=cStringIO.StringIO(data))
-        data = f.read()
-        f.close()
-
-    # Silently ignore encoding errors -- we don't need to go to the bother of
-    # detecting the encoding properly (like feedparser does).
-    data = data.decode("UTF-8", "ignore")
-
-    return data
-
-class FeedFinder(HTMLParser.HTMLParser):
+class FeedFinder(html.parser.HTMLParser):
     def __init__(self, base_uri):
-        HTMLParser.HTMLParser.__init__(self)
+        html.parser.HTMLParser.__init__(self)
         self.found = []
         self.count = 0
         self.base_uri = base_uri
 
     def add(self, score, href):
-        url = urlparse.urljoin(self.base_uri, href)
+        url = urljoin(self.base_uri, href)
         lower = url.lower()
 
         # Some sites provide feeds both for entries and comments;
@@ -121,6 +103,7 @@ class FeedFinder(HTMLParser.HTMLParser):
         if tag == 'a' and re.search(r'\b(rss|atom|rdf|feeds?)\b', href, re.I):
             self.add(100, href)
 
+
 def feeds(page_url, agent=HTTP_AGENT):
     """Search the given URL for possible feeds, returning a list of them.
     agent is the User-Agent for HTTP requests."""
@@ -131,10 +114,7 @@ def feeds(page_url, agent=HTTP_AGENT):
 
     data = fetch_url(page_url, agent)
     parser = FeedFinder(page_url)
-    try:
-        parser.feed(data)
-    except HTMLParser.HTMLParseError:
-        pass
+    parser.feed(data)
     found = parser.urls()
 
     # Return only feeds that feedparser can understand.

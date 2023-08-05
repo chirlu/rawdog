@@ -14,9 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import base64
 import calendar
-import cgi
 import getopt
 import hashlib
 import locale
@@ -27,13 +25,16 @@ import string
 import sys
 import threading
 import time
+import traceback
 import urllib.error
 import urllib.parse
 import urllib.parse
 import urllib.request
-from io import StringIO
+from io import StringIO, BytesIO
+from html import escape as html_escape
 
 import feedparser
+import requests
 from feedparser.urls import resolve_relative_uris
 from feedparser.sanitizer import _HTMLSanitizer as HTMLSanitizer
 
@@ -209,9 +210,9 @@ def detail_to_html(details, inline, config, force_preformatted=False):
         return None
 
     if force_preformatted:
-        html = "<pre>" + cgi.escape(detail["value"]) + "</pre>"
+        html = "<pre>" + html_escape(detail["value"]) + "</pre>"
     elif detail["type"] == "text/plain":
-        html = cgi.escape(detail["value"])
+        html = html_escape(detail["value"])
     else:
         html = detail["value"]
 
@@ -245,7 +246,7 @@ def author_to_html(entry, feedurl, config):
     if url is None:
         html = name
     else:
-        html = "<a href=\"" + cgi.escape(url) + "\">" + cgi.escape(name) + "</a>"
+        html = "<a href=\"" + html_escape(url) + "\">" + html_escape(name) + "</a>"
 
     # We shouldn't need a base URL here anyway.
     return sanitise_html(html, feedurl, True, config)
@@ -253,7 +254,7 @@ def author_to_html(entry, feedurl, config):
 
 def string_to_html(s, config):
     """Convert a string to HTML."""
-    return sanitise_html(cgi.escape(s), "", True, config)
+    return sanitise_html(html_escape(s), "", True, config)
 
 
 template_re = re.compile(r'(__[^_].*?__)')
@@ -285,10 +286,7 @@ def fill_template(template, bits):
                 if if_stack:
                     if_stack.append(not if_stack.pop())
             elif key in bits:
-                if type(bits[key]) == str:
-                    write(bits[key].encode())
-                else:
-                    write(bits[key])
+                write(bits[key])
         else:
             write(part)
     v = f.getvalue()
@@ -316,10 +314,10 @@ def load_file(name):
     return file_cache[name]
 
 
-def short_hash(s):
+def short_hash(s: str):
     # FIXME: is this a good idea?
     """Return a human-manipulatable 'short hash' of a string."""
-    return hashlib.sha1(s).hexdigest()[-8:]
+    return hashlib.sha1(s.encode()).hexdigest()[-8:]
 
 
 def ensure_unicode(value, encoding):
@@ -327,7 +325,7 @@ def ensure_unicode(value, encoding):
     all strings are represented as fully-decoded unicode objects."""
 
     if isinstance(value, str):
-        pass
+        return value
     elif isinstance(value, str) and type(value) is not str:
         # This is a subclass of unicode (e.g.  BeautifulSoup's
         # NavigableString, which is unpickleable in some versions of
@@ -342,34 +340,6 @@ def ensure_unicode(value, encoding):
         return [ensure_unicode(v, encoding) for v in value]
     else:
         return value
-
-
-timeout_re = re.compile(r'timed? ?out', re.I)
-
-
-def is_timeout_exception(exc):
-    """Return True if the given exception object suggests that a timeout
-    occurred, else return False."""
-
-    if exc is None:
-        return False
-
-    if isinstance(exc, socket.timeout):
-        return True
-
-    # Since urlopen throws away the original exception object,
-    # we have to look at the stringified form to tell if it was a timeout.
-    # (We're in reasonable company here, since test_ssl.py in the Python
-    # distribution does the same thing!)
-    #
-    # The message we're looking for is something like:
-    # Stock Python 2.7.7 and 2.7.8:
-    #   <urlopen error _ssl.c:495: The handshake operation timed out>
-    # Debian python 2.7.3-4+deb7u1:
-    #   <urlopen error _ssl.c:489: The handshake operation timed out>
-    # Debian python 2.7.8-1:
-    #   <urlopen error ('_ssl.c:563: The handshake operation timed out',)>
-    return timeout_re.search(str(exc)) is not None
 
 
 # FIXME: port this to requests
@@ -431,15 +401,17 @@ class Feed:
         logger = ResponseLogProcessor()
         handlers.append(logger)
 
-        proxies = {}
-
+        request_headers = {"user-agent": HTTP_AGENT}
         if self.get_keepmin(config) == 0 or config["currentonly"]:
             # If RFC 3229 and "A-IM: feed" is used, then there's
             # no way to tell when an article has been removed.
             # So if we only want to keep articles that are still
             # being published by the feed, we have to turn it off.
             # FIXME: set "A-IM: identity" header here
-            pass
+            request_headers["a-im"] = "identity"
+        if self.etag:
+            request_headers["if-none-match"] = self.etag
+        # FIXME support if-modified-since / self.modified
 
         url = self.url
         # Turn plain filenames into file: URLs. (feedparser will open
@@ -447,37 +419,37 @@ class Feed:
         # urllib2 so we get a URLError if something goes wrong.)
         if ":" not in url:
             # um wtf? FIXME
-            url = "file:" + url
-
-        parse_args = {
-            "etag": self.etag,
-            "modified": self.modified,
-            "agent": HTTP_AGENT,
-            "handlers": handlers,
-        }
+            raise RuntimeError(f"No protocol specified in URL: {url}")
 
         try:
-            # Turn off content-cleaning, as we need the original content
-            # for hashing and we'll do this ourselves afterwards.
-            result = feedparser.parse(url, sanitize_html=False, resolve_relative_uris=False)
+            req = requests.get(url, headers=request_headers)
+        except requests.exceptions.Timeout as err:
+            return {"rawdog_timeout": err}
+        except requests.exceptions.RequestException as err:
+            return {
+                "rawdog_exception": err,
+                "rawdog_traceback": traceback.format_exc()
+            }
 
-            # Older versions of feedparser return some kinds of
-            # download errors in bozo_exception rather than raising
-            # them from feedparser.parse. Normalise this.
-            e = result.get("bozo_exception")
-            if is_timeout_exception(e):
-                result = {"rawdog_timeout": e}
-            elif isinstance(e, urllib.error.URLError):
-                result = {"rawdog_exception": e}
+        try:
+            result = feedparser.parse(
+                BytesIO(req.content),
+                # Turn off content-cleaning, as we need the original content
+                # for hashing and we'll do this ourselves afterwards.
+                sanitize_html=False,
+                resolve_relative_uris=False,
+            )
         except Exception as e:
-            if is_timeout_exception(e):
-                result = {"rawdog_timeout": e}
-            else:
-                result = {
-                    "rawdog_exception": e,
-                    "rawdog_traceback": sys.exc_info()[2],
-                }
-        result["rawdog_responses"] = logger.get_log()
+            result = {
+                "rawdog_exception": e,
+                "rawdog_traceback": traceback.format_exc(),
+            }
+        result["rawdog_responses"] = [
+            {
+                "url": req.url,
+                "status": req.status_code,
+            }
+        ]
         return result
 
     def update(self, rawdog, now, config, articles, p) -> bool:
@@ -506,36 +478,6 @@ class Feed:
         errors = []
         fatal = False
         old_url = self.url
-
-        if len(responses) != 0 and responses[0]["status"] == 301:
-            # Permanent redirect(s). Find the new location.
-            i = 0
-            while i < len(responses) and responses[i]["status"] == 301:
-                i += 1
-            location = responses[i - 1].get("location")
-
-            # According to RFC 2616, the Location header should be
-            # an absolute URI. This doesn't stop the occasional
-            # server sending something like "Location: /" or
-            # "Location: //foo/bar". It's usually a sign of
-            # brokenness, so fail rather than trying to interpret
-            # it liberally.
-            valid_uri = True
-            if location is not None:
-                parsed = urllib.parse.urlparse(location)
-                if parsed.scheme == "" or parsed.netloc == "":
-                    valid_uri = False
-
-            if not valid_uri:
-                errors.append("New URL:     " + location)
-                errors.append("The feed returned a permanent redirect, but with an invalid new location.")
-            elif location is None:
-                errors.append("The feed returned a permanent redirect, but without a new location.")
-            else:
-                errors.append("New URL:     " + location)
-                errors.append("The feed has moved permanently to a new URL.")
-                errors.append("You should update its entry in your config file.")
-            errors.append("")
 
         if "rawdog_timeout" in p:
             if config["ignoretimeouts"]:
@@ -1538,7 +1480,7 @@ __feeditems__
                 "feed_title": feed.get_html_link(config),
                 "feed_title_no_link": detail_to_html(feed.feed_info.get("title_detail"), True, config),
                 "feed_url": string_to_html(feed.url, config),
-                "feed_icon": '<a class="xmlbutton" href="' + cgi.escape(feed.url) + '">XML</a>',
+                "feed_icon": '<a class="xmlbutton" href="' + html_escape(feed.url) + '">XML</a>',
                 "feed_last_update": format_time(feed.last_update, config),
                 "feed_next_update": format_time(feed.last_update + feed.period, config)}
         return bits

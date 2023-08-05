@@ -58,7 +58,7 @@ HTTP_AGENT = "rawdog/" + VERSION
 STATE_VERSION = 2
 
 # This is initialised in main().
-persister = None
+persister: Persister = None
 
 
 def safe_ftime(format, t):
@@ -1096,7 +1096,6 @@ class FeedFetcher:
 
             config.log("[", num, "] Fetching feed: ", job)
             feed = rawdog.feeds[job]
-            call_hook("pre_update_feed", rawdog, config, feed)
             result = feed.fetch(rawdog, config)
 
             with self.lock:
@@ -1139,15 +1138,6 @@ class Rawdog(Persistable):
         self.state_version = STATE_VERSION
         self.using_splitstate = None
 
-    def get_plugin_storage(self, plugin):
-        try:
-            st = self.plugin_storage.setdefault(plugin, {})
-        except AttributeError:
-            # rawdog before 2.5 didn't have plugin storage.
-            st = {}
-            self.plugin_storage = {plugin: st}
-        return st
-
     def check_state_version(self):
         """Check the version of the state file."""
         try:
@@ -1156,37 +1146,6 @@ class Rawdog(Persistable):
             # rawdog 1.x didn't keep track of this.
             version = 1
         return version == STATE_VERSION
-
-    def change_feed_url(self, oldurl, newurl, config, error_fn):
-        """Change the URL of a feed."""
-
-        assert oldurl in self.feeds
-        if newurl in self.feeds:
-            error_fn("Error: New feed URL is already subscribed; please remove the old one")
-            error_fn("from the config file by hand.")
-            return
-
-        feed = self.feeds[oldurl]
-        # Changing the URL will change the state filename as well,
-        # so we need to save the old name to load from.
-        old_state = feed.get_state_filename()
-        feed.url = newurl
-        del self.feeds[oldurl]
-        self.feeds[newurl] = feed
-
-        if config["splitstate"]:
-            feedstate_p = persister.get(FeedState, old_state)
-            feedstate_p.rename(feed.get_state_filename())
-            with feedstate_p as feedstate:
-                for article in list(feedstate.articles.values()):
-                    article.feed = newurl
-                feedstate.modified()
-        else:
-            for article in list(self.articles.values()):
-                if article.feed == oldurl:
-                    article.feed = newurl
-
-        error_fn("The config file has been updated automatically.")
 
     def list(self, config):
         """List the configured feeds."""
@@ -1206,8 +1165,7 @@ class Rawdog(Persistable):
         if config["splitstate"]:
             try:
                 os.mkdir("feeds")
-            except OSError:
-                # Most likely it already exists.
+            except FileExistsError:
                 pass
 
         # Convert to or from splitstate if necessary.
@@ -1331,7 +1289,6 @@ class Rawdog(Persistable):
                         and url in self.feeds
                         and article.can_expire(now, config)
                         and feedcounts[url] > self.feeds[url].get_keepmin(config)):
-                    call_hook("article_expired", self, config, article, now)
                     count += 1
                     feedcounts[url] -= 1
                     del articles[key]
@@ -1353,10 +1310,8 @@ class Rawdog(Persistable):
                 articles = self.articles
 
             content = fetched[url]
-            call_hook("mid_update_feed", self, config, feed, content)
             rc = feed.update(self, now, config, articles, content)
             url = feed.url
-            call_hook("post_update_feed", self, config, feed, rc)
             if rc:
                 seen_some_items.add(url)
                 if config["splitstate"]:
@@ -1530,7 +1485,6 @@ __feeditems__
         else:
             itembits["date"] = ""
 
-        call_hook("output_item_bits", self, config, feed, article, itembits)
         itemtemplate = self.get_template(config, "item")
         f.write(fill_template(itemtemplate, itembits))
 
@@ -1580,15 +1534,13 @@ __feeditems__
     def get_feed_bits(self, config, feed):
         """Get the bits that are used to describe a feed."""
 
-        bits = {}
-        bits["feed_id"] = feed.get_id(config)
-        bits["feed_hash"] = short_hash(feed.url)
-        bits["feed_title"] = feed.get_html_link(config)
-        bits["feed_title_no_link"] = detail_to_html(feed.feed_info.get("title_detail"), True, config)
-        bits["feed_url"] = string_to_html(feed.url, config)
-        bits["feed_icon"] = '<a class="xmlbutton" href="' + cgi.escape(feed.url) + '">XML</a>'
-        bits["feed_last_update"] = format_time(feed.last_update, config)
-        bits["feed_next_update"] = format_time(feed.last_update + feed.period, config)
+        bits = {"feed_id": feed.get_id(config), "feed_hash": short_hash(feed.url),
+                "feed_title": feed.get_html_link(config),
+                "feed_title_no_link": detail_to_html(feed.feed_info.get("title_detail"), True, config),
+                "feed_url": string_to_html(feed.url, config),
+                "feed_icon": '<a class="xmlbutton" href="' + cgi.escape(feed.url) + '">XML</a>',
+                "feed_last_update": format_time(feed.last_update, config),
+                "feed_next_update": format_time(feed.last_update + feed.period, config)}
         return bits
 
     def write_feeditem(self, f, feed, config):
@@ -1634,22 +1586,18 @@ __feeditems__
         """Write a regular rawdog HTML output file."""
         f = StringIO()
         dw = DayWriter(f, config)
-        call_hook("output_items_begin", self, config, f)
 
         for article in articles:
-            if not call_hook("output_items_heading", self, config, f, article, article_dates[article]):
-                dw.time(article_dates[article])
+            dw.time(article_dates[article])
 
             self.write_article(f, article, config)
 
         dw.close()
-        call_hook("output_items_end", self, config, f)
 
         bits = self.get_main_template_bits(config)
         bits["items"] = f.getvalue()
         f.close()
         bits["num_items"] = str(len(articles))
-        call_hook("output_bits", self, config, bits)
         s = fill_template(self.get_template(config, "page"), bits)
         outputfile = config["outputfile"]
         if outputfile == "-":
@@ -1679,8 +1627,7 @@ __feeditems__
             article_list = list_articles(self.articles)
         numarticles = len(article_list)
 
-        if not call_hook("output_sort_articles", self, config, article_list):
-            article_list.sort()
+        article_list.sort()
 
         if config["maxarticles"] != 0:
             article_list = article_list[:config["maxarticles"]]
@@ -1688,7 +1635,7 @@ __feeditems__
         if config["splitstate"]:
             wanted = {}
             for (date, feed_url, seq, hash) in article_list:
-                if not feed_url in self.feeds:
+                if feed_url not in self.feeds:
                     # This can happen if you've managed to
                     # kill rawdog between it updating a
                     # split state file and the main state
@@ -1717,16 +1664,12 @@ __feeditems__
         # KEEP THIS HOOK for rss.py plugin
         call_hook("output_write", self, config, articles)
 
-        if not call_hook("output_sorted_filter", self, config, articles):
-            (articles, dup_count) = self.write_remove_dups(articles, config, now)
-        else:
-            dup_count = 0
+        (articles, dup_count) = self.write_remove_dups(articles, config, now)
 
         config.log("Selected ", len(articles), " of ", numarticles, " articles to write; ignored ", dup_count,
                    " duplicates")
 
-        if not call_hook("output_write_files", self, config, articles, article_dates):
-            self.write_output_file(articles, article_dates, config)
+        self.write_output_file(articles, article_dates, config)
 
         config.log("Finished write")
 
@@ -1876,8 +1819,6 @@ def main(argv):
         return 1
 
     rawdog.sync_from_config(config)
-
-    call_hook("startup", rawdog, config)
 
     for o, a in optlist:
         if o in ("-c", "--config"):

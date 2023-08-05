@@ -372,38 +372,7 @@ def is_timeout_exception(exc):
     return timeout_re.search(str(exc)) is not None
 
 
-class BasicAuthProcessor(urllib.request.BaseHandler):
-    """urllib2 handler that does HTTP basic authentication
-    or proxy authentication with a fixed username and password.
-    (Unlike the classes to do this in urllib2, this doesn't wait
-    for a 401/407 response first.)"""
-
-    def __init__(self, user, password, proxy=False):
-        self.auth = base64.b64encode(user + ":" + password)
-        if proxy:
-            self.header = "Proxy-Authorization"
-        else:
-            self.header = "Authorization"
-
-    def http_request(self, req):
-        req.add_header(self.header, "Basic " + self.auth)
-        return req
-
-    https_request = http_request
-
-
-class DisableIMProcessor(urllib.request.BaseHandler):
-    """urllib2 handler that disables RFC 3229 for a request."""
-
-    def http_request(self, req):
-        # Request doesn't provide a method for removing headers --
-        # so overwrite the header instead.
-        req.add_header("A-IM", "identity")
-        return req
-
-    https_request = http_request
-
-
+# FIXME: port this to requests
 class ResponseLogProcessor(urllib.request.BaseHandler):
     """urllib2 handler that maintains a log of HTTP responses."""
 
@@ -463,32 +432,21 @@ class Feed:
         handlers.append(logger)
 
         proxies = {}
-        for name, value in list(self.args.items()):
-            if name.endswith("_proxy"):
-                proxies[name[:-6]] = value
-        if len(proxies) != 0:
-            handlers.append(urllib.request.ProxyHandler(proxies))
-
-        if "proxyuser" in self.args and "proxypassword" in self.args:
-            handlers.append(BasicAuthProcessor(self.args["proxyuser"], self.args["proxypassword"], proxy=True))
-
-        if "user" in self.args and "password" in self.args:
-            handlers.append(BasicAuthProcessor(self.args["user"], self.args["password"]))
 
         if self.get_keepmin(config) == 0 or config["currentonly"]:
             # If RFC 3229 and "A-IM: feed" is used, then there's
             # no way to tell when an article has been removed.
             # So if we only want to keep articles that are still
             # being published by the feed, we have to turn it off.
-            handlers.append(DisableIMProcessor())
-
-        call_hook("add_urllib2_handlers", rawdog, config, self, handlers)
+            # FIXME: set "A-IM: identity" header here
+            pass
 
         url = self.url
         # Turn plain filenames into file: URLs. (feedparser will open
         # plain filenames itself, but we want it to open the file with
         # urllib2 so we get a URLError if something goes wrong.)
-        if not ":" in url:
+        if ":" not in url:
+            # um wtf? FIXME
             url = "file:" + url
 
         parse_args = {
@@ -497,23 +455,11 @@ class Feed:
             "agent": HTTP_AGENT,
             "handlers": handlers,
         }
-        # Turn off content-cleaning, as we need the original content
-        # for hashing and we'll do this ourselves afterwards.
-        if hasattr(feedparser, "api"):
-            # feedparser >= 5.3
-            parse_args["sanitize_html"] = False
-            parse_args["resolve_relative_uris"] = False
-        else:
-            # feedparser < 5.3
-            feedparser.RESOLVE_RELATIVE_URIS = 0
-            feedparser.SANITIZE_HTML = 0
-            # Microformat support (removed in 5.3) tends to return
-            # poor-quality data, and relies on BeautifulSoup which
-            # is unable to parse many feeds.
-            feedparser.PARSE_MICROFORMATS = 0
 
         try:
-            result = feedparser.parse(url, **parse_args)
+            # Turn off content-cleaning, as we need the original content
+            # for hashing and we'll do this ourselves afterwards.
+            result = feedparser.parse(url, sanitize_html=False, resolve_relative_uris=False)
 
             # Older versions of feedparser return some kinds of
             # download errors in bozo_exception rather than raising
@@ -532,15 +478,9 @@ class Feed:
                     "rawdog_traceback": sys.exc_info()[2],
                 }
         result["rawdog_responses"] = logger.get_log()
-
-        # For compatibility with old hooks, include an empty "feed"
-        # if a timeout occurred.
-        if "rawdog_timeout" in result:
-            result["feed"] = []
-
         return result
 
-    def update(self, rawdog, now, config, articles, p):
+    def update(self, rawdog, now, config, articles, p) -> bool:
         """Add new articles from a feed to the collection.
         Returns True if any articles were read, False otherwise."""
 
@@ -559,9 +499,7 @@ class Feed:
             # Timeout, or empty response from non-HTTP.
             last_status = 0
 
-        version = p.get("version")
-        if version is None:
-            version = ""
+        version = p.get("version", "")
 
         self.last_update = now
 
@@ -596,10 +534,7 @@ class Feed:
             else:
                 errors.append("New URL:     " + location)
                 errors.append("The feed has moved permanently to a new URL.")
-                if config["changeconfig"]:
-                    rawdog.change_feed_url(self.url, location, config, errors.append)
-                else:
-                    errors.append("You should update its entry in your config file.")
+                errors.append("You should update its entry in your config file.")
             errors.append("")
 
         if "rawdog_timeout" in p:
@@ -643,9 +578,6 @@ class Feed:
             errors.append("")
             fatal = True
 
-        old_error = "\n".join(errors)
-        call_hook("feed_fetched", rawdog, config, self, p, old_error, not fatal)
-
         if len(errors) != 0:
             config.warn("Feed:        ", old_url)
             if last_status != 0:
@@ -683,10 +615,6 @@ class Feed:
         sequence = 0
         for entry_info in p["entries"]:
             article = Article(feed, entry_info, now, sequence)
-            ignore = Box(False)
-            call_hook("article_seen", rawdog, config, article, ignore)
-            if ignore.value:
-                continue
             seen_articles.add(article.hash)
             sequence += 1
 
@@ -700,10 +628,8 @@ class Feed:
 
             if existing_article is not None:
                 existing_article.update_from(article, now)
-                call_hook("article_updated", rawdog, config, existing_article, now)
             else:
                 articles[article.hash] = article
-                call_hook("article_added", rawdog, config, article, now)
 
         if config["currentonly"]:
             for (hash, a) in list(articles.items()):
@@ -775,7 +701,7 @@ class Article:
         h = hashlib.sha1()
 
         def add_hash(s):
-            h.update(s.encode("UTF-8"))
+            h.update(s.encode())
 
         add_hash(self.feed)
         entry_info = self.entry_info
@@ -1143,92 +1069,7 @@ class Config:
         self.warn("Please send this error message and your config file to the rawdog author.")
 
 
-def edit_file(filename, editfunc):
-    """Edit a file in place: for each line in the input file, call
-    editfunc(line, outputfile), then rename the output file over the input
-    file."""
-    newname = "%s.new-%d" % (filename, os.getpid())
-    oldfile = open(filename, "r")
-    newfile = open(newname, "w")
-    editfunc(oldfile, newfile)
-    newfile.close()
-    oldfile.close()
-    os.rename(newname, filename)
 
-
-class AddFeedEditor:
-    def __init__(self, feedline):
-        self.feedline = feedline
-
-    def edit(self, inputfile, outputfile):
-        d = inputfile.read()
-        outputfile.write(d)
-        if not d.endswith("\n"):
-            outputfile.write("\n")
-        outputfile.write(self.feedline)
-
-
-def add_feed(filename, url, rawdog, config):
-    """Try to add a feed to the config file."""
-    feeds = rawdoglib.feedscanner.feeds(url, agent=HTTP_AGENT)
-    if feeds == []:
-        config.warn("Cannot find any feeds in ", url)
-        return
-
-    feed = feeds[0]
-    if feed in rawdog.feeds:
-        config.warn("Feed ", feed, " is already in the config file")
-        return
-
-    config.warn("Adding feed ", feed)
-    feedline = "feed %s %s\n" % (config["newfeedperiod"], feed)
-    edit_file(filename, AddFeedEditor(feedline).edit)
-
-
-class ChangeFeedEditor:
-    def __init__(self, oldurl, newurl):
-        self.oldurl = oldurl
-        self.newurl = newurl
-
-    def edit(self, inputfile, outputfile):
-        for line in inputfile:
-            ls = line.strip().split(None)
-            if len(ls) > 2 and ls[0] == "feed" and ls[2] == self.oldurl:
-                line = line.replace(self.oldurl, self.newurl, 1)
-            outputfile.write(line)
-
-
-class RemoveFeedEditor:
-    def __init__(self, url):
-        self.url = url
-
-    def edit(self, inputfile, outputfile):
-        while True:
-            l = inputfile.readline()
-            if l == "":
-                break
-            ls = l.strip().split(None)
-            if len(ls) > 2 and ls[0] == "feed" and ls[2] == self.url:
-                while True:
-                    l = inputfile.readline()
-                    if l == "":
-                        break
-                    elif l[0] == "#":
-                        outputfile.write(l)
-                    elif l[0] not in string.whitespace:
-                        outputfile.write(l)
-                        break
-            else:
-                outputfile.write(l)
-
-
-def remove_feed(filename, url, config):
-    """Try to remove a feed from the config file."""
-    if url not in [f[0] for f in config["feedslist"]]:
-        config.warn("Feed ", url, " is not in the config file")
-    else:
-        config.warn("Removing feed ", url)
-        edit_file(filename, RemoveFeedEditor(url).edit)
 
 
 class FeedFetcher:
@@ -1324,8 +1165,6 @@ class Rawdog(Persistable):
             error_fn("Error: New feed URL is already subscribed; please remove the old one")
             error_fn("from the config file by hand.")
             return
-
-        edit_file("config", ChangeFeedEditor(oldurl, newurl).edit)
 
         feed = self.feeds[oldurl]
         # Changing the URL will change the state filename as well,
@@ -2041,11 +1880,7 @@ def main(argv):
     call_hook("startup", rawdog, config)
 
     for o, a in optlist:
-        if o in ("-a", "--add"):
-            add_feed("config", a, rawdog, config)
-            config.reload()
-            rawdog.sync_from_config(config)
-        elif o in ("-c", "--config"):
+        if o in ("-c", "--config"):
             rc = load_config(a)
             if rc != 0:
                 return rc
@@ -2054,10 +1889,6 @@ def main(argv):
             rawdog.update(config, a)
         elif o in ("-l", "--list"):
             rawdog.list(config)
-        elif o in ("-r", "--remove"):
-            remove_feed("config", a, config)
-            config.reload()
-            rawdog.sync_from_config(config)
         elif o in ("-s", "--show"):
             rawdog.show_template(a, config)
         elif o in ("-t", "--show-template"):
